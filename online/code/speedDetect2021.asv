@@ -1,0 +1,477 @@
+%%
+% --- Ana revision 08/22/2022 --- just check; nothing changed
+% --- Ana revision 06/20/2022 --- tiny revision;
+% --- Ana revision 06/16/2022 --- opts.DataRange = 'A2';
+% --- Ana revision 06/13/2022 --- reverted to high precision w/o exclusions
+% --- Ana revision 05/30/2022 --- no change; just check
+% --- Ana revision 05/23/2022 --- removed excelSheetNum from input vars +
+% some minor spellings + thresholds (exclusion of tiny events)
+% --- Ana revision 05/12/2022 --- xlsread replacement
+% --- Ana 11/19/2021 ---
+
+function [fTrial, fTrialSpeed] = speedDetect2021(processedDir, excelfilename, rowsOfInterest)
+
+%[fTrial, fTrialBehav1, fTrialSpeed] = speedDetect2021(processedDir,
+%excelfilename, rowsOfInterest)%original
+% --- Load vars ---
+expFiles = dir(processedDir);
+expFiles = expFiles(~strncmpi('.', {expFiles.name}, 1));
+
+opts = detectImportOptions(excelfilename); opts.DataRange = 'A2';
+text = readmatrix(excelfilename, opts);
+
+header = opts.VariableNames;
+for i = 1:numel(header)
+    if ~isempty(header{i})
+        header{i} = strrep(header{i},' ','');
+        param.(header{i}) = text(1:end,i);
+    end
+end
+shift = 1;
+clear i opts header text
+
+for m = 1:numel(rowsOfInterest)
+    
+    k = rowsOfInterest(m)-shift;
+    
+    disp(['---Processing Line' num2str(k+shift) '---'])
+    
+    currExp = expFiles(contains({expFiles.name}, param.Animal{k}) == 1 & contains({expFiles.name}, param.Date{k}) == 1 & contains({expFiles.name}, param.ExpDivision{k}) == 1);
+    currExpPlane = currExp(1);
+    currExpVars = dir([currExpPlane.folder '\' currExpPlane.name '\*vars.mat']);
+    behavVars = dir([currExpPlane.folder '\' currExpPlane.name '\*Events.mat']);
+    groupVars = dir([currExpPlane.folder '\' currExpPlane.name '\*groups.mat']);%%added by Hari
+    clear currExp currExpPlane
+    
+    load([currExpVars.folder '\' currExpVars.name], 'fTrial', 'fR','iscell')
+% load([behavVars.folder '\' behavVars.name], 'fTrialBehav1')%By Hari
+    load([currExpVars.folder '\' groupVars.name], 'groups')%% added by Hari
+    
+    clear behavVars
+    
+    %%
+    fTrialSpeed = [];
+    f = fields(fTrial);
+     for t = 1:length(f)
+        
+        fieldname = char(f(t));
+        
+        % Calculate speed/LedCl individual bouts with maximum precision
+        temp = fTrial.(fieldname).fSpeed-min(fTrial.(fieldname).fSpeed);
+        peaks = find(temp > 0.008); %0.002% need accuracy to start with, else I won't have precise onsets and offsets
+        dt = [0; diff(peaks)];
+        shifted = dt < 2; % fR;%2
+        shifted = [false;  shifted(2:end)];
+        tags = diff([shifted; false]);
+        starts = tags>0;
+        ends = tags<0;
+        fTrialSpeed.(fieldname).onsets1 = peaks(starts);
+        fTrialSpeed.(fieldname).offsets1 = peaks(ends);
+        %% By Hari to remove the small bout
+
+        offset1_minus_onset1=[fTrialSpeed.(fieldname).offsets1]-[fTrialSpeed.(fieldname).onsets1];
+        offset1_minus_onset1_idx=find(offset1_minus_onset1<30); %% remove the bout of one second time window
+      
+        onset1rev=fTrialSpeed.(fieldname).onsets1 ;
+        offset1rev=fTrialSpeed.(fieldname).offsets1 ;
+        onset1rev(offset1_minus_onset1_idx)=[];
+        offset1rev(offset1_minus_onset1_idx)=[];
+
+        fTrialSpeed.(fieldname).onsets1 = onset1rev;
+        fTrialSpeed.(fieldname).offsets1 = offset1rev;
+        % Join bouts that are less than 0.5s part ("behavioral bout")
+        peaks = find(temp > 0.008);%%0.002
+        dt = [0; diff(peaks)];
+        shifted = dt < round(fR/2);
+        shifted = [false;  shifted(2:end)];
+        
+        tags = diff([shifted; false]);
+        starts = tags>0;
+        ends = tags<0;
+        fTrialSpeed.(fieldname).onsets2 = peaks(starts);
+        fTrialSpeed.(fieldname).offsets2 = peaks(ends);
+        clear peaks dt shifted tags starts ends
+        
+        % Remove tiny movements/jitters of wheel; I considered doing this
+        % before or after joining the events into "behavioral bouts", but just
+        % keep it like this at the moment; the following parameters were set
+        % after studying the data for consistency with previously definied
+        % behavioral events starting from the whiskers
+        %%commenst by Hari from 86-262
+%         if isempty(fTrialSpeed.(fieldname).onsets2)
+%             fTrialSpeed.(fieldname).exclusion        = [];
+%             fTrialSpeed.(fieldname).onsets3          = [];
+%             fTrialSpeed.(fieldname).offsets3         = [];
+%             fTrialSpeed.(fieldname).whiskLocoOn      = [];
+%             fTrialSpeed.(fieldname).whiskLocoOff     = [];
+%             fTrialSpeed.(fieldname).assign           = [];
+%             fTrialSpeed.(fieldname).finalWhiskLocoOn = [];
+%             fTrialSpeed.(fieldname).finalSpeedOns    = [];
+%             fTrialSpeed.(fieldname).finalSpeedOffs   = [];
+%             fTrialSpeed.(fieldname).finalVectors     = [];
+%             fTrialSpeed.(fieldname).includedConcat   = [];
+%             fTrialSpeed.(fieldname).forPlotting      = [];
+%         else
+%             exclusion = [];
+%             for event = 1:size(fTrialSpeed.(fieldname).onsets2,1)
+%                 
+%                 onBout = fTrialSpeed.(fieldname).onsets2(event,1);
+%                 offBout = fTrialSpeed.(fieldname).offsets2(event,1);
+%                 
+%                 exclusion(event,1) = offBout - onBout + 1; % Note that for this duration is inconsistent
+%                 exclusion(event,2) = mean(temp(onBout:offBout));
+%                 exclusion(event,3) = max(temp(onBout:offBout));
+%                 
+%                 if exclusion(event,1) > round(fR)*2 && exclusion(event,2) > 0.050
+%                     exclusion(event,4) = 0;
+%                 else
+%                     exclusion(event,4) = 1;
+%                 end
+%             end
+%             clear event on off
+%             
+%             if isempty(find(exclusion(:,4)==0, 1))
+%                 fTrialSpeed.(fieldname).exclusion        = exclusion;
+%                 fTrialSpeed.(fieldname).onsets3          = [];
+%                 fTrialSpeed.(fieldname).offsets3         = [];
+%                 fTrialSpeed.(fieldname).whiskLocoOn      = [];
+%                 fTrialSpeed.(fieldname).whiskLocoOff     = [];
+%                 fTrialSpeed.(fieldname).assign           = [];
+%                 fTrialSpeed.(fieldname).finalWhiskLocoOn = [];
+%                 fTrialSpeed.(fieldname).finalSpeedOns    = [];
+%                 fTrialSpeed.(fieldname).finalSpeedOffs   = [];
+%                 fTrialSpeed.(fieldname).finalVectors     = [];
+%                 fTrialSpeed.(fieldname).includedConcat   = [];
+%                 fTrialSpeed.(fieldname).forPlotting      = [];
+%             else
+%                 fTrialSpeed.(fieldname).exclusion = exclusion;
+%                 fTrialSpeed.(fieldname).onsets3   = fTrialSpeed.(fieldname).onsets2(exclusion(:,4)==0,1);
+%                 fTrialSpeed.(fieldname).offsets3  = fTrialSpeed.(fieldname).offsets2(exclusion(:,4)==0,1);
+%                 
+%                 % Go back to the original whiskLoco events (need it for baseline)
+%                 %c by Hari 139-142
+% %                 whiskLocoOn  = fTrialBehav1.(fieldname).onsets2(fTrialBehav1.(fieldname).runInd == 1);
+% %                 whiskLocoOff = fTrialBehav1.(fieldname).offsets2(fTrialBehav1.(fieldname).runInd == 1);
+% %                 fTrialSpeed.(fieldname).whiskLocoOn  = whiskLocoOn;
+% %                 fTrialSpeed.(fieldname).whiskLocoOff = whiskLocoOff;
+% 
+%                 % whiskLocoDur = whiskLocoOff - whiskLocoOn;
+%                 % whiskLocoOn  = whiskLocoOn(whiskLocoDur>round(fR*2.5));
+%                 % whiskLocoOff = whiskLocoOff(whiskLocoDur>round(fR*2.5));
+%                 
+%                 % Note that if an event comes from the previous trial, it is possible
+%                 % that the speedOn is one point less that the whiskOn (see for example
+%                 % 316 0304 Trial030; however, because anyway I wonly take events which
+%                 % have at least whiskOn-0.5s baseline, it is fine).
+%                 %%comments by hari 153-164
+%                  assign = [];
+%                  assign(1:size(fTrialSpeed.(fieldname).onsets3,1),1) = NaN;
+%                 for l = 1:size(fTrialSpeed.(fieldname).onsets3,1)
+%                     for ll = 1:size(whiskLocoOn,1)
+%                         if fTrialSpeed.(fieldname).onsets3(l,1)>=whiskLocoOn(ll,1) && fTrialSpeed.(fieldname).onsets3(l,1)<=whiskLocoOff(ll,1)
+%                             assign(l,1) = ll;
+%                         end
+%                     end
+%                     if isnan(assign(l,1)) %sometimes the detected whisk onset is just 1 point after the detected speed onset; just find closest whisk (inspect visually)
+%                         assign(l,1) = find(abs(whiskLocoOn - fTrialSpeed.(fieldname).onsets3(l,1)) == min(abs(whiskLocoOn - fTrialSpeed.(fieldname).onsets3(l,1))));
+%                     end
+%                 end
+%                 fTrialSpeed.(fieldname).assign = assign; clear l ll assign whiskLocoOff
+%                 
+%                 u = unique(fTrialSpeed.(fieldname).assign);
+%                 concat = [];
+%                 forPlotting = [];
+%                 for event = 1:size(u,1)
+%                     
+%                     ff = ['event' num2str(event)];
+%                     
+%                     bouts = find(fTrialSpeed.(fieldname).assign==u(event));
+%                     
+%                     onsSpeed  = [];
+%                     offsSpeed = [];
+%                     vector = [];
+%                     vector2 = [];
+%                     for b = 1:size(bouts)
+%                         
+%                         onBout  = fTrialSpeed.(fieldname).onsets3(bouts(b));
+%                         offBout = fTrialSpeed.(fieldname).offsets3(bouts(b));
+%                         
+%                         onsSpeedTemp  = fTrialSpeed.(fieldname).onsets1(fTrialSpeed.(fieldname).onsets1>=onBout & fTrialSpeed.(fieldname).onsets1<=offBout);
+%                         offsSpeedTemp = fTrialSpeed.(fieldname).offsets1(fTrialSpeed.(fieldname).offsets1>=onBout & fTrialSpeed.(fieldname).offsets1<=offBout);
+%                         
+%                         onsSpeed  = [onsSpeed; onsSpeedTemp];
+%                         offsSpeed = [offsSpeed; offsSpeedTemp];
+%                         
+%                         for bb = 1:numel(onsSpeedTemp)
+%                             vectorTemp  = [];
+%                             vectorTemp2 = [];
+%                             vectorTemp(:,1) = onsSpeedTemp(bb)+1:offsSpeedTemp(bb)-1; % Since I am already providing the vectors to trigByStimSpeed, narrow events here (full LED power)
+%                             vectorTemp2(:,1) = onsSpeedTemp(bb):offsSpeedTemp(bb); % This is so that the behavioral comparisons (exlcuded and included events all match)
+%                             vector = [vector; vectorTemp];
+%                             vector2 = [vector2; vectorTemp2];
+%                         end
+%                     end
+%                     %fTrialSpeed.(fieldname).finalWhiskLocoOn.(ff)whiskLocoOn(u(event));%
+%                     %By Hari
+%                     fTrialSpeed.(fieldname).finalSpeedOns.(ff)    = onsSpeed;
+%                     fTrialSpeed.(fieldname).finalSpeedOffs.(ff)   = offsSpeed;
+%                     fTrialSpeed.(fieldname).finalVectors.(ff)     = vector;
+%                     
+%                     concat(event,1) = numel(vector2);
+%                     concat(event,2) = mean(temp(vector2));
+%                     concat(event,3) = max(temp(vector2));
+%                     fTrialSpeed.(fieldname).includedConcat = concat;
+%                     
+%                     forPlotting = [forPlotting; sort([onsSpeed; offsSpeed])];
+%                     fTrialSpeed.(fieldname).forPlotting = forPlotting;
+%                 end
+%             end
+%         end
+%         %     if ~isempty(fTrialSpeed.(fieldname).onsets1)
+%         %         cuts = [];
+%         %         for n = 1:numel(fTrialSpeed.(fieldname).onsets1)
+%         %             on = fTrialSpeed.(fieldname).onsets1(n);
+%         %             off = fTrialSpeed.(fieldname).offsets1(n);
+%         %             cuts(n,1) = off-on;
+%         %             if mean(temp(on:off)) > 0.025 % Here I can use average, because i am looking really into speed onset: offset (in whiskDetect is a bit more difficult)
+%         %                 cuts(n,2) = 1;
+%         %             else
+%         %                 cuts(n,2) = 0;
+%         %             end
+%         %         end
+%         %         fTrialSpeed.(fieldname).onsets2 = fTrialSpeed.(fieldname).onsets1(cuts(:,1)>fR & cuts(:,2)==1);
+%         %         fTrialSpeed.(fieldname).offsets2 = fTrialSpeed.(fieldname).offsets1(cuts(:,1)>fR & cuts(:,2)==1);
+%         %     else
+%         %         fTrialSpeed.(fieldname).onsets2 = [];
+%         %         fTrialSpeed.(fieldname).offsets2 = [];
+%         %     end
+%         %
+%         %     fTrialSpeed.(fieldname).offsets3 = [];
+%         %     fTrialSpeed.(fieldname).offsets4 = [];
+%         %     for n = 1:numel(fTrialSpeed.(fieldname).onsets2)
+%         %         ev = fTrialSpeed.(fieldname).onsets2(n)+1:fTrialSpeed.(fieldname).offsets2(n);
+%         %         test = find(temp(ev,1) < 0.002);
+%         %         if ~isempty(test)
+%         %             fTrialSpeed.(fieldname).offsets3(n) = ev(min(test));
+%         %         else
+%         %             fTrialSpeed.(fieldname).offsets3(n) = fTrialSpeed.(fieldname).offsets2(n);
+%         %         end
+%         %         if max(fTrial.(fieldname).fLEDCL) > 0.3
+%         %             % Being strickly correct, should use speed only, but in a very
+%         %             % small number of events, the LED actually reacted by starting
+%         %             % to turn off by the decrease in speed, which could be enough
+%         %             % to cause rebound; the only way to correct those cases is by
+%         %             % actually checking when the LED goes down; I verified all
+%         %             % recordings, and the % of such events is low, which means the
+%         %             % approximations for comparing spont vs spontLEDCL are good
+%         %             test = find(fTrial.(fieldname).fLEDCL(ev,1) < 0.4);
+%         %         end
+%         %         if ~isempty(test)
+%         %             fTrialSpeed.(fieldname).offsets4(n) = ev(min(test));
+%         %         else
+%         %             fTrialSpeed.(fieldname).offsets4(n) = fTrialSpeed.(fieldname).offsets2(n);
+%         %         end
+%         %     end
+%     end
+    
+    [~, new, ~] = fileparts([currExpVars.folder '\' currExpVars.name]);
+    k = strfind(new,'_vars');
+    new = new(1:k);
+    %filename=([currExpVars.folder '\' new 'behavEvents.mat']);
+   % save([currExpVars.folder '\' new 'behavEvents.mat'], 'fTrialSpeed', '-append')   
+   save([currExpVars.folder '\' new 'behavEvents.mat'], 'fTrialSpeed')   
+ end
+end
+%%%%%%%%%%%%%%%%%added to this code by Hari
+if onset1rev(1)<90 
+    onset1rev(1)=[];
+    offset1rev(1)=[];
+if [offset1rev(end)+90]>size(temp,1)
+    onset1rev(end)=[];
+    offset1rev(end)=[];
+end 
+end
+%%%%
+NTrial=fields(fTrial);
+iscell = iscell; ce = find(iscell(:,1) == 1); 
+onW1=30;
+offW1=30;
+
+for i=1:length(NTrial)
+    field = NTrial{i};
+   fDeltaFoF1_IsCell=fTrial.(field).fDeltaFoF;
+   fDeltaFoF1_IsCell = fDeltaFoF1_IsCell(:,ce);
+
+   %DFoFnan=nan(size(temp,1),size(fDeltaFoF1_IsCell,2),numel(onset1rev));
+   %speednan=nan(size(temp,1),numel(onset1rev),length(NTrial));
+
+    tempspeed= [fTrial.(field).fSpeed - min(fTrial.(field).fSpeed)];
+    onset1Speed=fTrialSpeed.(field).onsets1;
+    offset1Speed=fTrialSpeed.(field).offsets1;
+    if onset1Speed<onW1
+        onset1SpeedF=find(onset1Speed<onW1);
+        onset1Speed(onset1SpeedF)=[];
+
+    end
+    if [offset1Speed+offW1]>size(temp,1)
+        offset1SpeedF=find(offset1Speed+offW1>size(temp,1));
+        offset1Speed(offset1SpeedF)=[];
+    end
+
+    
+
+    for Nc=1:size(fDeltaFoF1_IsCell,2)
+        for event=1:numel(onset1rev)-1
+
+   %=nan(size(temp,1),size(fDeltaFoF1_IsCell,2),numel(onset1rev));
+   %speednan=nan(size(temp,1),event,i);
+
+
+        tempfDeltaFoFT=fDeltaFoF1_IsCell(onset1rev(event)-onW1:offset1rev(event)+offW1-1,Nc);
+       
+        tempfDeltaFoFTbase=fDeltaFoF1_IsCell(offset1rev(event):onset1rev(event+1)-30,Nc);%baseline
+
+         %DFoFnan(1:length(tempfDeltaFoFT),Nc,event,i)=tempfDeltaFoFT;
+       DFoFact(Nc,1:length(tempfDeltaFoFT),event,i)=tempfDeltaFoFT;
+
+     DFoFactbase(Nc,1:length(tempfDeltaFoFTbase),event,i)=tempfDeltaFoFTbase;%baseline
+       %DFoFact(Nc,1:length(tempfDeltaFoFT),event,i)=tempfDeltaFoFT;
+
+        speedT=tempspeed(onset1rev(event)-onW1:offset1rev(event)+offW1-1);
+        speednan(1:length(speedT),event,i)=speedT;
+
+        end
+    end
+    
+   %speednan(1:length(speedT),event,i)=speednan; 
+end
+%%%
+    DFoFact4D=nanmean(DFoFact,4);
+    DFoFact3D=nanmean(DFoFact4D,3);
+
+    DFoFactbase4D=nanmean(DFoFactbase,4);
+    DFoFactbase3D=nanmean(DFoFactbase4D,3);
+
+    speed3D=nanmean(speednan,3);
+    speed2D=nanmean(speed3D,2);
+   %%%% 
+for ii=1:size(DFoFact3D,1)
+    [FoFttesth(ii) FoFttestp(ii)]=ttest2(DFoFact3D(ii,:),DFoFactbase3D(ii,:),"Alpha",0.01);
+    DFoFact3DSt=DFoFact3D(ii,:);
+    [FoFSpeedR(ii), FoFSpeedPval(ii)] = corr(DFoFact3DSt(:),speed2D);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%
+h = figure('units','normalized','outerposition',[0 0 1 1]);
+subplot(10,1,[1 6])
+climits = [0 10];
+imagesc(DFoFact3D,climits)
+c = colorbar;
+pos = get(c,'Position');
+c.Position = [pos(1)+.04, pos(2), 0.01, pos(4)]; % move colorbar so graphs are aligned
+c.Label.String = 'dF scale)';
+colormap bone
+title('\fontsize{11}dFoF')
+ylabel('Cell #')
+xticks(3600);
+xticklabels('2.5 min')
+
+subplot(10,1,8)
+plot(speed2D, 'Color', [.85 .33 .1], 'LineWidth', 1)
+xlim([1 size(speed2D,1)]);
+ylim([0 max(speed2D)+0.3]);
+title('\fontsize{11}Locomotion')
+ylabel('\fontsize{10}Speed')
+box off
+xticks(3600);
+xticklabels('\fontsize{10}2.5 min')
+%%%%%%%%%%%%%%%%%%%%%%%%
+plot(fTrial.(fieldname).fSpeed - min(fTrial.(fieldname).fSpeed))
+hold on
+xline(fTrialSpeed.(fieldname).onsets1, 'g');
+xline(fTrialSpeed.(fieldname).offsets1, 'r');
+% figure;
+% plot(fTrial.(fieldname).fSpeed - min(fTrial.(fieldname).fSpeed))
+% hold on
+% xline(fTrialSpeed.(fieldname).onsets2, 'r');
+% xline(fTrialSpeed.(fieldname).offsets2, 'r');
+
+%%%trigerring
+movBinary    = [];
+groupSub     = [];
+groupSubZ    = [];
+groupSpks    = [];
+groupSpksZ   = [];
+groupSpksZ2  = [];
+groupSpksMax = [];
+%%%
+if onset1rev(1)<90
+    onset1rev(1)=[];
+    offset1rev(1)=[];
+elseif [onset1rev(end)+90]>size(temp,1)
+    onset1rev(end)=[];
+    offset1rev(end)=[];
+end 
+%%%
+DFoFnan=nan(size(temp,1),numel(onset1rev));
+speednan=nan(size(temp,1),numel(onset1rev));
+%%%
+iscell = iscell; ce = find(iscell(:,1) == 1); 
+%fDeltaFoF1_IsCell=fTrial.(field).fDeltaFoF;
+%fDeltaFoF1_IsCell = fDeltaFoF1_IsCell(:,ce);
+
+for t = 1:size(f,1)%%% no of trials
+    
+    field = f{t};
+    fDeltaFoF1_IsCell=fTrial.(field).fDeltaFoF;
+    fDeltaFoF1_IsCell = fDeltaFoF1_IsCell(:,ce);
+    
+    %temp = zeros(size(fTrial.(field).fDeltaFoF,1),1);
+
+    tempfDeltaFoF = [ fDeltaFoF1_IsCell(:,1)];
+    tempspeed= [fTrial.(fieldname).fSpeed - min(fTrial.(fieldname).fSpeed)];
+    %tempfDeltaFoFNaN=nan(90,1);
+    %tempfDeltaFoFWnan=[tempfDeltaFoFNaN;tempfDeltaFoF;tempfDeltaFoFNaN];
+    for event = 1: numel(onset1rev)%%numel(fTrialBehav1.(field).onsets1)
+      %  if onset1rev(event)>90 && 
+
+        tempfDeltaFoFT=tempfDeltaFoF(onset1rev(event)-90:offset1rev(event)+90);
+        DFoFnan(1:length(tempfDeltaFoFT),event)=tempfDeltaFoFT;
+
+        speedT=tempspeed(onset1rev(event)-90:offset1rev(event)+90);
+        speednan(1:length(speedT),event)=speedT;
+
+        %tempfFeltaFoF=
+%         onOnly = numel(fTrialSpeed.(fieldname).onsets1);%%fTrialBehav1.(field).onsets1(event)
+%         if onOnly == 0
+%             onOnly = 1;
+%         end
+%         offOnly = numel(fTrialSpeed.(fieldname).onsets1);%fTrialBehav1.(field).offsets1(event)+1;
+%         if offOnly >= size(fTrial.(field).fDeltaFoF,1)
+%             offOnly = size(fTrial.(field).fDeltaFoF,1);
+%         end
+%         temp(onOnly:offOnly,1) = 1;
+    end
+    
+%     for event = 1:numel(fTrialBehav1.(field).onsets2)%
+%         onOnly = fTrialBehav1.(field).onsets2(event)-1;
+%         if onOnly == 0
+%             onOnly = 1;
+%         end
+%         offOnly = fTrialBehav1.(field).offsets2(event)+1;
+%         if offOnly>= size(fTrial.(field).fDeltaFoF,1)
+%             offOnly = size(fTrial.(field).fDeltaFoF,1);
+%         end
+%         if fTrialBehav1.(field).runInd(event) == 1
+%             temp(onOnly:offOnly,1) = 2;
+%         end
+%     end
+%     movBinary    = [movBinary; temp];
+%     groupSub     = [groupSub; fTrial.(field).fSub];
+%     groupSubZ    = [groupSubZ; fTrial.(field).fSubZ];
+%     groupSpks    = [groupSpks; fTrial.(field).fSpks];
+%     groupSpksZ   = [groupSpksZ; fTrial.(field).fSpksZ];
+%     groupSpksZ2  = [groupSpksZ2; fTrial.(field).fSpksZ2];
+%     groupSpksMax = [groupSpksMax; fTrial.(field).fSpksMax];
+end
+x
+

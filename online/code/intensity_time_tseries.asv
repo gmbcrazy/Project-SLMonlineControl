@@ -1,0 +1,263 @@
+function intensity_time_tseries(session)
+%Dir_path=['C:\Work\2pdata\',session];
+Dir_path=['D:\',session(1:end-2),'\',session(1:end)];
+cd(Dir_path)
+files = dir('T*.');
+files_name=files.name;
+cd(files_name)
+files_exel=dir('T*.csv');
+
+ITimenumT_total=nan(210,20);
+ITimenumI_total=nan(210,20);
+ic=1;
+for i=1:size(files_exel,1)
+    file_name=files_exel(i).name;
+   % cd(file_name)
+%%intensity over time exl file
+ITimenum = readmatrix(file_name);
+ITimenumT=ITimenum(:,1);
+ITimenumI=ITimenum(:,2:end);
+
+%ITimenumT_total(1:length(ITimenumT),i)=ITimenumT;
+%ITimenumI_total(1:length(ITimenumI),i:size(ITimenumI,2))=ITimenumI;
+ 
+if size(ITimenum,2)==2
+    
+elseif size(ITimenum,2)==3
+
+    ITimenumT_total(1:length(ITimenumT),ic)=ITimenumT;
+
+    ITimenumI_total22(1:length(ITimenumI),ic)=ITimenumI(:,1);
+    ITimenumI_total33(1:length(ITimenumI),ic+1)=ITimenumI(:,2);
+
+    ic=ic+1;
+elseif size(ITimenum,2)==4
+    ic=3;
+end
+
+
+ITimenum_mat(i)={ITimenum};
+
+%%
+%xml2strconver=xml2struct( [file_name,'.xml'] );
+%Frame_time_series=xml2strconver.PVScan.Sequence.Frame;
+
+%xml2strconverMarkP=xml2struct( [file_name,'_Cycle00001_MarkPoints.xml'] );%%All mark points has same delay i.e. 5000
+%MPIni_delay=str2num(xml2strconverMarkP.PVMarkPointSeriesElements.PVMarkPointElement.PVGalvoPointElement.Attributes.InitialDelay);
+%MPIni_delay=MPIni_delay/1000; %%mSecond to second
+%%
+%     for j=1:size(Frame_time_series,2)
+%     Frame_time_series_absTime(i,j)=str2num(Frame_time_series{1,j}.Attributes.absoluteTime);
+%     Frame_time_series_relTime(i,j)=str2num(Frame_time_series{1,j}.Attributes.relativeTime);
+%     
+%     end
+  % cd(Dir_path)
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+ITimenum_mat_BS=ITimenum_mat(1:2:end);
+ITimenum_mat_BS_cell2mat=cell2mat(ITimenum_mat_BS);
+
+ITimenum_mat_AS=ITimenum_mat(2:2:end);
+ITimenum_mat_AS_cell2mat=cell2mat(ITimenum_mat_AS);
+
+iic=1;
+for ii=1:2:size(ITimenum_mat_BS_cell2mat,2)
+    ITimenum_mat_BS_cell2mat_time=ITimenum_mat_BS_cell2mat(:,ii);
+    ITimenum_mat_BS_cell2mat_I=ITimenum_mat_BS_cell2mat(:,ii+1);
+
+    ITimenum_mat_AS_time=ITimenum_mat_AS_cell2mat(:,ii);
+    ITimenum_mat_AS_I=ITimenum_mat_AS_cell2mat(:,ii+1);
+
+    ITimenum_mat_BS_cell2mat_time_trail(:,iic)=[ITimenum_mat_BS_cell2mat_time;ITimenum_mat_AS_time];
+    ITimenum_mat_BS_cell2mat_I_trail(:,iic)=[ITimenum_mat_BS_cell2mat_I;ITimenum_mat_AS_I];
+
+
+
+    iic=iic+1;
+end
+%%converting fr to time series
+ITimenum_mat_BS_cell2mat_time_trail_1=ITimenum_mat_BS_cell2mat_time_trail(:,1);
+ITimenum_mat_BS_cell2mat_time_trail_1=ITimenum_mat_BS_cell2mat_time_trail_1-ITimenum_mat_BS_cell2mat_time_trail_1(1);
+ITimenum_mat_BS_cell2mat_I_trail_avg=mean(ITimenum_mat_BS_cell2mat_I_trail,2);
+
+ITimenum_mat_BS_cell2mat_time_trail_1 = 0:1/30:(length(ITimenum_mat_BS_cell2mat_time_trail_1)-1)/30; %t = 0:1/fs:(length(x)-1)/fs;%%converting fr to time series
+figure;
+plot(ITimenum_mat_BS_cell2mat_time_trail_1,ITimenum_mat_BS_cell2mat_I_trail_avg)
+hold on
+plot(3,1:max(ITimenum_mat_BS_cell2mat_I_trail_avg),'|k')
+
+figure;
+hline = plot(ITimenum_mat_BS_cell2mat_time_trail_1,ITimenum_mat_BS_cell2mat_I_trail);
+for i=1:length(hline)
+    hline(i).Color = [hline(i).Color 0.1];  % alpha=0.1
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if size(ITimenum_mat_eqlSize{1},2) == 2
+ITimenum_mat_cell2mat_time=ITimenum_mat_BS_cell2mat(:,1:2:end);
+
+
+
+
+ITimenum_mat_cell2mat_time_1=ITimenum_mat_cell2mat_time(1,:);
+ITimenum_mat_cell2mat_time_ral=ITimenum_mat_cell2mat_time-ITimenum_mat_cell2mat_time_1;
+ITimenum_mat_cell2mat_Int=ITimenum_mat_cell2mat(:,2:2:end);
+
+ITimenum_mat_cell2mat_time_avg=nanmean(ITimenum_mat_cell2mat_time_ral,2);
+ITimenum_mat_cell2mat_Int_avg=nanmean(ITimenum_mat_cell2mat_Int,2);
+figure;
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg),'|k')
+% hold on
+% xlabel('Time in Seconds')
+% hold on 
+% ylabel('Intensity')
+ elseif size(ITimenum_mat_eqlSize{1},2) == 3
+ITimenum_mat_cell2mat_time=ITimenum_mat_cell2mat(:,1:3:end);
+ITimenum_mat_cell2mat_time_1=ITimenum_mat_cell2mat_time(1,:);
+ITimenum_mat_cell2mat_time_ral=ITimenum_mat_cell2mat_time-ITimenum_mat_cell2mat_time_1;
+ITimenum_mat_cell2mat_Int23=ITimenum_mat_cell2mat(:,2:3:end);
+ITimenum_mat_cell2mat_Int33=ITimenum_mat_cell2mat(:,3:3:end);
+
+ITimenum_mat_cell2mat_time_avg=nanmean(ITimenum_mat_cell2mat_time_ral,2);
+ITimenum_mat_cell2mat_Int_avg23=nanmean(ITimenum_mat_cell2mat_Int23,2);
+ITimenum_mat_cell2mat_Int_avg33=nanmean(ITimenum_mat_cell2mat_Int33,2);
+figure;
+subplot(2,1,1)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg23)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg23),'|k')
+subplot(2,1,2)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg33)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg33),'|k')
+% xlabel('Time in Seconds')
+% hold on 
+% ylabel('Mean Intensity')
+elseif size(ITimenum_mat_eqlSize{1},2) == 4
+ITimenum_mat_cell2mat_time=ITimenum_mat_cell2mat(:,1:4:end);
+ITimenum_mat_cell2mat_time_1=ITimenum_mat_cell2mat_time(1,:);
+ITimenum_mat_cell2mat_time_ral=ITimenum_mat_cell2mat_time-ITimenum_mat_cell2mat_time_1;
+ITimenum_mat_cell2mat_Int22=ITimenum_mat_cell2mat(:,2:4:end);
+ITimenum_mat_cell2mat_Int33=ITimenum_mat_cell2mat(:,3:4:end);
+ITimenum_mat_cell2mat_Int44=ITimenum_mat_cell2mat(:,4:4:end);
+
+ITimenum_mat_cell2mat_time_avg=nanmean(ITimenum_mat_cell2mat_time_ral,2);
+ITimenum_mat_cell2mat_Int_avg22=nanmean(ITimenum_mat_cell2mat_Int22,2);
+ITimenum_mat_cell2mat_Int_avg33=nanmean(ITimenum_mat_cell2mat_Int33,2);
+ITimenum_mat_cell2mat_Int_avg44=nanmean(ITimenum_mat_cell2mat_Int44,2);
+
+figure;
+subplot(3,1,1)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg22)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg22),'|k')
+subplot(3,1,2)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg33)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg33),'|k')
+subplot(3,1,3)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg44)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg44),'|k')
+% xlabel('Time in Seconds')
+% hold on 
+% ylabel('Mean Intensity')
+elseif size(ITimenum_mat_eqlSize{1},2) == 5
+ITimenum_mat_cell2mat_time=ITimenum_mat_cell2mat(:,1:5:end);
+ITimenum_mat_cell2mat_time_1=ITimenum_mat_cell2mat_time(1,:);
+ITimenum_mat_cell2mat_time_ral=ITimenum_mat_cell2mat_time-ITimenum_mat_cell2mat_time_1;
+ITimenum_mat_cell2mat_Int22=ITimenum_mat_cell2mat(:,2:5:end);
+ITimenum_mat_cell2mat_Int33=ITimenum_mat_cell2mat(:,3:5:end);
+ITimenum_mat_cell2mat_Int44=ITimenum_mat_cell2mat(:,4:5:end);
+ITimenum_mat_cell2mat_Int55=ITimenum_mat_cell2mat(:,5:5:end);
+
+
+
+ITimenum_mat_cell2mat_time_avg=nanmean(ITimenum_mat_cell2mat_time_ral,2);
+ITimenum_mat_cell2mat_Int_avg22=nanmean(ITimenum_mat_cell2mat_Int22,2);
+ITimenum_mat_cell2mat_Int_avg33=nanmean(ITimenum_mat_cell2mat_Int33,2);
+ITimenum_mat_cell2mat_Int_avg44=nanmean(ITimenum_mat_cell2mat_Int44,2);
+ITimenum_mat_cell2mat_Int_avg55=nanmean(ITimenum_mat_cell2mat_Int55,2);
+
+figure;
+subplot(4,1,1)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg22)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg22),'|k')
+subplot(4,1,2)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg33)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg33),'|k')
+subplot(4,1,3)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg44)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg44),'|k')
+subplot(4,1,4)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg55)
+% hold on
+% plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg55),'|k')
+% xlabel('Time in Seconds')
+% hold on 
+% ylabel('Mean Intensity')
+elseif size(ITimenum_mat_eqlSize{1},2) == 6
+ITimenum_mat_cell2mat_time=ITimenum_mat_cell2mat(:,1:5:end);
+ITimenum_mat_cell2mat_time_1=ITimenum_mat_cell2mat_time(1,:);
+ITimenum_mat_cell2mat_time_ral=ITimenum_mat_cell2mat_time-ITimenum_mat_cell2mat_time_1;
+ITimenum_mat_cell2mat_Int22=ITimenum_mat_cell2mat(:,2:5:end);
+ITimenum_mat_cell2mat_Int33=ITimenum_mat_cell2mat(:,3:5:end);
+ITimenum_mat_cell2mat_Int44=ITimenum_mat_cell2mat(:,4:5:end);
+ITimenum_mat_cell2mat_Int55=ITimenum_mat_cell2mat(:,5:5:end);
+ITimenum_mat_cell2mat_Int66=ITimenum_mat_cell2mat(:,6:5:end);
+
+
+ITimenum_mat_cell2mat_time_avg=nanmean(ITimenum_mat_cell2mat_time_ral,2);
+ITimenum_mat_cell2mat_Int_avg22=nanmean(ITimenum_mat_cell2mat_Int22,2);
+ITimenum_mat_cell2mat_Int_avg33=nanmean(ITimenum_mat_cell2mat_Int33,2);
+ITimenum_mat_cell2mat_Int_avg44=nanmean(ITimenum_mat_cell2mat_Int44,2);
+ITimenum_mat_cell2mat_Int_avg55=nanmean(ITimenum_mat_cell2mat_Int55,2);
+ITimenum_mat_cell2mat_Int_avg66=nanmean(ITimenum_mat_cell2mat_Int66,2);
+
+figure;
+subplot(5,1,1)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg22)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg22),'|k')
+subplot(5,1,2)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg33)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg33),'|k')
+subplot(5,1,3)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg44)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg44),'|k')
+subplot(5,1,4)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg55)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg55),'|k')
+subplot(5,1,5)
+plot(ITimenum_mat_cell2mat_time_avg,ITimenum_mat_cell2mat_Int_avg66)
+hold on
+plot(MPIni_delay,1:max(ITimenum_mat_cell2mat_Int_avg66),'|k')
+% xlabel('Time in Seconds')
+% hold on 
+% ylabel('Mean Intensity')
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+x

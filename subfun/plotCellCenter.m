@@ -1,0 +1,49 @@
+% Function to plot cell boundaries based on cell IDs
+
+function plotCellCenter(cellCenter, Radius, varargin)
+    % Check the number of input arguments
+    if nargin < 3
+        colorCell = jet(size(cellCenter,1));
+        LineWidth = 1;
+    elseif nargin == 3
+        colorCell = varargin{1};
+        LineWidth = 1;
+    elseif nargin == 4
+        colorCell = varargin{1};
+        LineWidth = varargin{2};
+    else
+        % Handle other cases if needed
+    end
+
+    % If colorCell is a single row, replicate it for each cellIDmark
+    if size(colorCell, 1) == 1
+        colorCell = repmat(colorCell, size(cellCenter,1), 1);
+    end
+    if length(Radius) == 1
+        Radius = repmat(Radius, size(cellCenter,1), 1);
+    end
+
+
+    % Loop through each center point
+    for i = 1:size(cellCenter, 1)
+        % Extract x and y coordinates of the current center
+        x = cellCenter(i, 2);
+        y = cellCenter(i, 1);
+
+        % Plot a circle around the center with the specified radius, color, and line width
+        viscircles([x, y], Radius(i), 'Color', colorCell(i, :), 'LineWidth', LineWidth,'EnhanceVisibility',0,'LineStyle',':');
+
+        % Hold on to overlay circles on the same plot
+        hold on;
+    end
+
+    % Set axis equal for accurate circle visualization
+    % axis equal;
+
+    % Add labels or other plot settings if needed
+    % xlabel('X-axis');
+    % ylabel('Y-axis');
+    % title('Cell Centers with Circles');
+end
+
+

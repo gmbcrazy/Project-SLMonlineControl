@@ -1,0 +1,41 @@
+function C = concatenateStructs(A, B)
+    % Initialize structure C with empty values
+    C = struct();
+
+    % Get the field names from A and B
+    fieldsA = fieldnames(A);
+    fieldsB = fieldnames(B);
+
+    % Add shared fields to C
+    sharedFields = intersect(fieldsA, fieldsB);
+    allFields = union(fieldsA, fieldsB);
+
+    C=FieldName2Struct(allFields);
+
+    for i=1:length(A)
+        for ifi = 1:length(fieldsA)
+            C=setfield(C,{i},fieldsA{ifi},getfield(A,{i},fieldsA{ifi}));
+        end
+    end
+
+    lenA=length(A);
+    for i=1:length(B)
+        for ifi = 1:length(fieldsB)
+            C=setfield(C,{i+lenA},fieldsB{ifi},getfield(B,{i},fieldsB{ifi}));
+        end
+    end
+
+
+
+    % % Add non-overlapping fields from A to C
+    % nonOverlapFieldsA = setdiff(fieldsA, fieldsB);
+    % for field = nonOverlapFieldsA
+    %     C.(field{1}) = [A.(field{1}), cell(1, length(B))];
+    % end
+    % 
+    % % Add non-overlapping fields from B to C
+    % nonOverlapFieldsB = setdiff(fieldsB, fieldsA);
+    % for field = nonOverlapFieldsB
+    %     C.(field{1}) = [cell(1, length(A)), B.(field{1})];
+    % end
+end
