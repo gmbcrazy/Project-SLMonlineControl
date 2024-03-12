@@ -62,7 +62,7 @@ function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFra
     pl.SendScriptCommands('-DoNotWaitForScans');
     pl.SendScriptCommands('-LimitGSDMABufferSize true 100');
 %     pl.SendScriptCommands('-StreamRawData true 50');   
-    pl.SendScriptCommands('-StreamRawData true 50');
+    pl.SendScriptCommands('-StreamRawData true 100');
     pl.SendScriptCommands('-fa 1');  % set frame averaging to 1
 
     samplesPerPixel      = pl.SamplesPerPixel();
@@ -118,7 +118,7 @@ for iRep=1:Repetition
           pl.SendScriptCommands('-TSeries');
 
     % initialise state variables, buffer, and counters/records
-         running        = 1;
+           running        = 1;
          started        = 0;
          loopCounter    = 1;
          totalSamples   = 0;
