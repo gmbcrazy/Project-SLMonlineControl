@@ -65,7 +65,7 @@ function ClickStart(h, e)
 %     flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd; %
 %     Commented by Lu Zhang 2/23/2024
 
-    flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;   Added by Lu Zhang 2/23/2024
+    flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;   Added by Lu Zhang 2/23/2024
 
     % get file name
     baseDirectory = pl.GetState('directory', 1);
@@ -114,32 +114,52 @@ function ClickStart(h, e)
     droppedData    = [];
 
     % preview image window (only use for debugging!)
-    preview = 0;
+    preview = 1;
     if preview
-        figure;
+        figure(2);
         Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
         FrameCounter = title('');
         axis off; axis square; axis tight;
     end
 
     % get data, do conversion, save to file
+    icount=1;
     while running   
         % start timer
         tic;    
+%         pause(0.1);
 
         % get raw data stream (timer = ~20ms)
         [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+%         disp([num2str(numSamplesRead) ' of samples detected'])
 
         % append new data to any remaining old data
-        buffer = [buffer samples(1:numSamplesRead)];
+        buffer = [buffer samples(1:numSamplesRead)];   
 
         % extract full frames
         numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-        toProcess = buffer(1:numWholeFramesGrabbed*totalSamplesPerFrame);
+        IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
+        toProcess = buffer(IncludedInd);
 
         % clear data from buffer
-        buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
+%         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
+        buffer(IncludedInd)=[];
 
+%         disp([num2str(length(buffer)) ' of samples detected'])
+%         Visulize samples recorded in each loop, only use for debugging!
+%         Lu Zhang
+%         figure(3);
+%         subplot(3,1,1)
+%         hold on;plot(icount,numSamplesRead,'r.')
+%         subplot(3,1,2)
+%         hold on;plot(icount,length(buffer),'r.')
+% 
+%         subplot(3,1,3)
+%         if exist('numWholeFramesGrabbed')
+%         hold on;plot(icount,numWholeFramesGrabbed,'b.')
+%         icount=icount+1;
+%         end
+       
         % process the acquired frames (timer = ~5ms)
         if numWholeFramesGrabbed > 0
             for i = 1:numWholeFramesGrabbed
@@ -190,11 +210,13 @@ function ClickStart(h, e)
         end
 
         % exit loop if finished (if no data collected for previous X loops)
-%         if started && loopCounter > 20 && sum(allSamplesRead(end-19:end)) == 0
-%             running = 0;
-%         end
         if started && loopCounter > 100 && sum(allSamplesRead(end-99:end)) == 0
             running = 0;
+        elseif started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+            buffer=[];
+            running = 1;
+        else
+
         end
     end
 

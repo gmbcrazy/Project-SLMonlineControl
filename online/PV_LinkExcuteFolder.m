@@ -71,7 +71,7 @@ function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFra
     totalSamplesPerFrame = samplesPerPixel*pixelsPerLine*linesPerFrame;
     % yaml = ReadYaml('settings.yml');
     % flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
-    flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
+    flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
     % get file name
     baseDirectory = pl.GetState('directory', 1);
     tSeriesName   = pl.GetState('directory', 4);
@@ -89,6 +89,7 @@ for iRep=1:Repetition
 
     for ixml=1:length(MarkPointList)
     % flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
+      close all
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
          filePath      = [baseDirectory, filesep, tSeriesName '-' tSeriesIter]
     % display file name
@@ -100,15 +101,14 @@ for iRep=1:Repetition
     
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
-
     % write file header
          fwrite(fileID, pixelsPerLine, 'uint16');
          fwrite(fileID, linesPerFrame, 'uint16');
 
     % flush buffer
          flushing = 1;
-        while flushing
-              [samples, numSamplesRead] = pl.ReadRawDataStream(0);
+         while flushing
+            [samples, numSamplesRead] = pl.ReadRawDataStream(0);
             if numSamplesRead == 0
                 flushing = 0;
             end
@@ -131,9 +131,10 @@ for iRep=1:Repetition
          droppedData    = [];
 
     % preview image window (only use for debugging!)
-         preview = 0;
+         preview = 1;
          if preview
-            figure;
+            figure(2);
+            subplot(2,2,1)
             Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
             FrameCounter = title('');
             axis off; axis square; axis tight;
@@ -151,11 +152,16 @@ for iRep=1:Repetition
                buffer = [buffer samples(1:numSamplesRead)];
 
         % extract full frames
-               numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-               toProcess = buffer(1:numWholeFramesGrabbed*totalSamplesPerFrame);
+        numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+        IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
+        toProcess = buffer(IncludedInd);
 
         % clear data from buffer
-               buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
+%         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
+        buffer(IncludedInd)=[];
+
+
+
 
         % process the acquired frames (timer = ~5ms)
           if numWholeFramesGrabbed > 0
@@ -206,14 +212,39 @@ for iRep=1:Repetition
                  fprintf(msg)
               end
 
+
+%          preview = 1;
+
+%         Visulize samples recorded in each loop, only use for debugging!Lu Zhang
+         if preview
+            figure(2);
+            subplot(2,2,2)
+            hold on;plot(loopCounter,numSamplesRead,'r.')
+            ylabel('Samples # collected/loop')
+
+            subplot(2,2,3)
+            hold on;plot(loopCounter,length(buffer),'b.')
+            ylabel('Rest Buffer length')
+            subplot(2,2,4)
+            if exist('numWholeFramesGrabbed')
+               hold on;plot(loopCounter,framesCounter,'g.')
+            end
+            set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
+            ylabel('Frame # recorded')
+         end
+
         % exit loop if finished (if no data collected for previous X loops)
 %         if started && loopCounter > 150 && sum(allSamplesRead(end-139:end)) == 0
 %             running = 0;
 %         end
-             if started && framesCounter >= maxFrame
+            if started && framesCounter >= maxFrame
                  running = 0;
-             end
+            end
 
+            if started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+                 buffer=[];
+                 running = 1;
+            end
          end
 
     % clean up
