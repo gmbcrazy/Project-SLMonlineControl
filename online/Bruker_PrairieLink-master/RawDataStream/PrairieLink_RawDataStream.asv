@@ -10,10 +10,6 @@
 % Convert and save raw data on-line
 % Lloyd Russell 2016. Optimised on 2017-03-10. Added 'GUI' on 2017-04-11
 %
-
-%Lu Zhang, not sure if the following is necessary. I even want to remove
-%the header.
-
 % To do:
 % ------
 % * Fix first run bug - very first tim e running does not connect to PV
@@ -95,9 +91,9 @@ function ClickStart(h, e)
     % open binary file for writing
     fileID = fopen([filePath '.bin'], 'wb');
 
-    % write file header;  Commented by Lu Zhang, 2024-03-13;
-    % fwrite(fileID, pixelsPerLine, 'uint16');
-    % fwrite(fileID, linesPerFrame, 'uint16');
+    % write file header
+    fwrite(fileID, pixelsPerLine, 'uint16');
+    fwrite(fileID, linesPerFrame, 'uint16');
 
     % flush buffer
     flushing = 1;

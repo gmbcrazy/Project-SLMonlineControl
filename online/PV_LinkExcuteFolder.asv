@@ -27,17 +27,7 @@
 
 
 % callback function
-function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame,varargin)
-
-    if nargin==4
-       preview=0;
-    elseif nargin==5
-       preview=varargin{1}
-
-    else
-
-    end
-
+function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame)
     
     MarkPointList=dir([ProcessFolder 'SingleP\*Point*.xml']);
     MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
@@ -144,7 +134,7 @@ for iRep=1:Repetition
          droppedData    = [];
 
     % preview image window (only use for debugging!)
-         % preview = 1;
+         preview = 1;
          if preview
             figure(2);
             subplot(2,2,1)
