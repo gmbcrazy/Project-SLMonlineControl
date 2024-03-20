@@ -2,8 +2,6 @@
 %% Automatic excute multiple MarkPoint.xml files within a specific Folder
 %Noted that the TimeSeries in PrairieLink should be MarkPoint current
 %setting -> Imaging or Zseries Sequence recording of specific frames
-
-%Header removed by Lu Zhang, thus only imaging data is saved.
 %Lu Zhang 2024, developed from Lloyd Russell 2016 PrairieLink_RawDataStream.m
 
 
@@ -27,17 +25,7 @@
 
 
 % callback function
-function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame,varargin)
-
-    if nargin==4
-       preview=0;
-    elseif nargin==5
-       preview=varargin{1}
-
-    else
-
-    end
-
+function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame,BreakPointFrame)
     
     MarkPointList=dir([ProcessFolder 'SingleP\*Point*.xml']);
     MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
@@ -98,10 +86,12 @@ function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFra
 
 
 for iRep=1:Repetition
-
-    for ixml=1:length(MarkPointList)
+    StimList=randperm(length(MarkPointList));  %%Randomized the MarkPoint Stimulation Order
+    for jxml=1:length(MarkPointList) %%Randomized the MarkPoint Stimulation Order
+        ixml=StimList(jxml);
     % flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
       close all
+      BreakYet=0;
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
          filePath      = [baseDirectory, filesep, tSeriesName '-' tSeriesIter]
     % display file name
@@ -113,10 +103,9 @@ for iRep=1:Repetition
     
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
-
-    % write file header;  Commented by Lu Zhang, 2024-03-13;
-    % fwrite(fileID, pixelsPerLine, 'uint16');
-    % fwrite(fileID, linesPerFrame, 'uint16');
+    % write file header
+%          fwrite(fileID, pixelsPerLine, 'uint16');
+%          fwrite(fileID, linesPerFrame, 'uint16');
 
     % flush buffer
          flushing = 1;
@@ -144,7 +133,7 @@ for iRep=1:Repetition
          droppedData    = [];
 
     % preview image window (only use for debugging!)
-         % preview = 1;
+         preview = 0;
          if preview
             figure(2);
             subplot(2,2,1)
@@ -172,11 +161,12 @@ for iRep=1:Repetition
         % clear data from buffer
 %         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
         buffer(IncludedInd)=[];
-
+        RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
 
 
 
         % process the acquired frames (timer = ~5ms)
+
           if numWholeFramesGrabbed > 0
                 for i = 1:numWholeFramesGrabbed
                       if started == 0
@@ -190,10 +180,16 @@ for iRep=1:Repetition
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
 
                 % save processed frames to file
-                     fwrite(fileID, frame, 'uint16');
-
                 % increment frame counter
                       frameNum = frameNum + 1;
+                      if BreakYet==0&&frameNum>BreakPointFrame
+                         frameNum=frameNum-1;
+                         BreakYet=1;
+%                          buffer=[];
+                         break;
+                      end
+
+                      fwrite(fileID, frame, 'uint16');
 
                 % debugging: preview plot
                       if preview
@@ -226,25 +222,9 @@ for iRep=1:Repetition
               end
 
 
-%          preview = 1;
 
 %         Visulize samples recorded in each loop, only use for debugging!Lu Zhang
-         if preview
-            figure(2);
-            subplot(2,2,2)
-            hold on;plot(loopCounter,numSamplesRead,'r.')
-            ylabel('Samples # collected/loop')
 
-            subplot(2,2,3)
-            hold on;plot(loopCounter,length(buffer),'b.')
-            ylabel('Rest Buffer length')
-            subplot(2,2,4)
-            if exist('numWholeFramesGrabbed')
-               hold on;plot(loopCounter,framesCounter,'g.')
-            end
-            set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
-            ylabel('Frame # recorded')
-         end
 
         % exit loop if finished (if no data collected for previous X loops)
 %         if started && loopCounter > 150 && sum(allSamplesRead(end-139:end)) == 0
@@ -253,7 +233,25 @@ for iRep=1:Repetition
             if started && framesCounter >= maxFrame
                  running = 0;
             end
+         if preview
+            figure(2);
+            subplot(2,2,2)
+            hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
+%             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
+            ylabel('numWholeFramesGrabbed')
 
+            subplot(2,2,3)
+            hold on;plot(loopCounter,RestFrameN,'b.')
+            ylabel('Rest Buffer length')
+            subplot(2,2,4)
+            if exist('numWholeFramesGrabbed')
+               hold on;plot(loopCounter,frameNum,'g.')
+               hold on;plot(loopCounter,framesCounter,'r.')
+%                plot(loopCounter,BreakPointFrame,'y.')
+            end
+            set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
+            ylabel('Frame # recorded')
+         end
             if started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                  buffer=[];
                  running = 1;
