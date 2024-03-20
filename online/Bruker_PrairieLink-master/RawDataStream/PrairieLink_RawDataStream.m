@@ -114,7 +114,7 @@ function ClickStart(h, e)
     droppedData    = [];
 
     % preview image window (only use for debugging!)
-    preview = 1;
+    preview = 0;
     if preview
         figure(2);
         Image = imagesc(zeros(linesPerFrame, pixelsPerLine));

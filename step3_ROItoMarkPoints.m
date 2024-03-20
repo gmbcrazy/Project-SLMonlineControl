@@ -1,7 +1,9 @@
 %% 
-LoadPath='F:\LuSLMOnlineTest\03082024\';
+LoadPath='F:\LuSLMOnlineTest\03202024\';
 
 
+ZFocusDepth=112.23;
+ZLayer=[-50 0 50]+ZFocusDepth;
 
 Suite2PPath=[LoadPath 'suite2p\']
 mkdir(Suite2PPath)
@@ -31,8 +33,6 @@ else
 
     end
 end
-ZFocusDepth=109.95;
-ZLayer=[-50 0 50]+ZFocusDepth;
 
 
 Lx=CaDataPlane(1).ops.Lx;
@@ -103,7 +103,7 @@ tempI=1:1:size(Pos3D,1);
 
 
 %  2 4 7 13 14 15 18 23 27
-tempI=[2 4 7 13 14 15 18 23 27]
+tempI=[5 6 8 9 13 20 21 22 23 25]
 Pos3Dneed=Pos3D(tempI,:)
 SpiralSizeUM=15;
 SpiralRevolutions=3;
@@ -129,8 +129,8 @@ Group(1).Indices=[1:length(tempI)];
 
 MarkPoints3D_GPLmaker(Pos3Dneed, yaml, true, SpiralSizeUM, SpiralRevolutions, SaveName,Group)
 
-Repetition=8;
-UncagingLaserPower=[1.2 1.3];
+Repetition=5;
+UncagingLaserPower=[1.1 1.2];
 MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolutions,UncagingLaserPower, SavePath)
 
 

@@ -1,7 +1,9 @@
 %% 
-LoadPath='F:\LuSLMOnlineTest\03052024\';
+LoadPath='F:\LuSLMOnlineTest\03202024\';
 
 
+ZFocusDepth=112.23;
+ZLayer=[-50 0 50]+ZFocusDepth;
 
 Suite2PPath=[LoadPath 'suite2p\']
 mkdir(Suite2PPath)
@@ -31,8 +33,6 @@ else
 
     end
 end
-ZFocusDepth=152.9;
-ZLayer=[-50 0 50]+ZFocusDepth;
 
 
 Lx=CaDataPlane(1).ops.Lx;
@@ -92,39 +92,45 @@ Zmicro=ZLayer(CellPlaneID);
 
 Pos3D=[xyPix Zmicro(:)] 
 
-SLMrangePix=50;
+SLMrangePix=80;
 XYrange=[SLMrangePix;512-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
 OutRange=find(xyPix(:,1)<XYrange(1)|xyPix(:,2)<XYrange(1)|xyPix(:,1)>XYrange(2)|xyPix(:,2)>XYrange(2))
+IncludedI=setdiff(1:length(Zmicro),OutRange);
 Pos3D(OutRange,:)=[];
 
 
+tempI=1:1:size(Pos3D,1);
 
-Pos3Dneed=Pos3D(1:3:size(Pos3D,1),:)
+
+%  2 4 7 13 14 15 18 23 27
+tempI=[1 5 8 12 14 18 21 28 36 37 43]
+Pos3Dneed=Pos3D(tempI,:)
 SpiralSizeUM=15;
 SpiralRevolutions=3;
 SavePath=[LoadPath '\SingleP\'];
-
-h=fopen([SavePath 'SLMIncludedIndFromIscell.txt'])
-fprint()
-
-
 mkdir(SavePath)
 SaveName=[SavePath 'GPL'];
+SLMIncludedIndFromIscell=IncludedI(tempI);
+save([SavePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell')
+
+
+
+
 
 
 
 %%
 
 clear Group
-Group(1).Indices=[1:16];
+Group(1).Indices=[1:length(tempI)];
 % Group(2).Indices=[10:19];
 % Group(3).Indices=[1:5]+45;
 % Group(4).Indices=[1:3:60];
 
 MarkPoints3D_GPLmaker(Pos3Dneed, yaml, true, SpiralSizeUM, SpiralRevolutions, SaveName,Group)
 
-Repetition=8;
-UncagingLaserPower=[1.2 1.3];
+Repetition=5;
+UncagingLaserPower=[1.1 1.2];
 MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolutions,UncagingLaserPower, SavePath)
 
 

@@ -166,7 +166,6 @@ for iRep=1:Repetition
 
 
         % process the acquired frames (timer = ~5ms)
-
           if numWholeFramesGrabbed > 0
                 for i = 1:numWholeFramesGrabbed
                       if started == 0
@@ -180,6 +179,7 @@ for iRep=1:Repetition
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
 
                 % save processed frames to file
+
                 % increment frame counter
                       frameNum = frameNum + 1;
                       if BreakYet==0&&frameNum>BreakPointFrame
@@ -222,17 +222,9 @@ for iRep=1:Repetition
               end
 
 
+          preview = 1;
 
 %         Visulize samples recorded in each loop, only use for debugging!Lu Zhang
-
-
-        % exit loop if finished (if no data collected for previous X loops)
-%         if started && loopCounter > 150 && sum(allSamplesRead(end-139:end)) == 0
-%             running = 0;
-%         end
-            if started && framesCounter >= maxFrame
-                 running = 0;
-            end
          if preview
             figure(2);
             subplot(2,2,2)
@@ -245,17 +237,27 @@ for iRep=1:Repetition
             ylabel('Rest Buffer length')
             subplot(2,2,4)
             if exist('numWholeFramesGrabbed')
-               hold on;plot(loopCounter,frameNum,'g.')
+               hold on;plot(loopCounter,frameNum,'go')
                hold on;plot(loopCounter,framesCounter,'r.')
-%                plot(loopCounter,BreakPointFrame,'y.')
+               plot(loopCounter,framesCounter,'r^')
+               BreakPointFrame
             end
             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
             ylabel('Frame # recorded')
          end
-            if started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-                 buffer=[];
-                 running = 1;
+
+        % exit loop if finished (if no data collected for previous X loops)
+%         if started && loopCounter > 150 && sum(allSamplesRead(end-139:end)) == 0
+%             running = 0;
+%         end
+            if started && framesCounter >= maxFrame
+                 running = 0;
             end
+
+%             if started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+%                  buffer=[];
+%                  running = 1;
+%             end
          end
 
     % clean up
