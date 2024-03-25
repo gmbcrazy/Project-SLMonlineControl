@@ -5,14 +5,14 @@ clear all
 
 
 
-DataFolder='F:\LuSLMOnlineTest\03212024\'
+DataFolder='F:\LuSLMOnlineTest\03222024Test\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
 
 SingPZ=[0 0 0 0 50 50 100]
 
-BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
+BinFile=dir([DataFolder '*TSeries*Laser*Point6.bin'])
 
 PointFile=[];
 LaserFile=[];
