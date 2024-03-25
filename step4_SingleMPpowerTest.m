@@ -1,13 +1,43 @@
-
-ProcessFolder='F:\LuSLMOnlineTest\03202024\'
-RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimulation.
-PointRepetition=2;  %%Trial Number per each xml MarkPoint stimulation.
+clear all
+ProcessFolder='F:\LuSLMOnlineTest\03222024Test\'
+RandomDelayInterval=[2 5]; %%Random delay is induced after each trial of stimulation.
+PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
 nPlane=3;
-MaxFrame=nPlane*frameRepetion;
 
-PreMarkPointRepetition=11;
-PostMarkPointRepetition=16;
+PreMarkPointRepetition=25;
+PostMarkPointRepetition=32;
 frameRepetion=PreMarkPointRepetition+PostMarkPointRepetition; %%Total repepitions of Z series in T series setting.
 MaxFrame=nPlane*frameRepetion;
 BreakPoint=PreMarkPointRepetition*nPlane;
 PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,PointRepetition,MaxFrame,BreakPoint);
+
+
+%Point 7 Only
+
+%%disable breakP, 2 files?
+
+
+%%Enable breakP, 2files.  Flush loop.
+
+
+%Add Saline
+%%Flush once after breakP.  Flush once.
+%File 11
+
+
+
+
+
+%Add Saline
+%%Flush once at the break point;
+%File 13
+
+%File 17
+
+
+
+%Point 6 Only
+%%Flush once at the break point;
+%File 13
+
+%File 17

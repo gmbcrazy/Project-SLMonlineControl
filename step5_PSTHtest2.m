@@ -1,12 +1,12 @@
 clear all
-TestFile='TSeries-03202024-0940-017'
-DataFolder='E:\LuRecording\03202024\'
+TestFile='TSeries-03212024-0908-004'
+DataFolder='F:\LuSLMOnlineTest\03212024\'
 
-nPlane=3
+nPlane=3;
 
 close all
 
-IndNeed=[13 14 15 16];
+IndNeed=[16 18 19 20 21];
 for j=1:length(IndNeed)
     Ind=IndNeed(j);
 FrameTotal=27*3;
@@ -43,7 +43,9 @@ MeanBin=permute(MeanBin,[2,1,3]);
 
 figure
 for iPlane=1:3
-    subplotLU(2,3,1,iPlane)
+%     subplotLU(2,3,1,iPlane)
+    subplot(2,3,iPlane)
+
     imagesc(SmoothDecDim(MeanTif(:,:,iPlane),1,3))
     caxis([0 1000])
     colormap("jet");
@@ -54,7 +56,9 @@ end
 
 
 for iPlane=1:3
-    subplotLU(2,3,2,iPlane)
+%     subplotLU(2,3,2,iPlane)
+        subplot(2,3,iPlane+3)
+
     imagesc(SmoothDecDim(MeanBin(:,:,iPlane),1,3))
     caxis([0 1000]);
     colormap("jet");

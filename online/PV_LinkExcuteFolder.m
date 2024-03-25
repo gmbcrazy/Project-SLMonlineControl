@@ -92,6 +92,7 @@ for iRep=1:Repetition
     % flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
       close all
       BreakYet=0;
+      FlushYet=0;
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
          filePath      = [baseDirectory, filesep, tSeriesName '-' tSeriesIter]
     % display file name
@@ -133,7 +134,7 @@ for iRep=1:Repetition
          droppedData    = [];
 
     % preview image window (only use for debugging!)
-         preview = 0;
+         preview = 1;
          if preview
             figure(2);
             subplot(2,2,1)
@@ -185,7 +186,8 @@ for iRep=1:Repetition
                       if BreakYet==0&&frameNum>BreakPointFrame
                          frameNum=frameNum-1;
                          BreakYet=1;
-%                          buffer=[];
+                         buffer=[];
+                         [samples, numSamplesRead] = pl.ReadRawDataStream(0);                         
                          break;
                       end
 
@@ -236,7 +238,9 @@ for iRep=1:Repetition
          if preview
             figure(2);
             subplot(2,2,2)
-            hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
+%             hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
+             hold on;plot(loopCounter,numSamplesRead,'r.')
+
 %             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
             ylabel('numWholeFramesGrabbed')
 
@@ -252,9 +256,14 @@ for iRep=1:Repetition
             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
             ylabel('Frame # recorded')
          end
-            if started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-                 buffer=[];
-                 running = 1;
+%             if BreakYet&&started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+% %                  buffer=[];
+%                running = 1;
+%                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
+%             end
+
+            if started && loopCounter > 120 && sum(allSamplesRead(end-99:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+               running=0;
             end
          end
 
