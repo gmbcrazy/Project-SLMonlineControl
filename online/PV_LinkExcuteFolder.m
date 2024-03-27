@@ -101,7 +101,8 @@ for iRep=1:Repetition
 % %     disp([decoration; completeFileName; decoration])
 %     handles.FileNameText.String = completeFileName;
 %     handles.StartButton.BackgroundColor = [.8 .8 .8];
-    
+         pause(0.2);
+
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
     % write file header

@@ -1,8 +1,8 @@
 %% 
-LoadPath='F:\LuSLMOnlineTest\03222024\';
+LoadPath='F:\LuSLMOnlineTest\03262024\';
 
 
-ZFocusDepth=147.17;
+ZFocusDepth=164.09;
 ZLayer=[-50 0 50]+ZFocusDepth;
 
 Suite2PPath=[LoadPath 'suite2p\']
@@ -62,14 +62,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
 % ROIPath='\C:\Users\zhangl33\Projects\Project4-SLMonline\LuSLMOnlineTest\01252024\01252024\1\pointsUpdated.mat';
 % load(ROIPath);
 
@@ -79,12 +71,8 @@ end
 % caTrials=XMLread_SLM(LoadPath,caTrialsInd);
 
 
-
 Pos3D=[];
 % PointPath='F:\LuSLMOnlineTest\02082024\02082024\1\*POINT*.mat';
-% A=dir(PointPath)
-
-
 
 
 Zmicro=ZLayer(CellPlaneID);
@@ -104,7 +92,10 @@ tempI=1:1:size(Pos3D,1);
 
 %  2 4 7 13 14 15 18 23 27
 
-tempI=[4 8 13 14 18 26 28]
+% tempI=[2 3 4 5 9 11 14 16 21 23]
+
+tempI=[2 3 5 9 14 16 21 23]
+
 
 Pos3Dneed=Pos3D(tempI,:)
 SpiralSizeUM=15;
@@ -114,11 +105,6 @@ mkdir(SavePath)
 SaveName=[SavePath 'GPL'];
 SLMIncludedIndFromIscell=IncludedI(tempI);
 save([SavePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell')
-
-
-
-
-
 
 
 %%
@@ -132,7 +118,7 @@ Group(1).Indices=[1:length(tempI)];
 MarkPoints3D_GPLmaker(Pos3Dneed, yaml, true, SpiralSizeUM, SpiralRevolutions, SaveName,Group)
 
 Repetition=5;
-UncagingLaserPower=[1.12 1.14];
+UncagingLaserPower=[1.12 1.16];
 MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolutions,UncagingLaserPower, SavePath)
 
 

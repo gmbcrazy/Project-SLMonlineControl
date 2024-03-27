@@ -1,11 +1,11 @@
 clear all
-ProcessFolder='F:\LuSLMOnlineTest\03222024Test\'
-RandomDelayInterval=[2 5]; %%Random delay is induced after each trial of stimulation.
-PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
+ProcessFolder='F:\LuSLMOnlineTest\03262024Test\'
+RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimulation.
+PointRepetition=3;  %%Trial Number per each xml MarkPoint stimulation.
 nPlane=3;
 
-PreMarkPointRepetition=25;
-PostMarkPointRepetition=32;
+PreMarkPointRepetition=21;
+PostMarkPointRepetition=31;
 frameRepetion=PreMarkPointRepetition+PostMarkPointRepetition; %%Total repepitions of Z series in T series setting.
 MaxFrame=nPlane*frameRepetion;
 BreakPoint=PreMarkPointRepetition*nPlane;
