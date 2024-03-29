@@ -17,16 +17,19 @@ from natsort import natsorted
 
 def BinList_PSTHHeatMap(MultiBinFileList,BaselineInd,ResponseInd,ops0):
 
-   # print(BaselineInd)
-   # print(ResponseInd)
+
     nplanes=ops0['nplanes']
-    #print(nplanes)
     baseMap=np.zeros((len(MultiBinFileList),nplanes,ops0['Ly'],ops0['Lx']))
     ResponseMap=np.zeros((len(MultiBinFileList),nplanes,ops0['Ly'],ops0['Lx']))
+    Invalid=[]
     for TrialI,Trial in enumerate(MultiBinFileList):
-        #print(Trial)
         rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
-        #print(rawBin.shape)
+        maxIneed=np.max([np.max(BaselineInd),np.max(ResponseInd)])
+        if maxIneed*nplanes>rawBin.shape[0]:
+           Invalid.append(TrialI)
+           print(Trial+' is too short')
+           continue
+      
         FramePerPlane=np.floor(rawBin.shape[0]/ops0['nplanes'])
         TotalFrameNeed=np.int32(np.floor(FramePerPlane)*nplanes)
         #print(TotalFrameNeed)
@@ -44,13 +47,14 @@ def BinList_PSTHHeatMap(MultiBinFileList,BaselineInd,ResponseInd,ops0):
             baseMap[TrialI,plane_id,:,:]=np.mean(plane_data[BaselineInd,:,:],axis=0)
             ResponseMap[TrialI,plane_id,:,:]=np.mean(plane_data[ResponseInd,:,:],axis=0)
 
+    baseMap=np.delete(baseMap,Invalid,axis = 0)
+    ResponseMap=np.delete(ResponseMap,Invalid, axis = 0)
     #DimEnd=len(baseMap.shape)
     baseMap=np.mean(baseMap,axis=0)
     ResponseMap=np.mean(ResponseMap,axis=0)
     ResponseMap=ResponseMap-baseMap
     ResponseMap=np.transpose(ResponseMap,(0,2,1))
     return ResponseMap
-
 
 def plotCellCenter(ax, Ly, cellCenter, Radius, colorCell, LineWidth):
 
@@ -78,7 +82,7 @@ def plotCellCenter(ax, Ly, cellCenter, Radius, colorCell, LineWidth):
         # Plot a circle around the center with the specified radius, color, and line width
        circle = Circle((x, y), Radius, color=colorCell[0], linewidth=LineWidth, fill=False)
        ax.add_patch(circle)
-       plt.show()
+       #plt.show()
     else:
         for i in range(cellCenter.shape[0]):
             # Extract x and y coordinates of the current center
@@ -88,7 +92,7 @@ def plotCellCenter(ax, Ly, cellCenter, Radius, colorCell, LineWidth):
         # Plot a circle around the center with the specified radius, color, and line width
             circle = Circle((x, y), Radius[i], color=colorCell[i], linewidth=LineWidth, fill=False)
             ax.add_patch(circle)
-            plt.show()
+            #plt.show()
 
 
 
