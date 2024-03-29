@@ -8,8 +8,80 @@ import suite2p  # Suite2p for calcium imaging data analysis
 import numpy as np  # NumPy for numerical operations
 import os  # OS module for interacting with the file system
 import glob  # Glob for filename pattern matching
+from pathlib import Path
 from natsort import natsorted  # Natsort for natural sorting
  # Explicit garbage collection to free memory
+
+
+
+
+def configLoad(file_path,ymlName,opsName):
+    ymlPath=os.path.join(file_path,ymlName)
+    opsPath=os.path.join(file_path,opsName)
+    ymlSet=read_yaml(ymlPath)
+    ops=np.load(opsPath,allow_pickle=True).item()
+    ops=opsAddyaml(ymlSet,ops)
+    return ops
+
+def read_yaml(file_path):
+    # Open the file and read lines
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    
+    # Remove empty lines and strip whitespace
+    lines = [line.strip() for line in lines if line.strip()]
+    
+    # Initialize the results dictionary
+    results = {}
+    
+    # Parse each line
+    for line in lines:
+        # Ignore if this line is a comment
+        if line.startswith('#'):
+            continue
+        
+        # Find the separator between key and value
+        sep_index = line.find(':')
+        if sep_index == -1:  # Skip if no separator found
+            continue
+        
+        # Extract key and value, trimming whitespace
+        key = line[:sep_index].strip()
+        value = line[sep_index+1:].split('#')[0].strip()  # Ignore comments
+        
+        # Attempt to convert value to a numeric type
+        try:
+            value = float(value) if '.' in value else int(value)
+        except ValueError:
+            pass  # Keep as string if conversion fails
+        
+        # Store the key and value
+        results[key] = value
+    
+    return results
+
+def opsAddyaml(yaml,ops):
+    ops.update(yaml)
+    ops['Lx']=yaml['SLM_Pixels_X']  ##Width of a image
+    ops['Ly']=yaml['SLM_Pixels_Y']  ##Height of a image
+    ops['xrange']=[0,ops['Lx']]
+    ops['yrange']=[0,ops['Ly']]
+
+    substrings=ops['ETL'].split()
+    ops['ETL'] = [float(substring) for substring in substrings]
+
+    ops['nplanes']=len(ops['ETL'])
+    return ops
+
+
+def suite2pInitiate(ops0):
+    SaveFolder=os.path.join(ops0['save_path0'], 'suite2p')
+    print('Processed data would be saved in'+ SaveFolder)
+    if not os.path.exists(SaveFolder):
+       os.makedirs(SaveFolder)
+    else:
+       print("Folder already exists.")
+    return SaveFolder 
 
 
 def LoadBin(binFile,SaveFolder,ops1):

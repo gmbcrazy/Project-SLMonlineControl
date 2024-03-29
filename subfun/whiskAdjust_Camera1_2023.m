@@ -1,4 +1,4 @@
-%% This function is set to draw the ROI.
+whiskTrial1%% This function is set to draw the ROI.
 
 % --- Lu revision 11/27/2023 --- adjusting data version of
 % develop project, for data without multi camera tracking. 

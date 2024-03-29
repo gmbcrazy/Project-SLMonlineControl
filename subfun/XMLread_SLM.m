@@ -102,7 +102,7 @@ for i=1:length(VolFileInfo)
     %    break;
     % end
 
-    if isempty(dir(VolFileInfo(i).dataFile))
+    if isempty(VolFileInfo(i).dataFile)
        break;
    
     end
