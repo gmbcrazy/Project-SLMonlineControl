@@ -14,6 +14,55 @@ import glob
 ##python -m pip install -U scikit-image
 from skimage import measure
 from natsort import natsorted
+from collections import defaultdict
+import re
+
+
+# Iterate over X and Y values and search for matching files
+#PointFile=[None]*len(PointI_values)
+def NeuroFromBin(matching_files,statCell,plane_idx,SingL,ops0):
+    
+    TrialNum=len(matching_files)
+    Fsig=np.zeros((len(statCell),SingL,TrialNum))
+    DeltaF=np.zeros((len(statCell),SingL,TrialNum))  
+    spks=np.zeros((len(statCell),SingL,TrialNum))
+    nplanes=ops0['nplanes']
+    Invalid=[]
+    maxIneed=np.max(SingL)
+
+    for Ind,Trial in enumerate(matching_files):
+        rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
+        if maxIneed*nplanes>rawBin.shape[0]:
+           Invalid.append(TrialI)
+           print(Trial+' is too short')
+           continue
+        plane_data = rawBin[range(0+plane_idx,SingL*nplanes,nplanes),:,:]
+        stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCell, f_reg=plane_data,f_reg_chan2 = plane_data,ops=ops0)
+        dF = F.copy() - ops0['neucoeff']*Fneu
+        dF = suite2p.extraction.preprocess(F=dF, baseline=ops0['baseline'],win_baseline=ops0['win_baseline'],sig_baseline=ops0['sig_baseline'],fs=ops0['fs'],prctile_baseline=ops0['prctile_baseline'])
+        spksTemp = suite2p.extraction.oasis(F=dF, batch_size=ops0['batch_size'], tau=ops0['tau'], fs=ops0['fs'])
+        Fsig[:,:,Ind]=np.double(F)
+        DeltaF[:,:,Ind]=np.double(dF)
+        spks[:,:,Ind]=np.double(spksTemp)
+    #print(Ind)
+    Fsig=np.delete(Fsig,Invalid,axis = 2)
+    DeltaF=np.delete(DeltaF,Invalid, axis = 2)
+    spks=np.delete(spks,Invalid, axis = 2)
+    return Fsig, DeltaF, spks
+    #preStim=range(0,10)
+   # print(PSTH.shape)
+    
+#baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
+#Response=np.mean(PSTH,axis=1)
+#print(Response.shape)
+#baseLine=np.tile(baseLine.T,(SingL,1)).T
+#print(baseLine.shape)
+#plt.imshow(np.mean(PSTH,axis=1)-baseLine,cmap='seismic')
+#np.shape(Response-baseLine)
+
+
+#fig, ax = plt.subplots(1,3)
+#ax[0].imshow(baseMap[:,:,0],cmap='seismic')
 
 def BinList_PSTHHeatMap(MultiBinFileList,BaselineInd,ResponseInd,ops0):
 
@@ -148,74 +197,33 @@ def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
    # ax.set_title('Cell Centers with Circles (3D)')
 
 
-# Iterate over X and Y values and search for matching files
-#PointFile=[None]*len(PointI_values)
-def PSTHFromBin(matching_files,statCell,plane_idx,SinnL,TrialNum):
-    PSTH=np.zeros((SingL,TrialNum))
-    for Ind,Trial in enumerate(matching_files):
-        rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
-        print(rawBin.shape)
-        print(Trial)
-        plane_data = rawBin[range(0+plane_idx,SingL*nplanes,nplanes),:,::-1]
+
+
+
+
+def PointLaser_files(file_names):
+    # Regular expression to extract the point and laser level from the file name
+    pattern = re.compile(r"Laser(\d+\.\d+)Point(\d+)\.bin")
+
+    # Nested dictionary to store the results
+    # Defaultdict with a lambda to create another defaultdict for nested structure
+    organized_files = defaultdict(lambda: defaultdict(list))
+
     
-        stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCell, f_reg=plane_data,
-                                                          f_reg_chan2 = plane_data,ops=ops0)
-        dF = F.copy() - ops1['neucoeff']*Fneu
 
-        dF = suite2p.extraction.preprocess(
-        F=dF,
-        baseline=ops1['baseline'],
-        win_baseline=ops1['win_baseline'],
-        sig_baseline=ops1['sig_baseline'],
-        fs=ops1['fs'],
-        prctile_baseline=ops1['prctile_baseline']
-        )
-        PSTH[:,Ind]=np.double(F)
+    for file_name in file_names:
+        match = pattern.search(file_name)
+        if match:
+            # Extract laser level and point number
+            laser_level = match.group(1)
+            point_number = match.group(2)
 
-    return PSTH
-    #preStim=range(0,10)
-   # print(PSTH.shape)
-    
-#baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
-#Response=np.mean(PSTH,axis=1)
-#print(Response.shape)
-#baseLine=np.tile(baseLine.T,(SingL,1)).T
-#print(baseLine.shape)
-#plt.imshow(np.mean(PSTH,axis=1)-baseLine,cmap='seismic')
-#np.shape(Response-baseLine)
+            # Organize file into the dictionary
+            organized_files[point_number][laser_level].append(file_name)
 
-
-#fig, ax = plt.subplots(1,3)
-#ax[0].imshow(baseMap[:,:,0],cmap='seismic')
-
-
-# Iterate over X and Y values and search for matching files
-#PointFile=[None]*len(PointI_values)
-def PSTHFromBin(matching_files,statCell,plane_idx,SinnL,TrialNum):
-    PSTH=np.zeros((SingL,TrialNum))
-    for Ind,Trial in enumerate(matching_files):
-        rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
-        print(rawBin.shape)
-        print(Trial)
-        plane_data = rawBin[range(0+plane_idx,SingL*nplanes,nplanes),:,::-1]
-    
-        stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCell, f_reg=plane_data,
-                                                          f_reg_chan2 = plane_data,ops=ops0)
-        dF = F.copy() - ops1['neucoeff']*Fneu
-
-        dF = suite2p.extraction.preprocess(
-        F=dF,
-        baseline=ops1['baseline'],
-        win_baseline=ops1['win_baseline'],
-        sig_baseline=ops1['sig_baseline'],
-        fs=ops1['fs'],
-        prctile_baseline=ops1['prctile_baseline']
-        )
-        PSTH[:,Ind]=np.double(F)
-
-    return PSTH
-    #preStim=range(0,10)
-   # print(PSTH.shape)
+    # Convert inner defaultdicts to regular dictionaries for easier use
+    OrganizedFile = {point: dict(lasers) for point, lasers in organized_files.items()}
+    return OrganizedFile
     
 #baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
 #Response=np.mean(PSTH,axis=1)
