@@ -27,8 +27,8 @@
 % callback function
 function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame,BreakPointFrame)
     
-    MarkPointList=dir([ProcessFolder 'SingleP\*Point*.xml']);
-    MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
+    MarkPointList=dir([ProcessFolder '*Point*.xml']);
+    MarkPointGPL=dir([ProcessFolder '*.gpl']);
 
     if length(MarkPointGPL)>1
        disp('Multiple .gpl files are found')
@@ -193,7 +193,6 @@ for iRep=1:Repetition
                       end
 
                       fwrite(fileID, frame, 'uint16');
-
                 % debugging: preview plot
                       if preview
                          Image.CData = frame';
@@ -233,14 +232,17 @@ for iRep=1:Repetition
 %         if started && loopCounter > 150 && sum(allSamplesRead(end-139:end)) == 0
 %             running = 0;
 %         end
-            if started && framesCounter >= maxFrame
+%             if started && framesCounter >= maxFrame
+%                  running = 0;
+%             end
+            if started && frameNum >= maxFrame
                  running = 0;
             end
          if preview
             figure(2);
             subplot(2,2,2)
-%             hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
-             hold on;plot(loopCounter,numSamplesRead,'r.')
+            hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
+%             hold on;plot(loopCounter,numSamplesRead,'r.')
 
 %             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
             ylabel('numWholeFramesGrabbed')
@@ -263,15 +265,15 @@ for iRep=1:Repetition
 %                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
 %             end
 
-            if started && loopCounter > 120 && sum(allSamplesRead(end-99:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+            if started && loopCounter > 150 && sum(allSamplesRead(end-119:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
          end
 
     % clean up
-          fclose(fileID);
-          disp(['Pause ' num2str(InterTrialDelay(iRep,ixml)) 's for next trial'])
-            pause(InterTrialDelay(iRep,ixml));
+         fclose(fileID);
+         disp(['Pause ' num2str(InterTrialDelay(iRep,ixml)) 's for next trial'])
+         pause(InterTrialDelay(iRep,ixml));
 
     %% Update file name for next recording trial
          tSeriesIterID=tSeriesIterID+1;

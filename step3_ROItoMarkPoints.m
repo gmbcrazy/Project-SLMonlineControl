@@ -1,5 +1,5 @@
 clear all
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config';
+ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 [SavePath,Pos3D,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
@@ -39,19 +39,18 @@ TopCellN=10;
 TopSpeedCellI=r1(1:TopCellN)
 
 
-load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 rCellspks=partialcorr(CaData.spks(iscell,:)',fSpeed);
 imagesc(rCellspks(r1,r1))
-colormap(ColorPN3)
+% colormap(ColorPN3)
 clim([-0.3 0.3])
 
 
  
 
-[fSpeed,timeStampCa_Plane]=PV_SpeedExtract(confSet)
 
 %% Exlude ROIs near the edge of the FOV 
-SLMrangePix=50; %Pixel number close to FOV is excluded
+SLMrangePix=20; %Pixel number close to FOV is excluded
 
 numPoint=size(Pos3D,1);
 XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
@@ -60,11 +59,13 @@ OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|
 CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath 'EdgeExc\']
 mkdir(SavePathExc)
-IndexNeed=1:1:size(Pos3D,1);
+IndexNeed=[1 2 3 7 9 13];
+CenterCloseI=CenterCloseI(IndexNeed)
+% IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
 
 
-
+1 2 3 7 9 13
 
 clear Group
 Group(1).Indices=[1:length(tempI)];
