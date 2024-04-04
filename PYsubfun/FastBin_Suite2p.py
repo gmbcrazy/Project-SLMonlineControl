@@ -84,18 +84,17 @@ def suite2pInitiate(ops0):
     return SaveFolder 
 
 
-def LoadBin(binFile,SaveFolder,ops1):
+def LoadBin(binFile,ops1):
     nplanes=ops1['nplanes']
-    if not os.path.exists(SaveFolder):
-       os.makedirs(SaveFolder)
-    else:
-       print("Folder already exists.")
-       os.path.exists(binFile[0])
-    if len(binFile)>1:
+    if isinstance(binFile, str):
+       rawBin = suite2p.io.BinaryFile(Ly=ops1['Ly'],Lx=ops1['Lx'], filename=binFile)
+    elif not isinstance(binFile, str) and len(binFile)>1:
        print('More than one bin files found!!')
+       return None
     else:
        rawBin = suite2p.io.BinaryFile(Ly=ops1['Ly'],Lx=ops1['Lx'], filename=binFile[0])
-       nFrame = rawBin.shape[0] // nplanes
+    
+    nFrame = rawBin.shape[0] // nplanes
 
 #Make sure each plane has same number of frames.
     FramePerPlane=np.floor(rawBin.shape[0]/ops1['nplanes'])

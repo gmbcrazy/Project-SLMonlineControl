@@ -3,6 +3,10 @@
 
 # In[ ]:
 import suite2p
+from suite2p.registration import register
+from suite2p.registration import rigid
+from suite2p.io import tiff
+from skimage.registration import phase_cross_correlation
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
@@ -16,8 +20,8 @@ from skimage import measure
 from natsort import natsorted
 from collections import defaultdict
 import re
-
-
+import time
+import FastBin_Suite2p as FBS
 # Iterate over X and Y values and search for matching files
 #PointFile=[None]*len(PointI_values)
 def NeuroFromBin(matching_files,statCell,plane_idx,SingL,ops0):
@@ -478,3 +482,93 @@ def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
    # ax.set_title('Cell Centers with Circles (3D)')
 
 
+def get_new_files(previous_files, current_files):
+    # Return files that are in current_files but not in previous_files
+    if previous_files is None:
+        return [file for file in currentfiles]
+    else:
+        return [file for file in current_files if file not in previous_files]
+
+def ImgNormalize(Image1):
+    mean = np.mean(Image1)
+    std_dev = np.std(Image1)
+    Image2 = (Image1 - mean) / std_dev
+    return Image2
+
+def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=15, ExistingBinFile=None, folder_keywords=None):
+    # Initialize previous files list with ExistingBinFile if provided, else empty list
+    if ExistingBinFile is None:
+        previous_files = []
+    elif ExistingBinFile=='Current':
+        previous_files = glob.glob(folder_path + '/*.bin')
+    else:
+        previous_files = ExistingBinFile
+    
+    # Initialize a time marker for the timing threshold
+    time_marker = time.time()
+    Pixel_ShiftAll=[]
+    corrValue=[]
+    fileList=[]
+    while True:
+          pattern = folder_path + '/*'
+          if folder_keywords:
+             pattern += folder_keywords
+          pattern += '*.bin'
+          current_files = glob.glob(pattern)
+          new_files = get_new_files(previous_files, current_files)
+        #print(new_files)
+          if new_files:
+            # Reset the time marker since new files have been found
+             print(new_files)             
+            # Process new files
+             for file in new_files:       
+                 
+                # Construct the full path to the file
+                #file_path = os.path.join(folder_path, file)
+                #print(file_path)
+                 TestBin, FramePerPlane, TotalFrameNeed = FBS.LoadBin(file, ops0)
+                 Test_data = TestBin[range(0 + plane_idx, TestBin.shape[0], ops0['nplanes']), :, :]
+                 TestPlane = np.mean(Test_data, axis=0)
+                
+                # Calculate pixel shift
+                 Img1=ImgNormalize(reference_Data)
+                 Img2=ImgNormalize(TestPlane)
+                 pixel_shift, junk1, junk2 = phase_cross_correlation(Img1,Img2)
+                
+                 image_product = np.fft.fft2(Img1) * np.fft.fft2(Img2).conj()
+                 cc_image = np.fft.fftshift(np.fft.ifft2(image_product))
+ 
+                 Pixel_ShiftAll.append(pixel_shift)
+                 corrValue.append(np.max(np.max(cc_image.real))/ops0["Lx"]/ops0["Ly"])
+                 fileList.append(file)
+                # Check if pixel shift exceeds threshold
+                #if np.max(pixel_shift) > threshold:
+                 print(f"{file} Pixel shift detected! Offset: {pixel_shift}")
+                 time_marker = time.time() 
+                 
+                #return  # Or take other appropriate action
+                
+          else:
+            # If no new files are found, check the time since the last new file
+              print(f"No new files detected {np.int16(TimeTh-time.time()+time_marker)} seconds left")
+              if time.time() - time_marker > TimeTh:
+                 print("Stopping monitoring.")
+                 break
+        
+        # Update previous files list
+          previous_files = current_files
+        
+        # Check if the 'S' key is pressed to manually stop monitoring
+        #if keyboard.is_pressed('s'):
+            #print("Monitoring stopped by user.")
+           # break
+        
+        # Wait for a while before checking again
+          time.sleep(3)
+    
+    nFile=len(fileList)
+    Pixel_ShiftAll=np.array(Pixel_ShiftAll)
+    corrValue=np.array(corrValue)
+        #if not nFile > 0:
+
+    return Pixel_ShiftAll,corrValue,fileList
