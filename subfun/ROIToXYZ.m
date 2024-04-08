@@ -10,6 +10,16 @@ ZLayer=confSet.ETL+ZFocusDepth;
 LoadPath=confSet.save_path0;
 Suite2PPath=[LoadPath 'suite2p\']
 xmlFile=dir([LoadPath '*TSeries*-001\TSeries-*-001.xml']);
+if isempty(xmlFile)
+   disp('Check Path and File Name, No .xml file is detected for recording information')
+   SavePath=[];
+   Pos3D=[];
+   CaData=[];
+   stat=[];
+   yaml=[];
+   confSet=[];
+   return;
+end
 xmlFile=[xmlFile.folder '\' xmlFile.name];
 yaml=xml2yaml(xmlFile);
 Suite2Temp=[Suite2PPath '\combined\Fall.mat'];

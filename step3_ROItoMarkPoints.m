@@ -1,27 +1,50 @@
 clear all
-ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
 [SavePath,Pos3D,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
-[fSpeed,timeStampCa_Plane]=PV_SpeedExtract(confSet);
-
+% Intially all cells were dectected by suite2p were considered as SLM targets
 SavePathAllPoint=[SavePath 'AllPoint\']
 mkdir(SavePathAllPoint)
-
-
-
 IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
-
-
 numPlanes=length(confSet.ETL);
 iscell=find(CaData.iscell(:,1)==1);
+
+
+
+
+
+%% Exlude cells near the edge of the FOV as SLM targets
+SLMrangePix=20; %Pixel number close to FOV is excluded
+numPoint=size(Pos3D,1);
+XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
+OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
+CenterCloseI=setdiff(1:numPoint,OutRange);
+SavePathExc=[SavePath 'EdgeExc\']
+mkdir(SavePathExc)
+% IndexNeed=[1 2 3 7 9 13];
+% CenterCloseI=CenterCloseI(IndexNeed)
+% IndexNeed=1:1:size(Pos3D,1);
+XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
+
+
+
+
+
+
+%% Including top cells highly correlated associated with speed.
+if ~exist('fSpeed')
+  [fSpeed,timeStampCa_Plane]=PV_SpeedExtract(confSet);
+end
+
+
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
     [rF(I1),pF(I1)]=corr(CaData.F(iscell(I1),:)',fSpeed(:,iPlane),'type','Spearman');
     [rFneu(I1),pFneu(I1)]=corr(CaData.Fneu(iscell(I1),:)',fSpeed(:,iPlane),'type','Spearman');
     [rFspks(I1),pFspks(I1)]=corr(CaData.spks(iscell(I1),:)',fSpeed(:,iPlane),'type','Spearman');
-
 end
 
 figure;
@@ -33,36 +56,64 @@ plot(rFspks,'b')
 
 figure;
 plot(-log10(pFspks),'b')
-[~,r1]=sort(rFspks,'descend')
+[~,r1]=sort(rFspks(CenterCloseI),'descend')  %%Cell locates close to edge of the view, were not considered as SML targets.
+TopCellN=10;         %%   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Top X cells highly associated with speed 
+TopSpeedCellI=CenterCloseI(r1(1:TopCellN));
+SavePathSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedEdgeExc\']
+mkdir(SavePathSpeed)
+XYZtoMarkPoint(SavePathSpeed,Pos3D,TopSpeedCellI,yaml,confSet);
 
-TopCellN=10;
-TopSpeedCellI=r1(1:TopCellN)
 
 
+
+
+%% 
 % load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
-rCellspks=partialcorr(CaData.spks(iscell,:)',fSpeed);
-imagesc(rCellspks(r1,r1))
-% colormap(ColorPN3)
+% rCellspks=partialcorr(CaData.spks(iscell,:)',fSpeed);
+rCellspks=corr(double(CaData.spks(iscell,:))','type','Spearman','rows','pairwise');
+load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat')
+AdjMat=rCellspks+1;  %%%%%%%%%%Non-negative weighted correlation.
+clear SampleCorr;
+for itt=1:size(AdjMat,1)
+    AdjMat(itt,itt)=0;%%%%%%diagonal zeros for Adjcent matrix
+end
+k = full(sum(AdjMat));
+twom = sum(k);
+B = full(AdjMat - gamma*k'*k/twom);
+tic
+k = full(sum(AdjMat));
+twom = sum(k);
+gamma = 1.05;  %%Community Clustering Paramter%%
+limit =100000; %%memory consideration for community clustering 
+B = @(i) AdjMat(:,i) - gamma*k'*k(i)/twom;
+disp('Clustering ...iterated_genlouvain.m');
+%%%%%%Clustering
+[SS,QQ,n_it]=iterated_genlouvain(B,limit,0);
+max(SS)
+toc
+[~,r2] = sort(SS);
+%         QQ = QQ/twom;
+figure;
+% imagesc(rCellspks(r2,r2))
+AdjComImagesc(rCellspks,SS);
+colormap(ColorPN3)
 clim([-0.3 0.3])
 
+IndSub=find(SS==3)
+CellSub=double(CaData.spks(iscell(IndSub),:)');
 
- 
+[coeff,score,latent,tsquared] = pca(CellSub);
+corr(score(:,1:3),fSpeed)
 
 
-%% Exlude ROIs near the edge of the FOV 
-SLMrangePix=20; %Pixel number close to FOV is excluded
 
-numPoint=size(Pos3D,1);
-XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
-OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
+[W,H]=nnmf(double(CaData.spks(iscell,:))',3)
+biplot(H','Scores',W);
+axis([0 1.1 0 1.1])
+xlabel('Column 1')
+ylabel('Column 2')
 
-CenterCloseI=setdiff(1:numPoint,OutRange);
-SavePathExc=[SavePath 'EdgeExc\']
-mkdir(SavePathExc)
-IndexNeed=[1 2 3 7 9 13];
-CenterCloseI=CenterCloseI(IndexNeed)
-% IndexNeed=1:1:size(Pos3D,1);
-XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
+r=corr(W,fSpeed)
 
 
 1 2 3 7 9 13
