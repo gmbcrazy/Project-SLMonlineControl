@@ -1,6 +1,6 @@
 clear all
-% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
 [SavePath,Pos3D,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
@@ -24,9 +24,9 @@ OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|
 CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath 'EdgeExc\']
 mkdir(SavePathExc)
-% IndexNeed=[1 2 3 7 9 13];
-% CenterCloseI=CenterCloseI(IndexNeed)
-% IndexNeed=1:1:size(Pos3D,1);
+IndexNeed=[5 7 8 14 16 24 38 42 47];
+CenterCloseI=CenterCloseI(IndexNeed)
+IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
 
 
@@ -57,7 +57,7 @@ plot(rFspks,'b')
 figure;
 plot(-log10(pFspks),'b')
 [~,r1]=sort(rFspks(CenterCloseI),'descend')  %%Cell locates close to edge of the view, were not considered as SML targets.
-TopCellN=10;         %%   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Top X cells highly associated with speed 
+TopCellN=15;         %%   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Top X cells highly associated with speed 
 TopSpeedCellI=CenterCloseI(r1(1:TopCellN));
 SavePathSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedEdgeExc\']
 mkdir(SavePathSpeed)

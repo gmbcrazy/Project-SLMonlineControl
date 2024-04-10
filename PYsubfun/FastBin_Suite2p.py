@@ -114,12 +114,14 @@ def process_plane(plane_idx, rawBin, SaveFolder, ops1):
     else:
         print("Saving folder already exists.")
     # Extract the plane data from the raw binary file
-    plane_data = rawBin[range(0 + plane_idx, rawBin.shape[0], nplanes), :, :]
+    FramePerPlane=np.floor(rawBin.shape[0]/ops1['nplanes'])
+    TotalFrameNeed=np.int32(np.floor(FramePerPlane)*ops1['nplanes'])
+    plane_data = rawBin[range(0 + plane_idx, TotalFrameNeed, nplanes), :, :]
     # Perform cell detection using suite2p
     ops, stat = suite2p.detection_wrapper(f_reg=plane_data, ops=ops1)
     # Update ops dictionary with additional information
-    nFrame = rawBin.shape[0] // nplanes
-    ops['nframes'] = nFrame
+    #nFrame = rawBin.shape[0] // nplanes
+    ops['nframes'] = FramePerPlane
     ops['meanImg'] = np.mean(plane_data, axis=0)
     ops = suite2p.registration.register.enhanced_mean_image(ops)
     # Save the ops dictionary to a numpy file

@@ -27,8 +27,8 @@
 % callback function
 function PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,Repetition,maxFrame,BreakPointFrame)
     
-    MarkPointList=dir([ProcessFolder '*Point*.xml']);
-    MarkPointGPL=dir([ProcessFolder '*.gpl']);
+    MarkPointList=dir([ProcessFolder 'SingleP\*Point*.xml']);
+    MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
 
     if length(MarkPointGPL)>1
        disp('Multiple .gpl files are found')

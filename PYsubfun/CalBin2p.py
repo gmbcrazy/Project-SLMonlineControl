@@ -522,7 +522,7 @@ def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=
              print(new_files)             
             # Process new files
              for file in new_files:       
-                 
+                 time.sleep(10)
                 # Construct the full path to the file
                 #file_path = os.path.join(folder_path, file)
                 #print(file_path)
@@ -564,7 +564,7 @@ def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=
            # break
         
         # Wait for a while before checking again
-          time.sleep(3)
+          time.sleep(5)
     
     nFile=len(fileList)
     Pixel_ShiftAll=np.array(Pixel_ShiftAll)
