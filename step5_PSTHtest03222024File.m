@@ -1,11 +1,12 @@
 clear all
 
-load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
 
 
-
-DataFolder='E:\LuRecording\03222024Test\'
+DataFolder='F:\LuSLMOnlineTest\04092024\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
@@ -13,7 +14,7 @@ mkdir(SinglePSTHFolder);
 % SingPZ=[0 0 50 50 50 100 100]
 
 BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
-SingPZ=[100 100]
+SingPZ=[0 0 0 50 50 50 100 100 100]
 
 PointFile=[];
 LaserFile=[];
@@ -30,10 +31,10 @@ end
 Laser=unique(LaserFile)
 Point=unique(PointFile)
 nPlane=3
-PreInd=2:25
-PostInd=30:33;
+PreInd=15:25
+PostInd=27:29;
 PlaneZ=[0 50 100];
-MeanImgClim=[-800 800]
+MeanImgClim=[-600 600]
 
 % SingPZ=100;
 
@@ -96,10 +97,10 @@ for iPoint = 1:length(Point)
      end
 %       set(gcf, 'PaperUnits', 'centimeters');
 %       set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-%       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'png'); 
-%       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'fig'); 
-
-     % close all
+%       saveas(gcf,[SinglePSTHFolder 'TifPoint' num2str(Point(iPoint))],'png'); 
+%       saveas(gcf,[SinglePSTHFolder 'TifPoint' num2str(Point(iPoint))],'fig'); 
+% 
+%      close all
 end
 
 
@@ -133,8 +134,8 @@ end
 
 
 
-PreInd=2:25
-PostInd=30:33;
+PreInd=10:25
+PostInd=26:30;
 
 % PreInd=2:11;
 % PauseInd=11;
@@ -142,7 +143,7 @@ PostInd=30:33;
 PlaneZ=[0 50 100];
 clear PSTHtemp;
 % BinFile=dir([DataFolder '*TSeries*Laser1.12Point6.bin'])
-FrameTotal=(58-1)*nPlane
+FrameTotal=(56-1)*nPlane
 % Skip=PauseInd*3+1;
 
 
@@ -206,12 +207,12 @@ end
 
 
 close all
-papersizePX=[0 0 22 18];
+papersizePX=[0 0 22 18*length(Laser)];
 for iPoint = 1:length(Point)
     figure;
 
      for iLaser=1:length(Laser)
-         subplot(length(Laser),2,1)
+         subplot(length(Laser),2,(iLaser-1)*2+1)
          MultiMatrix3DPlotZ(PSTH{iLaser,iPoint},PlaneZ,0.9);
          caxis(MeanImgClim);
          Radius=10;
@@ -221,7 +222,7 @@ for iPoint = 1:length(Point)
          ylabel('Tiff Data')
 
 
-         subplot(length(Laser),2,2)
+         subplot(length(Laser),2,(iLaser-1)*2+2)
          MultiMatrix3DPlotZ(PSTHBin{iLaser,iPoint},PlaneZ,0.9);
          caxis(MeanImgClim);
          Radius=10;
@@ -237,7 +238,7 @@ for iPoint = 1:length(Point)
       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'png'); 
       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'fig'); 
 
-     % close all
+     close all
 end
 
 

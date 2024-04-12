@@ -5,12 +5,12 @@ clear all
 
 
 
-DataFolder='F:\LuSLMOnlineTest\03222024Test\'
+DataFolder='F:\LuSLMOnlineTest\04092024\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
 
-SingPZ=[0 0 0 0 50 50 100]
+SingPZ=[0 0 0 50 50 50 100 100 100]
 
 BinFile=dir([DataFolder '*TSeries*Laser*Point6.bin'])
 
@@ -29,8 +29,8 @@ end
 Laser=unique(LaserFile)
 Point=unique(PointFile)
 nPlane=3
-PreInd=2:16
-PostInd=18:30;
+PreInd=2:25
+PostInd=27:32;
 PlaneZ=[0 50 100];
 MeanImgClim=[-100 100]
 

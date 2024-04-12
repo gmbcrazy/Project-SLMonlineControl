@@ -24,7 +24,7 @@ OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|
 CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath 'EdgeExc\']
 mkdir(SavePathExc)
-IndexNeed=[5 7 8 14 16 24 38 42 47];
+IndexNeed=[3 4 6 7 13 15 16 20 21 23 25 28 29 30];
 CenterCloseI=CenterCloseI(IndexNeed)
 IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
@@ -116,7 +116,7 @@ ylabel('Column 2')
 r=corr(W,fSpeed)
 
 
-1 2 3 7 9 13
+% 1 2 3 7 9 13
 
 clear Group
 Group(1).Indices=[1:length(tempI)];

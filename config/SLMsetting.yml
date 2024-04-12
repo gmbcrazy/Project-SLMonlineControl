@@ -1,16 +1,16 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: F:\LuSLMOnlineTest\04092024\
+save_path0: F:\LuSLMOnlineTest\04112024\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 129.82 #Z device depth
+scan_Z: 200.34 #Z device depth
 ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 SpiralSizeUM: 15
 SpiralRevolution: 3
-Repetition: 5 #Pulse Number of SLM stimuli
-UncagingLaserPower: 1.12 1.16 #SLM power LevelTest
+Repetition: 8 #Pulse Number of SLM stimuli
+UncagingLaserPower: 1.12 1.15 #SLM power LevelTest
 
 
 # RawDataStream
