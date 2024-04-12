@@ -1,12 +1,12 @@
 clear all
 
-% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
 
 
-DataFolder='F:\LuSLMOnlineTest\04092024\'
+DataFolder='F:\LuSLMOnlineTest\04112024\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
@@ -14,7 +14,9 @@ mkdir(SinglePSTHFolder);
 % SingPZ=[0 0 50 50 50 100 100]
 
 BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
-SingPZ=[0 0 0 50 50 50 100 100 100]
+
+
+SingPZ=[0 0 0 0 50 50 50 50 50 50 100 100 100 100]
 
 PointFile=[];
 LaserFile=[];
@@ -28,15 +30,20 @@ for iFile=1:length(BinFile)
     BinFileFolder{iFile}=BinFile(iFile).name(1:I1-1);
 end
 
+
+
+
+
 Laser=unique(LaserFile)
-Point=unique(PointFile)
+%Point=unique(PointFile)
 nPlane=3
 PreInd=15:25
 PostInd=27:29;
 PlaneZ=[0 50 100];
-MeanImgClim=[-600 600]
+MeanImgClim=[-150 150];
+SinglePxyz=[Y X SingPZ(iPoint)];
 
-% SingPZ=100;
+
 
 for iLaser=1:length(Laser)
     Ind1=find(LaserFile==Laser(iLaser));
@@ -89,7 +96,7 @@ for iPoint = 1:length(Point)
          MultiMatrix3DPlotZ(PSTH{iLaser,iPoint},PlaneZ,0.9);
          caxis(MeanImgClim);
          Radius=10;
-         colormap(ColorPN3);
+       colormap(ColorPN3);
          set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
          plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
 
@@ -97,18 +104,16 @@ for iPoint = 1:length(Point)
      end
 %       set(gcf, 'PaperUnits', 'centimeters');
 %       set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-%       saveas(gcf,[SinglePSTHFolder 'TifPoint' num2str(Point(iPoint))],'png'); 
-%       saveas(gcf,[SinglePSTHFolder 'TifPoint' num2str(Point(iPoint))],'fig'); 
-% 
-%      close all
+%       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'png'); 
+%       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'fig'); 
+
+     % close all
 end
 
 
 
 
 
-
-% SinglePxyz=[Y X SingPZ(iPoint)]
 % figure;
 % subplot('position',[0.01 0.01 0.88 0.95])
 % MultiMatrix3DPlotZ(Temp3,PlaneZ,0.9);
@@ -134,8 +139,8 @@ end
 
 
 
-PreInd=10:25
-PostInd=26:30;
+PreInd=15:25
+PostInd=26:28;
 
 % PreInd=2:11;
 % PauseInd=11;
@@ -143,7 +148,7 @@ PostInd=26:30;
 PlaneZ=[0 50 100];
 clear PSTHtemp;
 % BinFile=dir([DataFolder '*TSeries*Laser1.12Point6.bin'])
-FrameTotal=(56-1)*nPlane
+FrameTotal=(50)*nPlane
 % Skip=PauseInd*3+1;
 
 
@@ -185,13 +190,11 @@ for iLaser=1:length(Laser)
             end
 
             PSTHtemp(:,:,:,iTrial)=nanmean(Y(:,:,PostInd-1,:),3)-nanmean(Y(:,:,PreInd,:),3);
-             
-             
 
          end
          PSTHtemp=squeeze(mean(PSTHtemp,4));
          PSTHtemp=permute(PSTHtemp,[2,1,3]);
-         PSTHtemp=SmoothDecDim(PSTHtemp,1,3);
+         PSTHtemp=SmoothDecDim(PSTHtemp,2,3);
 
          PSTHBin{iLaser,iPoint}=PSTHtemp;
     end
@@ -210,7 +213,6 @@ close all
 papersizePX=[0 0 22 18*length(Laser)];
 for iPoint = 1:length(Point)
     figure;
-
      for iLaser=1:length(Laser)
          subplot(length(Laser),2,(iLaser-1)*2+1)
          MultiMatrix3DPlotZ(PSTH{iLaser,iPoint},PlaneZ,0.9);
@@ -221,7 +223,6 @@ for iPoint = 1:length(Point)
          plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
          ylabel('Tiff Data')
 
-
          subplot(length(Laser),2,(iLaser-1)*2+2)
          MultiMatrix3DPlotZ(PSTHBin{iLaser,iPoint},PlaneZ,0.9);
          caxis(MeanImgClim);
@@ -229,7 +230,6 @@ for iPoint = 1:length(Point)
          colormap(ColorPN3);
          set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
          plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
-
          ylabel('Bin Data')
 
      end
@@ -243,5 +243,36 @@ end
 
 
 
+close all
+papersizePX=[0 0 22*2 18*length(Laser)];
+for iPoint = 1:length(Point)
+    figure;
+     for iLaser=1:length(Laser)
+         % subplot(length(Laser),2,(iLaser-1)*2+1)
+         % MultiMatrix3DPlotZ(PSTH{iLaser,iPoint},PlaneZ,0.9);
+         % caxis(MeanImgClim);
+         % Radius=10;
+         % colormap(ColorPN3);
+         % set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
+         % plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
+         % ylabel('Tiff Data')
+
+         subplot(1,length(Laser),iLaser)
+         MultiMatrix3DPlotZ(PSTHBin{iLaser,iPoint},PlaneZ,0.9);
+         caxis(MeanImgClim);
+         Radius=10;
+         colormap(ColorPN3);
+         set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
+         plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
+         ylabel('Bin Data')
+
+     end
+      set(gcf, 'PaperUnits', 'centimeters');
+      set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+      saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'png'); 
+      saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'fig'); 
+
+     close all
+end
 
 

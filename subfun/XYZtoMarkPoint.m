@@ -10,7 +10,7 @@ UncagingLaserPower=confSet.UncagingLaserPower;
 SaveName=[SavePathAllPoint 'GPL'];
 % SLMIncludedIndFromIscell=IncludedI(tempI);
 SLMIncludedIndFromIscell=IndexNeed;
-save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell')
+save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet');
 
 
 

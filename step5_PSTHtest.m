@@ -1,18 +1,18 @@
 clear all
 
-% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 
 
 
 
-DataFolder='F:\LuSLMOnlineTest\04092024\'
+DataFolder='F:\LuSLMOnlineTest\04112024\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
 
-SingPZ=[0 0 0 50 50 50 100 100 100]
+SingPZ=[0 0 0 0 50 50 50 50 50 50 100 100 100 100]
 
-BinFile=dir([DataFolder '*TSeries*Laser*Point6.bin'])
+BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
 
 PointFile=[];
 LaserFile=[];
@@ -30,7 +30,7 @@ Laser=unique(LaserFile)
 Point=unique(PointFile)
 nPlane=3
 PreInd=2:25
-PostInd=27:32;
+PostInd=27:30;
 PlaneZ=[0 50 100];
 MeanImgClim=[-100 100]
 

@@ -9,6 +9,7 @@ from suite2p.io import tiff
 from skimage.registration import phase_cross_correlation
 import numpy as np
 import scipy.io
+from scipy.signal import convolve, convolve2d
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from mpl_toolkits.mplot3d import Axes3D
@@ -572,3 +573,59 @@ def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=
         #if not nFile > 0:
 
     return Pixel_ShiftAll,corrValue,fileList
+
+
+
+
+def smooth(data, smooth):
+    if not isinstance(data, np.ndarray):
+        raise ValueError("Data must be a numpy array.")
+    if not isinstance(smooth, (list, tuple, np.ndarray)) or not all(isinstance(x, (int, float)) for x in smooth):
+        raise ValueError("Smooth must be a list or tuple of integers or floats.")
+
+    if len(smooth) == 0 or all(s == 0 for s in smooth):
+        return data  # No smoothing required
+
+    if data.ndim not in [1, 2]:
+        raise ValueError("Smoothing applies only to vectors or matrices.")
+    if data.ndim == 1:
+        # Vector smoothing
+        if data.shape[0] == 1:
+            data = data.T
+        size = len(data)
+        size = min(size, 1001)
+        r = np.linspace(-1, 1, 2 * size + 1)
+        smooth_factor = smooth[0] / size
+        smoother = np.exp(-0.5 * (r / smooth_factor) ** 2)
+        smoother /= np.sum(smoother)
+        smoothed = np.convolve(data, smoother, mode='same')
+        return smoothed
+    else:
+        # Matrix smoothing
+        if len(smooth) == 1:
+            smooth = [smooth[0], smooth[0]]  # Same smoothing for both dimensions
+
+        vertical_size = data.shape[0]
+        horizontal_size = data.shape[1]
+        vertical_size = min(vertical_size, 1001)
+        horizontal_size = min(horizontal_size, 1001)
+
+        if smooth[0] > 0:
+            r = np.linspace(-1, 1, 2 * vertical_size + 1)
+            v_smooth_factor = smooth[0] / vertical_size
+            v_smoother = np.exp(-0.5 * (r / v_smooth_factor) ** 2)
+            v_smoother /= np.sum(v_smoother)
+        if smooth[1] > 0:
+            r = np.linspace(-1, 1, 2 * horizontal_size + 1)
+            h_smooth_factor = smooth[1] / horizontal_size
+            h_smoother = np.exp(-0.5 * (r / h_smooth_factor) ** 2)
+            h_smoother /= np.sum(h_smoother)
+
+        if smooth[0] == 0:
+            smoothed = convolve(data, h_smoother[None, :], mode='same')
+        elif smooth[1] == 0:
+            smoothed = convolve(data, v_smoother[:, None], mode='same')
+        else:
+            smoothed = convolve2d(data, np.outer(v_smoother, h_smoother), mode='same')
+
+        return smoothed
