@@ -2,7 +2,7 @@ function [SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolde
 
 confSet = ReadYaml([ConfigFolder '\SLMsetting.yml' ]);
 LoadPath=confSet.save_path0;
-SavePath=[LoadPath '\SingleP\'];
+SavePath=[LoadPath 'SingleP\'];
 mkdir(SavePath)
 
 ZFocusDepth=confSet.scan_Z;

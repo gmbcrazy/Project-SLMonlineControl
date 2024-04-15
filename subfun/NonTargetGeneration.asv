@@ -8,7 +8,6 @@ for iplane=1:length(confSet.ETL)
     NonTargets(NonTargetsPlane==iplane,3)=confSet.ETL(iplane)+confSet.scan_Z;
 end
 
-
 [NonTargetsPlane,I1]=sort(NonTargetsPlane);
 NonTargets=NonTargets(I1,:);
 % NonTargetPath=[SavePath  'NonTargets\'];
@@ -16,4 +15,4 @@ NonTargets=NonTargets(I1,:);
 % SaveNonTargets=[SavePath 'NonTargets\All']
 MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SavePath,[], 'NonTarget');
 
-save([SavePath '.mat'],'NonTargets','NonTargetsPlane');
+save([SaveNonTargets '.mat'],'NonTargets','NonTargetsPlane');
