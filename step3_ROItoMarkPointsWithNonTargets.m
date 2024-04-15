@@ -1,11 +1,54 @@
 clear all
 % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
-
 [SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
+
+NonTargetPath=[SavePath  'NonTargets\'];
+mkdir(NonTargetPath)
+SaveNonTargets=[SavePath 'NonTargets\All']
+NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet)
+
+
+NonAvoidRadius=confSet.SpiralSizeUM*2;
+NumNonTargets=confSet.NumNonTarget;
+NonTargets = generateNewMarkPoints([Pos3DRaw(:,1:2) CaData.CellPlaneIDRaw(:)], NonAvoidRadius, length(confSet.ETL), NumNonTargets, confSet.SpiralSizeUM, [confSet.SLM_Pixels_X confSet.SLM_Pixels_X]);
+NonTargetsPlane=NonTargets(:,3);
+for iplane=1:length(confSet.ETL)
+    NonTargets(NonTargetsPlane==iplane,3)=confSet.ETL(iplane)+confSet.scan_Z;
+end
+NonTargetPath=[SavePath  'NonTargets\'];
+mkdir(NonTargetPath)
+SaveNonTargets=[SavePath 'NonTargets\All']
+GPL = MarkPoints3D_GPLmaker(NonTargets, yaml, IsSpiral, SpiralSizeUM, SpiralRevolutions, SaveNonTargets,[], 'NonTarget')
+
+
+
+
+NonAvoidRadius=confSet.SpiralSizeUM*2;
+NumNonTargets=confSet.NumNonTarget;
+NonTargets = generateNewMarkPoints([Pos3DRaw(:,1:2) CaData.CellPlaneIDRaw(:)], NonAvoidRadius, length(confSet.ETL), NumNonTargets, confSet.SpiralSizeUM, [confSet.SLM_Pixels_X confSet.SLM_Pixels_X]);
+NonTargetsPlane=NonTargets(:,3);
+for iplane=1:length(confSet.ETL)
+    NonTargets(NonTargetsPlane==iplane,3)=confSet.ETL(iplane)+confSet.scan_Z;
+end
+
+
+p=perms([1:NumNonTargets])
+TrialNonTargetI=randi(NumNonTargets,confSet.NumTrial,confSet.NumNTperTrial)
+
+for iTrial=1:confSet.NumTrial
+
+
+end
+
+
+
+
+
+
 % Intially all cells were dectected by suite2p were considered as SLM targets
-SavePathAllPoint=[SavePath 'AllPoint\']
+SavePathAllPoint=[SavePath 'AllPointNonTargets\']
 mkdir(SavePathAllPoint)
 IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
@@ -31,9 +74,6 @@ XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
 
 
 %% 
-NonAvoidRadius=confSet.SpiralSizeUM*2;
-NumNonTargets=30;
-newMarkPoints = generateNewMarkPoints([Pos3DRaw(:,1:2) CaData.CellPlaneIDRaw(:)], NonAvoidRadius, length(confSet.ETL), NumNonTargets, confSet.SpiralSizeUM, [confSet.SLM_Pixels_X confSet.SLM_Pixels_X]);
 
 % [Neighbourhood1,  ~] = MarkPoint2Neighbourhood(MarkPoints, radius*2, numPlanes,planeSize);
 % [Neighbourhood2,  ~] = MarkPoint2Neighbourhood(newMarkPoints, radius, numPlanes,planeSize);

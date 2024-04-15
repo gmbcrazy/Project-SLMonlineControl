@@ -12,7 +12,11 @@ SpiralRevolution: 3
 Repetition: 8 #Pulse Number of SLM stimuli
 UncagingLaserPower: 1.12 1.15 #SLM power LevelTest
 
-
+# SLM Nontargets
+NumNonTarget: 30 #Total Num. of NonCell-targets
+NumNTperTrial: 9 #X NonCell Targets per trial
+NumTrial: 5      #Total trials repeated in Single Target SLM, noted that single Target inlcuding 1 Cells and X NonCell Targets
+RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
 # RawDataStream
 # FlipEvenLines: 0
 

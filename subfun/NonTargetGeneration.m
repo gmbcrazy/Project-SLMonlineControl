@@ -1,0 +1,14 @@
+function NonTargetGeneration(SavePath,Pos3DRaw,PosPlane,yaml,confSet)
+
+NonAvoidRadius=confSet.SpiralSizeUM*2;
+NumNonTargets=confSet.NumNonTarget;
+NonTargets = generateNewMarkPoints([Pos3DRaw(:,1:2) PosPlane(:)], confSet.RadiusAvoidParam*confSet.SpiralSizeUM, length(confSet.ETL), NumNonTargets, confSet.SpiralSizeUM, [confSet.SLM_Pixels_X confSet.SLM_Pixels_X]);
+NonTargetsPlane=NonTargets(:,3);
+for iplane=1:length(confSet.ETL)
+    NonTargets(NonTargetsPlane==iplane,3)=confSet.ETL(iplane)+confSet.scan_Z;
+end
+% NonTargetPath=[SavePath  'NonTargets\'];
+% mkdir(NonTargetPath)
+% SaveNonTargets=[SavePath 'NonTargets\All']
+MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SavePath,[], 'NonTarget');
+

@@ -1,4 +1,4 @@
-function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, IsSpiral, SpiralSizeUM, SpiralRevolutions, SaveName, GroupPoints)
+function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, IsSpiral, SpiralSizeUM, SpiralRevolutions, SaveName, GroupPoints, varargin)
 
 % Lu Zhang, 02/2024, 
 % modifed from MarkPoints_GPLMaker3D.m originally developed by Lloyd Russell 20151119
@@ -24,6 +24,14 @@ function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, IsSpiral, SpiralSizeUM, Spiral
 % 
 %                 GroupPoints(2).Indices = [4, 5, 6, 7];
 %                 GroupPoints(2).Name = 'Group 2';
+if nargin==7
+   PointsKey='Point';
+elseif nargin==8
+   PointsKey=varargin{1};
+else
+
+end
+
 
 
 % Extract X, Y, and Z coordinates from Pos3D
@@ -66,7 +74,7 @@ for i = 1:numel(Xpx)
     PointList{i} = ['  <PVGalvoPoint '...
                     'X="' num2str(Xv(i)) '" '...
                     'Y="' num2str(Yv(i)) '" '...
-                    'Name="Point ' num2str(i) '" '...
+                    'Name="' PointsKey ' ' num2str(i) '" '...
                     'Index="' num2str(i-1) '" '...
                     'ActivityType="MarkPoints" '...
                     'UncagingLaser="Satsuma" '...

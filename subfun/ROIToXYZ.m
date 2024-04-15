@@ -1,4 +1,4 @@
-function [SavePath,Pos3D,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder)
+function [SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder)
 
 confSet = ReadYaml([ConfigFolder '\SLMsetting.yml' ]);
 LoadPath=confSet.save_path0;
@@ -55,6 +55,8 @@ for i=1:PlaneN
     statTemp=[statTemp CaDataPlane(i).stat];
     CellPlaneID=[CellPlaneID;zeros(length(CaDataPlane(i).stat),1)+i];
 end
+CellPlaneIDRaw=CellPlaneID;
+
 CellPlaneID(CaDataNew.iscell(:,1)==0)=[];
 stat=CaDataNew.stat;
 stat(CaDataNew.iscell(:,1)==0)=[];
@@ -67,8 +69,24 @@ for iCell=1:length(statTemp)
 end
 
 
+
+
 CaData.CellPlaneID=CellPlaneID;
 Pos3D=[];
 Zmicro=ZLayer(CellPlaneID);
 Pos3D=[xyPix Zmicro(:)];
+
+
+statRaw=CaDataNew.stat;
+xyPixRaw=[];
+for iCell=1:length(statRaw)
+    xyPixRaw(iCell,:)=statRaw{iCell}.med(end:-1:1);
+end
+
+CaData.CellPlaneIDRaw=CellPlaneIDRaw;
+Pos3DRaw=[];
+Zmicro=ZLayer(CellPlaneIDRaw);
+Pos3DRaw=[xyPixRaw Zmicro(:)];
+
+
 
