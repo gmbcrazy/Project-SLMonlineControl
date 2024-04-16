@@ -1,4 +1,4 @@
-function [SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder)
+function [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder)
 
 confSet = ReadYaml([ConfigFolder '\SLMsetting.yml' ]);
 LoadPath=confSet.save_path0;
@@ -8,7 +8,7 @@ mkdir(SavePath)
 ZFocusDepth=confSet.scan_Z;
 ZLayer=confSet.ETL+ZFocusDepth;
 LoadPath=confSet.save_path0;
-Suite2PPath=[LoadPath 'suite2p\']
+Suite2PPath=[LoadPath 'suite2p\'];
 xmlFile=dir([LoadPath '*TSeries*-001\TSeries-*-001.xml']);
 if isempty(xmlFile)
    disp('Check Path and File Name, No .xml file is detected for recording information')
@@ -18,6 +18,7 @@ if isempty(xmlFile)
    stat=[];
    yaml=[];
    confSet=[];
+   CaDataPlane=[];
    return;
 end
 xmlFile=[xmlFile.folder '\' xmlFile.name];
@@ -54,6 +55,7 @@ CellPlaneID=[];
 for i=1:PlaneN
     statTemp=[statTemp CaDataPlane(i).stat];
     CellPlaneID=[CellPlaneID;zeros(length(CaDataPlane(i).stat),1)+i];
+    CaData.PlaneMeanImg(:,:,i)=CaDataPlane(i).ops.meanImg;
 end
 CellPlaneIDRaw=CellPlaneID;
 

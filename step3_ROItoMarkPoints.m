@@ -2,7 +2,7 @@ clear all
 % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
-[SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
+[SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
 % Intially all cells were dectected by suite2p were considered as SLM targets
 SavePathAllPoint=[SavePath 'AllPoint\']

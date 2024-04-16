@@ -21,7 +21,7 @@ function MultiMatrix3DHeatmap(Data)
 
         % Adjust the colormap and color scaling if needed
         colormap('parula');
-        caxis([min(Data(:)), max(Data(:)]);
+        caxis([min(Data(:)), max(Data(:))]);
 
         % Set labels and title
         xlabel('X-axis');

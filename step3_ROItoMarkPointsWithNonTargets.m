@@ -1,8 +1,25 @@
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
-[SavePath,Pos3D,Pos3DRaw,CaData,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
+[SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
+PlaneZ=confSet.ETL+confSet.scan_Z;
+MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
+
+PlotRadiusPixel=5;
+figure;
+for i=1:length(PlaneZ)
+    subplot(3,1,i)
+    prctile(tempImg(:),[0.1 0.95]);
+    tempImg=squeeze(CaData.PlaneMeanImg(:,:,i));
+    imagesc(tempImg);
+    hold on;
+    plotCellCenter(Pos3D(CaData.CellPlaneID==i,[2,1]),PlotRadiusPixel,[1 0 0],2)
+    colormap("gray")
+%     Pos3D(CaData.CellPlaneID==i,1:2);
+end
+
+MultiMatrix3DHeatmap(CaData.PlaneMeanImg)
 
 %% Automatic generate Non-Targets 
 NonTargetPath=[SavePath  'NonTargets\'];
@@ -11,9 +28,10 @@ SaveNonTargets=[SavePath 'NonTargets\Raw']
 [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet);
 
 
+% [ s ] = gpl2struct('F:\LuSLMOnlineTest\04112024\SingleP\NonTargets\NonTargets.gpl')
 
-%% Please do mannual correction to exclude disqualified non-targets in PV, after that, exported all selected targets to Edited.xml file
-s=xml2struct([NonTargetPath 'Edited.xml']);
+%% Please do mannual correction to exclude disqualified non-targets in PV, after that, exported all selected targets to SelectedFromRaw.gpl file
+s=gpl2struct([NonTargetPath 'SelectedFromRaw.gpl']);
 % TempTable=struct2table(s.PVGalvoPointList.PVGalvoPoint{1}.Attributes);
 for i=1:length(s.PVGalvoPointList.PVGalvoPoint)
     TempStr(i)=s.PVGalvoPointList.PVGalvoPoint{i}.Attributes;
@@ -43,8 +61,7 @@ p=perms([1:NumNonTargets])
 TrialNonTargetI=randi(NumNonTargets,confSet.NumTrial,confSet.NumNTperTrial)
 
 for iTrial=1:confSet.NumTrial
-
-
+    IndexNonTargetTrial(:,iTrial)=randperm(size(NonTargets,1),confSet.NumNTperTrial);
 end
 
 
