@@ -15,14 +15,6 @@
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation; either version 2 of the License, or
 % (at your option) any later version.
-function smoothed = SmoothDecDim(data,smooth,Dim)
-
-smoothed=zeros(size(data));
-for i=1:size(data,Dim)
-    tempData=squeeze(data(:,:,i));
-    smoothed(:,:,i) = SmoothDec(tempData,smooth);
-end
-
 
 function smoothed = SmoothDec(data,smooth)
 

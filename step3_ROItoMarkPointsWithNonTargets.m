@@ -1,31 +1,27 @@
 clear all
-ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
 PlaneZ=confSet.ETL+confSet.scan_Z;
-MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
+% MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
+numPlanes=length(confSet.ETL);
+iscell=find(CaData.iscell(:,1)==1);
 
-PlotRadiusPixel=5;
-figure;
-for i=1:length(PlaneZ)
-    subplot(3,1,i)
-    prctile(tempImg(:),[0.1 0.95]);
-    tempImg=squeeze(CaData.PlaneMeanImg(:,:,i));
-    imagesc(tempImg);
-    hold on;
-    plotCellCenter(Pos3D(CaData.CellPlaneID==i,[2,1]),PlotRadiusPixel,[1 0 0],2)
-    colormap("gray")
-%     Pos3D(CaData.CellPlaneID==i,1:2);
-end
 
-MultiMatrix3DHeatmap(CaData.PlaneMeanImg)
 
 %% Automatic generate Non-Targets 
 NonTargetPath=[SavePath  'NonTargets\'];
 mkdir(NonTargetPath)
-SaveNonTargets=[SavePath 'NonTargets\Raw']
-[NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet);
+SaveNonTargets=[NonTargetPath 'Raw']
+BloodVesselTh=0.1;
+[NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet,CaData.PlaneMeanImg,BloodVesselTh);
+% confSet.NumNonTarget=20;
+% confSet.RadiusAvoidParam=3;
+% % [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet);
+figure;
+FigSavePath=[NonTargetPath 'Raw'];
+PlotTargetNonTarget(Pos3D,NonTargets,NonTargetsPlane,CaData,FigSavePath)
 
 
 % [ s ] = gpl2struct('F:\LuSLMOnlineTest\04112024\SingleP\NonTargets\NonTargets.gpl')
@@ -41,58 +37,59 @@ NonTargetNeedInd = NonTargetNeed.Index+1;
 
 NonTargets=NonTargets(NonTargetNeedInd,:);
 NonTargetsPlane=NonTargetsPlane(NonTargetNeedInd,:);
-SaveNonTargets=[SavePath 'NonTargets\SelectedNonTargets'];
+SaveNonTargets=[NonTargetPath 'SelectedNonTargets'];
 % [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,NonTargets,NonTargetsPlane,yaml,confSet);
 MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SaveNonTargets,[], 'NonTarget');    %%<< This file is not used in this script, just saved for note, or visulization in PV.
 
+% load([SavePath 'NonTargets\SelectedNonTargets']);
+
+% Visulize all targets and non-targets
+figure;
+FigSavePath=[NonTargetPath 'TargetNonTarget'];
+PlotTargetNonTarget(Pos3D,NonTargets,NonTargetsPlane,CaData,FigSavePath)
 
 
 
-NonAvoidRadius=confSet.SpiralSizeUM*2;
-NumNonTargets=confSet.NumNonTarget;
-NonTargets = generateNewMarkPoints([Pos3DRaw(:,1:2) CaData.CellPlaneIDRaw(:)], NonAvoidRadius, length(confSet.ETL), NumNonTargets, confSet.SpiralSizeUM, [confSet.SLM_Pixels_X confSet.SLM_Pixels_X]);
-NonTargetsPlane=NonTargets(:,3);
-for iplane=1:length(confSet.ETL)
-    NonTargets(NonTargetsPlane==iplane,3)=confSet.ETL(iplane)+confSet.scan_Z;
-end
-
-
-p=perms([1:NumNonTargets])
-TrialNonTargetI=randi(NumNonTargets,confSet.NumTrial,confSet.NumNTperTrial)
-
+% Visulize all targets and non-targets selected for each trial 
 for iTrial=1:confSet.NumTrial
+    figure;
     IndexNonTargetTrial(:,iTrial)=randperm(size(NonTargets,1),confSet.NumNTperTrial);
+    FigSavePath=[NonTargetPath 'Trial' num2str(iTrial)];
+    PlotTargetNonTarget(Pos3D,NonTargets(IndexNonTargetTrial(:,iTrial),:),NonTargetsPlane(IndexNonTargetTrial(:,iTrial)),CaData,FigSavePath);
+    close all
 end
 
 
 
 
 
-
-% Intially all cells were dectected by suite2p were considered as SLM targets
-SavePathAllPoint=[SavePath 'AllPointNonTargets\']
+%% Intially all cells were dectected by suite2p were considered as SLM targets
+SavePathAllPoint=[SavePath 'AllPoint\']
 mkdir(SavePathAllPoint)
 IndexNeed=1:1:size(Pos3D,1);
-XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
-numPlanes=length(confSet.ETL);
-iscell=find(CaData.iscell(:,1)==1);
+% XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
+XYZtoMarkPoint_NT(SavePathAllPoint,Pos3D,IndexNeed,NonTargets, IndexNonTargetTrial, yaml,confSet)
+
+
+
 
 
 
 
 
 %% Exlude cells near the edge of the FOV as SLM targets
-SLMrangePix=20; %Pixel number close to FOV is excluded
+SLMrangePix=120; %Pixel number close to FOV is excluded
 numPoint=size(Pos3D,1);
 XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
 OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
 CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath 'EdgeExc\']
 mkdir(SavePathExc)
-IndexNeed=[3 4 6 7 13 15 16 20 21 23 25 28 29 30];
-CenterCloseI=CenterCloseI(IndexNeed)
-IndexNeed=1:1:size(Pos3D,1);
-XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
+% IndexNeed=[3 4 6 7 13 15 16 20 21 23 25 28 29 30];
+% CenterCloseI=CenterCloseI(IndexNeed)
+% IndexNeed=1:1:size(Pos3D,1);
+% XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
+XYZtoMarkPoint_NT(SavePathExc,Pos3D,CenterCloseI,NonTargets, IndexNonTargetTrial, yaml,confSet)
 
 
 %% 
@@ -127,11 +124,11 @@ plot(rFspks,'b')
 figure;
 plot(-log10(pFspks),'b')
 [~,r1]=sort(rFspks(CenterCloseI),'descend')  %%Cell locates close to edge of the view, were not considered as SML targets.
-TopCellN=15;         %%   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Top X cells highly associated with speed 
+TopCellN=8;         %%   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Top X cells highly associated with speed 
 TopSpeedCellI=CenterCloseI(r1(1:TopCellN));
 SavePathSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedEdgeExc\']
 mkdir(SavePathSpeed)
-XYZtoMarkPoint(SavePathSpeed,Pos3D,TopSpeedCellI,yaml,confSet);
+XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,TopSpeedCellI,NonTargets, IndexNonTargetTrial, yaml,confSet)
 
 
 

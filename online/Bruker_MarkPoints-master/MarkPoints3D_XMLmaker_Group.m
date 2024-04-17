@@ -1,4 +1,4 @@
-function MarkPoints3D_XMLmaker_Group(GroupPoints,Repetition, SpiralSizeUM, UncagingLaserPower, SavePath)
+function MarkPoints3D_XMLmaker_Group(GroupPoints,Repetition, UncagingLaserPower, SavePath)
 % Lu Zhang, 02/2024, 
 % modifed from MarkPoints_XMLMaker3D.m originally developed by Lloyd Russell 20151119
 % Produces XML file of custom galvo positions to be loaded into Prairie View Mark Points

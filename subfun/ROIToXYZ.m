@@ -57,6 +57,9 @@ for i=1:PlaneN
     CellPlaneID=[CellPlaneID;zeros(length(CaDataPlane(i).stat),1)+i];
     CaData.PlaneMeanImg(:,:,i)=CaDataPlane(i).ops.meanImg;
 end
+
+statRaw=statTemp;
+
 CellPlaneIDRaw=CellPlaneID;
 
 CellPlaneID(CaDataNew.iscell(:,1)==0)=[];
@@ -79,7 +82,6 @@ Zmicro=ZLayer(CellPlaneID);
 Pos3D=[xyPix Zmicro(:)];
 
 
-statRaw=CaDataNew.stat;
 xyPixRaw=[];
 for iCell=1:length(statRaw)
     xyPixRaw(iCell,:)=statRaw{iCell}.med(end:-1:1);

@@ -5,10 +5,8 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
 % First, generate the non-neighbourhood map using the existing function
     
     [Neighbourhood,nonNeighbourhood] = MarkPoint2Neighbourhood(MarkPoints, radius, numPlanes, planeSize);
-    % figure;
-    % PlotImagePlane(Neighbourhood)
-    % figure;
-    % PlotImagePlane(nonNeighbourhood)
+    
+
 
     if length(size(Neighbourhood))==3
        Neighbourhood=sum(Neighbourhood,3);
@@ -16,8 +14,6 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
        nonNeighbourhood=ones(size(Neighbourhood));
        nonNeighbourhood(Neighbourhood>0)=0;
     end
-
-    %% avoid vessel region for nontarget generating
    if nargin==8
        MeanImg=varargin{1};
        vesselTh=varargin{2};
@@ -26,33 +22,18 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
        MeanImg(:,:)=AmpNormalize(MeanImg(:,:),[0.1 99.9]);
     else
        for iplane=1:numPlanes
-       MeanImg(:,:,iplane)=AmpNormalize(MeanImg(:,:,iplane),[0.1 99.9]);
+       MeanImg(:,iplane)=AmpNormalize(MeanImg(:,:,iplane),[0.1 99.9]);
        end
     end
-
-       MeanImg=SmoothDecDim3(MeanImg,[1,1]);
-
-       VesselMask(MeanImg<vesselTh)=1;
-       % figure;
-       % imagesc(VesselMask);
-       % PlotImagePlane(VesselMask)
-
-       % VesselMask=SmoothDecDim3(VesselMask,[1,1]);
-       % VesselMask(VesselMask>0.5)=1;
-       % VesselMask(VesselMask<=0.5)=0;
-       % VesselMask(VesselMask>=0.33)=1;
-       nonNeighbourhood(VesselMask==1)=0;   %%avoid vessel region for nontarget generating
-      
-       % figure;
-       % PlotImagePlane(nonNeighbourhood)
-
+       VesselMark=SmoothDecDim3(VesselMask,[1,1]);
+       VesselMark(VesselMark>0.5)=1;
+       VesselMark(VesselMark<=0.5)=0;
+       VesselMark=sum(VesselMark,3);
+       VesselMark(VesselMark==1)
    end
 
-       % figure;
-       % PlotImagePlane(nonNeighbourhood);
 
-   
-   %% 
+
     % Convert nonNeighbourhood to a GPU array
     %nonNeighbourhood = gpuArray(nonNeighbourhood);
     

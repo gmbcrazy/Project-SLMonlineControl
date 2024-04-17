@@ -4,7 +4,8 @@ function [Neighbourhood,  nonNeighbourhood] = MarkPoint2Neighbourhood(MarkPoints
     
     % Initialize the 3D matrix with 1's
     nonNeighbourhood = ones(planeSize(1), planeSize(2), numPlanes);
-    
+    [X, Y] = meshgrid(1:planeSize(2), 1:planeSize(1));
+
     % Iterate over each point in MarkPoints
     for i = 1:size(MarkPoints, 1)
         % Extract the point coordinates
@@ -14,8 +15,8 @@ function [Neighbourhood,  nonNeighbourhood] = MarkPoint2Neighbourhood(MarkPoints
         
         % Check if the z-coordinate is within the valid range
         if z >= 1 && z <= numPlanes
+           % disp('Add point')
             % Create a grid of coordinates for the current plane
-            [X, Y] = meshgrid(1:planeSize(2), 1:planeSize(1));
             
             % Calculate the squared distance from the point to all positions
             % in the plane
@@ -24,8 +25,19 @@ function [Neighbourhood,  nonNeighbourhood] = MarkPoint2Neighbourhood(MarkPoints
             % Set the areas within the specified radius to 0 (neighbourhood)
             nonNeighbourhood(:, :, z) = nonNeighbourhood(:, :, z) & (distances > radius);
         end
+
+          % figure(1);
+          % PlotImagePlane(nonNeighbourhood)
+
     end
     Neighbourhood=abs(nonNeighbourhood-1);
+
+
+    % figure(1);
+    % PlotImagePlane(Neighbourhood)
+    % figure(2);
+    % PlotImagePlane(nonNeighbourhood)
+
 end
 
 
