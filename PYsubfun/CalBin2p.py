@@ -38,7 +38,7 @@ def NeuroFromBin(matching_files,statCell,plane_idx,SingL,ops0):
     for Ind,Trial in enumerate(matching_files):
         rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
         if maxIneed*nplanes>rawBin.shape[0]:
-           Invalid.append(TrialI)
+           Invalid.append(Ind)
            print(Trial+' is too short')
            continue
         plane_data = rawBin[range(0+plane_idx,SingL*nplanes,nplanes),:,:]
@@ -208,7 +208,7 @@ def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
 
 def PointLaser_files(file_names):
     # Regular expression to extract the point and laser level from the file name
-    pattern = re.compile(r"Laser(\d+\.\d+)Point(\d+)\.bin")
+    pattern = re.compile(r"Laser(\d+\.\d+)[a-zA-Z]Point(\d+)\.bin")
 
     # Nested dictionary to store the results
     # Defaultdict with a lambda to create another defaultdict for nested structure
