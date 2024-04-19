@@ -8,23 +8,28 @@
 
 
 % callback function
-function RestFileList=PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,BreakPointFrame,Round,ExcuteIndex)
+function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,BreakPointFrame,Round,ExcuteIndex)
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
     XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
 
-    if ~isempty(findstr(ProcessFolder,'.csv'))
+    if ~isempty(findstr(ProcessFolder,'Current.csv'))
+       csv=dir(ProcessFolder);
+       SaveDataFolder=[csv.folder '\Data\'];
+
        MarkPointList=table2struct(readtable(ProcessFolder));
        MarkPointList=MarkPointList(ExcuteIndex);
       [roundIDs,pointIDs,laserPowers]=XMLPatterExtract(MarkPointList,XMLpattern);
     else
-       MarkPointList=dir([ProcessFolder 'SingleP\*Point*.xml']);
+       MarkPointList=dir([ProcessFolder '*Point*.xml']);
        ExcuteIndex=1:length(MarkPointList);
        [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
+       SaveDataFolder=[ProcessFolder 'Data\'];
+
        % MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
     end
 
-
+    mkdir(SaveDataFolder);
 
 
 
@@ -37,7 +42,7 @@ function RestFileList=PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInter
 
     pl = actxserver('PrairieLink.Application');
     pl.Connect();
-    pl.SendScriptCommands(['-SetSavePath ' ProcessFolder]);
+    pl.SendScriptCommands(['-SetSavePath ' SaveDataFolder]);
     pl.SendScriptCommands('-DoNotWaitForScans');
     pl.SendScriptCommands('-LimitGSDMABufferSize true 100');
 %     pl.SendScriptCommands('-StreamRawData true 50');   
@@ -58,7 +63,7 @@ function RestFileList=PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInter
 %     tempIter=num2str(tSeriesIter)
     tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIter));
 
-    pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointGPL.folder '\' MarkPointGPL.name] );
+%     pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointGPL.folder '\' MarkPointGPL.name] );
 
     tSeriesIterID=str2num(tSeriesIter);
 %     tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIterID))
@@ -156,6 +161,10 @@ function RestFileList=PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInter
 
                 % save processed frames to file
                 % increment frame counter
+                % BreakPointFrame is number of frames in total before a
+                % MarkPoint stimuli is applied, PV has redudant data/frame
+                % after this; So when this happen, clean the buffer, and do
+                % not write this redudant data into .bin file
                       frameNum = frameNum + 1;
                       if BreakYet==0&&frameNum>BreakPointFrame
                          frameNum=frameNum-1;
@@ -231,8 +240,8 @@ function RestFileList=PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInter
 
     % clean up
          fclose(fileID);
-         disp(['xml file ' num2str(ixml) ' from xmlList.csv is completed']);
-         disp(['Pause ' num2str(InterTrialDelay(iRep,ixml)) 's for next trial']);
+         disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
+         disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
          pause(InterTrialDelay(ixml));
 
     %% Update file name for next recording trial
@@ -271,7 +280,7 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
     %%files
     if ~isfield(MarkPointList,'gplname')
         for ixml=1:length(MarkPointList)
-            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\R' num2str(roundIDs(ixml)) '*.gpl']);
+            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\R' num2str(roundIDs(ixml)) 'GPoint' num2str(pointIDs(ixml)) '.gpl']);
             MarkPointList(ixml).gplname=MarkPointGPL(ixml).name;
         end
     end
@@ -304,6 +313,7 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
 
 %%    MarkPointGPL = MarkPointGPL(executionOrder);
     MarkPointList = MarkPointList(executionOrder);
+    MarkPointGPL=MarkPointGPL(executionOrder);
     roundIDs=roundIDs(executionOrder);
     pointIDs=pointIDs(executionOrder);
     laserPowers=laserPowers(executionOrder);
@@ -311,8 +321,8 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
 %%
 
     RestFiletable=struct2table(MarkPointList);
-    GPLtable=struct2table(MarkPointGPL);
-    RestFiletable.gplname=GPLtable.name;
+%     GPLtable=struct2table(MarkPointGPL);
+%     RestFiletable.gplname=GPLtable.name;
     RestFiletable.excutionID=[1:length(MarkPointList)]';
     writetable(RestFiletable,[MarkPointList(1).folder '\xmlListCurrent.csv'])
 

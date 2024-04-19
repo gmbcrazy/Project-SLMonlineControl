@@ -1,15 +1,16 @@
 clear all
-TestFile='TSeries-04022024-1136-011'
-DataFolder='F:\LuSLMOnlineTest\04022024\'
+TestFile='TSeries-04182024-0956-018'
+DataFolder='F:\LuSLMOnlineTest\04182024\SingleP\50PixelFromEdgeExc\Data\'
 
 nPlane=3;
-NumRepetition=40;
+NumRepetition=49;
 close all
 
-IndNeedTiff=[31 32 33 34];
-IndNeedBin=[]
-for j=1:length(IndNeed)
-    Ind=IndNeed(j);
+IndNeedTiff=[40 42 43];
+IndNeedBin=[40 41 42]
+for j=1:length(IndNeedTiff)
+    Ind=IndNeedTiff(j);
+    IndBin=IndNeedBin(j);
 FrameTotal=NumRepetition*3;
 
 TiffPath=[DataFolder TestFile '\'];
@@ -27,7 +28,9 @@ Ly=512;
 Lx=512;
 % BinDataAll=BinData(:);
 BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-% FrameTotal=floor(length(BinDataAll)/Ly/Lx);
+FrameTotal=floor(length(BinData)/Ly/Lx)
+% BinDataAll=BinData(1:Ly*Lx*FrameTotal);
+
 fclose(fileID);
 
 XBin=reshape(BinDataAll,Ly,Lx,FrameTotal);
@@ -38,7 +41,7 @@ for i=1:nPlane
     Y(:,:,1:FrameTotal/nPlane,i)=XBin(1:Lx,1:Ly,i:nPlane:size(XBin,3));
 end
 
-MeanBin=squeeze(mean(Y(:,:,Ind,:),3));
+MeanBin=squeeze(mean(Y(:,:,IndBin,:),3));
 
 MeanBin=permute(MeanBin,[2,1,3]);
 
@@ -48,7 +51,7 @@ for iPlane=1:3
     subplot(2,3,iPlane)
 
     imagesc(SmoothDecDim(MeanTif(:,:,iPlane),1,3))
-    caxis([0 1000])
+    caxis([0 600])
     colormap("jet");
   
 end
@@ -61,7 +64,7 @@ for iPlane=1:3
         subplot(2,3,iPlane+3)
 
     imagesc(SmoothDecDim(MeanBin(:,:,iPlane),1,3))
-    caxis([0 1000]);
+    caxis([0 600]);
     colormap("jet");
 end
 

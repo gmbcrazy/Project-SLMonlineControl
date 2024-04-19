@@ -148,6 +148,8 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
         % process the acquired frames (timer = ~5ms)
 
           if numWholeFramesGrabbed > 0
+             framesCounter = framesCounter + numWholeFramesGrabbed;
+
                 for i = 1:numWholeFramesGrabbed
                       if started == 0
                         started = 1;
@@ -166,7 +168,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                 % after this; So when this happen, clean the buffer, and do
                 % not write this redudant data into .bin file
                       frameNum = frameNum + 1;
-                      if BreakYet==0&&frameNum>BreakPointFrame
+                      if BreakYet==0&&frameNum>BreakPointFrame&&framesCounter>BreakPointFrame
                          frameNum=frameNum-1;
                          BreakYet=1;
                          buffer=[];
@@ -191,7 +193,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
 %         drawnow
 
         % increment counters
-              framesCounter = framesCounter + numWholeFramesGrabbed;
+              % framesCounter = framesCounter + numWholeFramesGrabbed;
               loopCounter = loopCounter + 1;
               totalSamples = totalSamples + numSamplesRead;
               allSamplesRead(end+1) = numSamplesRead;
