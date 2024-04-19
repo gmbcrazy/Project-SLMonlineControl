@@ -4,7 +4,7 @@ RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimula
 % PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
 nPlane=3;
 
-PreMarkPointRepetition=60;
+PreMarkPointRepetition=40;
 PostMarkPointRepetition=10;
 frameRepetion=PreMarkPointRepetition+PostMarkPointRepetition; %%Total repepitions of Z series in T series setting.
 MaxFrame=nPlane*frameRepetion;
@@ -17,7 +17,7 @@ PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,MaxFrame,BreakPoin
 
 
 xmlCSV=[ProcessFolder 'xmlListCurrent.csv'];
-PV_LinkExcuteFolder_byRound(xmlCSV,RandomDelayInterval,MaxFrame,BreakPoint,Round,[2]);
+PV_LinkExcuteFolder_byRound(xmlCSV,RandomDelayInterval,MaxFrame,BreakPoint,Round,[1 2]);
 
 %Point 7 Only
 

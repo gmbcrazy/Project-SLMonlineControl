@@ -76,6 +76,8 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
         close all
          BreakYet=0;
          FlushYet=0;
+         CheckRedundant=0;
+         HavedChecked=0;
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
          pause(0.2);
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
@@ -148,6 +150,26 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
         % process the acquired frames (timer = ~5ms)
 
           if numWholeFramesGrabbed > 0
+             framesCounter = framesCounter + numWholeFramesGrabbed;
+                if BreakYet==0 && framesCounter>=BreakPointFrame
+                    disp(['Check Redundant' num2str(frameNum) ' ' num2str(framesCounter)])
+
+                   BreakYet=1;
+                   buffer=[];
+                   CheckRedundant=1;
+%                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
+                end
+
+%                   if BreakYet==0&&started && loopCounter > 10 && sum(allSamplesRead(end-5:end)) == 0  % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+%                      BreakYet=1
+%                      disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])
+% 
+%                      CheckRedundant=1;
+%                      buffer=[];
+%                   end
+
+
+
                 for i = 1:numWholeFramesGrabbed
                       if started == 0
                         started = 1;
@@ -158,7 +180,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
 
                 % process the frame (C++ mex code)
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
-
+%                       size(frame)
                 % save processed frames to file
                 % increment frame counter
                 % BreakPointFrame is number of frames in total before a
@@ -166,12 +188,31 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                 % after this; So when this happen, clean the buffer, and do
                 % not write this redudant data into .bin file
                       frameNum = frameNum + 1;
-                      if BreakYet==0&&frameNum>BreakPointFrame
+%                       disp([num2str(frameNum) ' ' num2str(framesCounter)])
+                      if CheckRedundant==1 && frameNum>BreakPointFrame+0.1 && i < numWholeFramesGrabbed
+                          disp(['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)])
+
+%                          'reduce 1 frame'
+%                          [samples, numSamplesRead] = pl.ReadRawDataStream(0);   
+%                          HavedChecked=1;
+                         CheckRedundant=0;
                          frameNum=frameNum-1;
-                         BreakYet=1;
-                         buffer=[];
-                         [samples, numSamplesRead] = pl.ReadRawDataStream(0);                         
+                         disp(['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)])
                          break;
+%                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
+%                          CheckRedundant=0;
+                      elseif CheckRedundant==1 && frameNum<=BreakPointFrame
+                          disp(['Keep frame ' num2str(frameNum)])
+                          CheckRedundant=1;
+                           if i == numWholeFramesGrabbed
+                              CheckRedundant=0;
+                              disp(['No Redundnant detected, and stop checking breakpoint']) 
+                           end
+%                       elseif CheckRedundant==1 && i == numWholeFramesGrabbed
+%                          disp(['No Redundnant detected, and stop checking breakpoint']) 
+%                          CheckRedundant=0;
+%                       else
+%                          disp(['Nothing is done' num2str(frameNum)])                 
                       end
 
                       fwrite(fileID, frame, 'uint16');
@@ -191,7 +232,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
 %         drawnow
 
         % increment counters
-              framesCounter = framesCounter + numWholeFramesGrabbed;
+              % framesCounter = framesCounter + numWholeFramesGrabbed;
               loopCounter = loopCounter + 1;
               totalSamples = totalSamples + numSamplesRead;
               allSamplesRead(end+1) = numSamplesRead;
@@ -212,6 +253,8 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
         % exit loop if finished if maxFrame frames were collected
             if started && frameNum >= maxFrame
                  running = 0;
+                 disp([num2str(frameNum) ' frame s' num2str(framesCounter)])
+
             end
          if preview
             figure(2);
