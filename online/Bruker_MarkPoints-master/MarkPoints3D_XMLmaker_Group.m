@@ -26,10 +26,10 @@ function MarkPoints3D_XMLmaker_Group(GroupPoints,Repetition, UncagingLaserPower,
 
 % SaveName     - provide a save name to save out to file (otherwise returned by function)
 
+
 % Note pixel coordinates start at 0,0 (0:511 for a 512 image)
 
 % get values from settings file
-
 
 
 for iGroup=1:length(GroupPoints)
@@ -49,7 +49,31 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 
 % NumPoints = numel(Xpx);
 % for i = 1:NumPoints
-	StimParam = [...
+  if isfield(GroupPoints, 'PowerWeight')
+     CustomLaserPercent=GroupPoint(iGroup).PowerWeight;
+     WeightsStr='';
+     for i=1:length(PointIndex)-1
+         WeightsStr=[WeightsStr num2str(CustomLaserPercent(i)) ','];
+     end
+     WeightsStr=[WeightsStr num2str(CustomLaserPercent(end))];
+     	StimParam = [...
+        '  <PVMarkPointElement '...
+        'Repetitions="' num2str(Repetition) '" '...
+        'UncagingLaser="Satsuma" '...
+        'UncagingLaserPower="' num2str(UncagingLaserPower) '" '...
+        'CustomLaserPercent="' WeightsStr '" '...
+        'TriggerFrequency="' 'None' '" '...
+        'TriggerSelection="' 'None' '" '...
+        'TriggerCount="' num2str(1) '" '...
+        'AsyncSyncFrequency="' 'FirstRepetition' '" '...
+        'VoltageOutputCategoryName="None" '...
+        'VoltageRecCategoryName="None" '...
+        'parameterSet="CurrentSettings" '...
+        '>'...
+
+    ];
+  else
+      	StimParam = [...
         '  <PVMarkPointElement '...
         'Repetitions="' num2str(Repetition) '" '...
         'UncagingLaser="Satsuma" '...
@@ -65,6 +89,10 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 
     ];
 
+  end
+
+
+
   StimGroup=['    <PVGalvoPointElement '...
         'InitialDelay="10" '...
         'InterPointDelay="5" '...
@@ -75,19 +103,9 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
         '/>'...
         ];
 
-% end
-% footer = '</PVSavedMarkPointSeriesElements>';
-% GPL = [header GroupList footer];
 
-% save the GPL file
-% XML = [header GroupList footer];
 
-% save out separate experiment file (may be used in the future?)
-% if ~isempty(p.Results.SaveName)
-%     fid = fopen([SaveName '.xml'], 'w', 'l');
-%     fwrite(fid, XML, 'char');
-%     fclose(fid);
-% end
+
 SaveName=[SavePath GroupName];
 
 if ~strcmpi(SaveName, '')  % if save name provided, save to file

@@ -20,14 +20,14 @@ iscell=find(CaData.iscell(:,1)==1);
 
 
 %% Exlude cells near the edge of the FOV as SLM targets
-SLMrangePix=50; %Pixel number close to FOV is excluded
+SLMrangePix=30; %Pixel number close to FOV is excluded
 numPoint=size(Pos3D,1);
 XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
 OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
 CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath 'EdgeExc\']
 mkdir(SavePathExc)
-IndexNeed=[1 2 3 4 5 6 13 15 20 22];
+IndexNeed=[1 3 6 13 21 23 28 30 31 32];
 CenterCloseI=CenterCloseI(IndexNeed)
 % IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet);
@@ -86,13 +86,13 @@ end
 
 
 
-%% Intially all cells were dectected by suite2p were considered as SLM targets
-SavePathAllPoint=[SavePath 'AllPoint\']
-mkdir(SavePathAllPoint)
-IndexNeed=1:1:size(Pos3D,1);
-% XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
-XYZtoMarkPoint_NT(SavePathAllPoint,Pos3D,IndexNeed,NonTargets, IndexNonTargetTrial, yaml,confSet)
-
+% % %% Intially all cells were dectected by suite2p were considered as SLM targets
+% SavePathAllPoint=[SavePath 'AllPoint\']
+% mkdir(SavePathAllPoint)
+% IndexNeed=1:1:size(Pos3D,1);
+% % XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
+% XYZtoMarkPoint_NT(SavePathAllPoint,Pos3D,IndexNeed,NonTargets, IndexNonTargetTrial, yaml,confSet)
+% 
 
 
 
@@ -104,6 +104,7 @@ XYZtoMarkPoint_NT(SavePathAllPoint,Pos3D,IndexNeed,NonTargets, IndexNonTargetTri
 % OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
 % CenterCloseI=setdiff(1:numPoint,OutRange);
 SavePathExc=[SavePath num2str(SLMrangePix) 'PixelFromEdgeExc\']
+mkdir(SavePathExc)
 XYZtoMarkPoint_NT_PairGplXml(SavePathExc, Pos3D, CenterCloseI, NonTargets, IndexNonTargetTrial, yaml, confSet)
 
 %% 
