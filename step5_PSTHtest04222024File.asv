@@ -253,7 +253,7 @@ for iLaser=1:length(Laser)
          end
 
          PSTHtemp=squeeze(mean(PSTHtemp,4));
-         % PSTHtemp=permute(PSTHtemp,[2,1,3]);
+         PSTHtemp=permute(PSTHtemp,[2,1,3]);
          PSTHtemp=SmoothDecDim3(PSTHtemp,1.5);
 
          PSTHBin{iLaser,iPoint}=PSTHtemp;
@@ -292,7 +292,7 @@ for iPoint = 1:length(Point)
          colormap(ColorPN3);
          set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
          % plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
-         plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
+         plotCellCenter3D(SinglePxyz(iPoint,[2 1 3]), Radius, [0 1 0],1.5);
 
          ylabel('Bin Data')
 
