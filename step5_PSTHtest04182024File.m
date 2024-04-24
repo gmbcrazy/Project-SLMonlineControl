@@ -6,7 +6,7 @@ load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 
 
 
-DataFolder='F:\LuSLMOnlineTest\04182024\SingleP\50PixelFromEdgeExc\Data\'
+DataFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\Data\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
@@ -14,9 +14,7 @@ mkdir(SinglePSTHFolder);
 % SingPZ=[0 0 50 50 50 100 100]
 
 BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
-
-
-SingPZ=[0 0 0 0 0 0 50 50 50 50]
+SingPZ=[0 0 0 0 50 100 100 100 100 100]
 
 PointFile=[];
 LaserFile=[];
@@ -37,8 +35,8 @@ end
 Laser=unique(LaserFile)
 Point=unique(PointFile)
 nPlane=3
-PreInd=25:40
-PostInd=42:44;
+PreInd=40:60
+PostInd=62:64;
 PlaneZ=[0 50 100];
 MeanImgClim=[-150 150];
 
@@ -89,6 +87,7 @@ end
 
 close all
 papersizePX=[0 0 22 18];
+
 for iPoint = 1:length(Point)
     figure;
 
@@ -113,17 +112,45 @@ end
 
 
 
+PreInd=20:40
+PostInd=42:44;
+MeanImgClim=[-200 200]
+TiffFolderName='TSeries-04182024-0956-0';
+IndexFolderName=[72:80];
+SingPZCorrect=[0 0 0 0 0 0 50 50 100 100]
+clear Temp1 Temp2
+clear SinglePxyz
+for iTrial=1:length(IndexFolderName)
+    tempFile= [DataFolder TiffFolderName num2str(IndexFolderName(iTrial)) '\'];
+             Temp1(:,:,:,iTrial)=MeanFrameIndMultiTiffs(tempFile,nPlane,PreInd);
+             Temp2(:,:,:,iTrial)=MeanFrameIndMultiTiffs(tempFile,nPlane,PostInd);
 
+             if iTrial==1
+             xmlFile=dir([tempFile '\*MarkPoints.xml']);
+             xmlInfo=xml2struct([xmlFile(1).folder '\' xmlFile(1).name]);
+             % pointInfo=xmlInfo.PVMarkPointSeriesElements.PVMarkPointElement.PVGalvoPointElement.Point.Attributes;
+                for iPoint = 1:length(xmlInfo.PVMarkPointSeriesElements.PVMarkPointElement.PVGalvoPointElement.Point)
+                     pointInfo=xmlInfo.PVMarkPointSeriesElements.PVMarkPointElement.PVGalvoPointElement.Point{iPoint}.Attributes;
+              X=str2num(pointInfo.X)*512;
+              Y=str2num(pointInfo.Y)*512;
+             SinglePxyz(iPoint,:)=[Y X SingPZCorrect(iPoint)];
 
-% figure;
-% subplot('position',[0.01 0.01 0.88 0.95])
-% MultiMatrix3DPlotZ(Temp3,PlaneZ,0.9);
-% caxis(MeanImgClim);
-% Radius=8;
-% colormap(ColorPN3);
-% % set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',[-80 80],'clim',ClimImg*10,'yDir','reverse');
-% set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
-% plotCellCenter3D(SinglePxyz, Radius, [0 1 0],2.5);
+                end
+
+             end
+end
+         Temp3=mean(Temp2,4)-mean(Temp1,4);
+         Temp3=SmoothDecDim3(Temp3,1);
+
+figure;
+subplot('position',[0.01 0.01 0.88 0.95])
+MultiMatrix3DPlotZ(Temp3,PlaneZ,0.9);
+caxis(MeanImgClim);
+Radius=8;
+colormap(ColorPN3);
+% set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',[-80 80],'clim',ClimImg*10,'yDir','reverse');
+set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
+plotCellCenter3D(SinglePxyz, Radius, [0 1 0],2.5);
 % 
 
 

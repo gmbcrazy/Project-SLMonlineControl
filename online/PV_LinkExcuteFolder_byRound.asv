@@ -104,7 +104,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
          end
 
     % start the current t-series
-         pl.SendScriptCommands('-TSeries');
+          pl.SendScriptCommands('-TSeries');
     % initialise state variables, buffer, and counters/records
          running        = 1;
          started        = 0;
@@ -118,6 +118,15 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
          loopTimes      = [];
          droppedData    = [];
 
+    % preview image window (only use for debugging!)
+         preview = 1;
+         if preview
+            figure(2);
+            subplot(1,3,1)
+            Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
+            FrameCounter = title('');
+            axis off; axis square; axis tight;
+         end
 
     % get data, do conversion, save to file
         while running   
@@ -187,7 +196,6 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                          CheckRedundant=0;
                          frameNum=frameNum-1;
                          LogMessage(LogfileID,['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)]);
-
                          break;
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
                          disp(['Keep frame ' num2str(frameNum)])
@@ -196,9 +204,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                          if i == numWholeFramesGrabbed
                               CheckRedundant=0;
                               LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
-                         end      
-                      else
-
+                         end               
                       end
 
                       fwrite(fileID, frame, 'uint16');
@@ -206,17 +212,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                          Image.CData = frame';
                          FrameCounter.String = msg;
                          pause(0.00001);
-                      end
-
-                               
-                     if preview&& (frameNum == BreakPointFrame+1)
-                        figure(figHandle);
-                        subplot(1,3,1)
-                        Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
-                        axis off; axis square; axis tight;
-                        xlabel('1st frame after breakpoint');
                      end
-
                end
           end
 
@@ -237,21 +233,22 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
         % test for dropped data
               droppedData(end+1) = pl.DroppedData();
               if droppedData(end)
-                 LogMessage(LogfileID,['\n!!! DROPPED DATA AT FRAME ' num2str(frameNum) ' !!!\n']);
+                 fprintf(2, ['\n!!! DROPPED DATA AT FRAME ' num2str(framesCounter) ' !!!\n'])
+                 fprintf(msg)
               end
 
 
 
+%         Visulize samples recorded in each loop, only use for debugging!Lu Zhang
 
 
         % exit loop if finished if maxFrame frames were collected
-          if started && frameNum >= maxFrame
-              running = 0;
-              LogMessage(LogfileID,[num2str(frameNum) ' frame saved from ' num2str(framesCounter) ' frames detected']);
-              saveas(figHandle,[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.png'],'png');
-          end
+            if started && frameNum >= maxFrame
+                 running = 0;
+                 LogMessage(LogfileID,[num2str(frameNum) ' frame saved from ' num2str(framesCounter) ' frames detected']);
+            end
          if preview
-            figHandle=figure(2);
+            figure(2);
             subplot(1,3,2)
             hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
             ylabel('numWholeFramesGrabbed')
@@ -263,6 +260,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
             end
             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
             ylabel('Frame # recorded')
+            saveas(gcf,)
          end
 %             if BreakYet&&started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
 %                buffer=[];
@@ -277,7 +275,6 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
 
     % clean up
          fclose(fileID);
-         fclose(LogfileID);
          disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
          disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
          pause(InterTrialDelay(ixml));
@@ -287,6 +284,9 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
          tSeriesIter   = sprintf('%0.3d', tSeriesIterID);
 
     end
+
+
+
 
     pl.Disconnect();
     delete(pl);

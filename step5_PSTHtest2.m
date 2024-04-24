@@ -1,13 +1,13 @@
 clear all
-TestFile='TSeries-04182024-0956-018'
-DataFolder='F:\LuSLMOnlineTest\04182024\SingleP\50PixelFromEdgeExc\Data\'
+TestFile='TSeries-04222024-0926-062'
+DataFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\Data\'
 
 nPlane=3;
-NumRepetition=49;
+NumRepetition=80;
 close all
 
-IndNeedTiff=[40 42 43];
-IndNeedBin=[40 41 42]
+IndNeedTiff=[60 62 63];
+IndNeedBin=[60 61 62]
 for j=1:length(IndNeedTiff)
     Ind=IndNeedTiff(j);
     IndBin=IndNeedBin(j);
@@ -28,7 +28,7 @@ Ly=512;
 Lx=512;
 % BinDataAll=BinData(:);
 BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-FrameTotal=floor(length(BinData)/Ly/Lx)
+% FrameTotal=floor(length(BinData)/Ly/Lx)
 % BinDataAll=BinData(1:Ly*Lx*FrameTotal);
 
 fclose(fileID);

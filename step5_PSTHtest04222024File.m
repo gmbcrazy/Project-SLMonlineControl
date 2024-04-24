@@ -6,17 +6,16 @@ load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 
 
 
-DataFolder='F:\LuSLMOnlineTest\04182024\SingleP\50PixelFromEdgeExc\Data\'
+DataFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\Data\'
 % SingP=[DataFolder 'SingleP\GPL.gpl']
 SinglePSTHFolder=[DataFolder 'SinglePSTH\']
 mkdir(SinglePSTHFolder);
 
 % SingPZ=[0 0 50 50 50 100 100]
 
-BinFile=dir([DataFolder '*TSeries*Laser*Point*.bin'])
-
-
-SingPZ=[0 0 0 0 0 0 50 50 50 50]
+BinFile=dir([DataFolder '*TSeries*Laser1.4GPoint10.bin'])
+SingPZ=[0 0 0 0 50 100 100 100 100 100]
+SingPZ=[100]
 
 PointFile=[];
 LaserFile=[];
@@ -37,8 +36,8 @@ end
 Laser=unique(LaserFile)
 Point=unique(PointFile)
 nPlane=3
-PreInd=25:40
-PostInd=42:44;
+PreInd=40:60
+PostInd=62:64;
 PlaneZ=[0 50 100];
 MeanImgClim=[-150 150];
 
@@ -65,12 +64,12 @@ for iLaser=1:length(Laser)
 
              X=str2num(pointInfo.X)*512;
              Y=str2num(pointInfo.Y)*512;
-             SinglePxyz(:,:,iPoint)=[Y X SingPZ(iPoint)];
+             SinglePxyz(iPoint,:)=[Y X SingPZ(iPoint)];
 
              end
          end
          Temp3=mean(Temp2,4)-mean(Temp1,4);
-         Temp3=SmoothDecDim3(Temp3,1);
+         Temp3=SmoothDecDim3(Temp3,1.5);
     
          % subplot(3,3,iPoint)
 %           figure;
@@ -89,6 +88,7 @@ end
 
 close all
 papersizePX=[0 0 22 18];
+
 for iPoint = 1:length(Point)
     figure;
 
@@ -112,18 +112,33 @@ for iPoint = 1:length(Point)
 end
 
 
+PreInd=45:60
+PostInd=62:63;
+MeanImgClim=[-300 300]
+TiffFolderName='TSeries-04222024-0926-';
+IndexFolderName=[102:105 107:109];
+clear Temp1 Temp2
+for iTrial=1:length(IndexFolderName)
+    tic
+    tempFile= [DataFolder TiffFolderName num2str(IndexFolderName(iTrial)) '\'];
+    Temp1(:,:,:,iTrial)=MeanFrameIndMultiTiffs(tempFile,nPlane,PreInd);
+    Temp2(:,:,:,iTrial)=MeanFrameIndMultiTiffs(tempFile,nPlane,PostInd);
+    toc
+end
+ Temp3=mean(Temp2,4)-mean(Temp1,4);
+ Temp3=SmoothDecDim3(Temp3,1.5);
 
-
-
-% figure;
-% subplot('position',[0.01 0.01 0.88 0.95])
-% MultiMatrix3DPlotZ(Temp3,PlaneZ,0.9);
-% caxis(MeanImgClim);
-% Radius=8;
-% colormap(ColorPN3);
-% % set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',[-80 80],'clim',ClimImg*10,'yDir','reverse');
-% set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
-% plotCellCenter3D(SinglePxyz, Radius, [0 1 0],2.5);
+figure;
+subplot('position',[0.01 0.01 0.88 0.95])
+MultiMatrix3DPlotZ(Temp3,PlaneZ,0.9);
+caxis(MeanImgClim);
+Radius=8;
+colormap(ColorPN3);
+% SinglePxyz=squeeze(SinglePxyz);
+% SinglePxyz=SinglePxyz';
+% set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',[-80 80],'clim',ClimImg*10,'yDir','reverse');
+set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
+plotCellCenter3D(SinglePxyz, Radius, [0 1 0],2.5);
 % 
 
 
@@ -146,10 +161,10 @@ PostInd=26:28;
 % PreInd=2:11;
 % PauseInd=11;
 % PostInd=13:26;
-PlaneZ=[0 50 100];
+% PlaneZ=[0 50 100];
 clear PSTHtemp;
 % BinFile=dir([DataFolder '*TSeries*Laser1.12Point6.bin'])
-FrameTotal=(50)*nPlane
+FrameTotal=(80)*nPlane
 % Skip=PauseInd*3+1;
 
 
@@ -157,6 +172,8 @@ FrameTotal=(50)*nPlane
 
 Ly=512;
 Lx=512;
+% PreInd=40:60
+% PostInd=61:63;
 
 
 for iLaser=1:length(Laser)
@@ -173,7 +190,7 @@ for iLaser=1:length(Laser)
              fileID=fopen([BinFile(iFile).folder '\' BinFile(iFile).name]);
              clear Y
 
-             BinData=fread(fileID,'uint16');
+            BinData=fread(fileID,'uint16');
 
             BinDataAll=BinData(1:Ly*Lx*FrameTotal);   
             % FileCount(2)=FileCount(2)+1;
@@ -190,12 +207,14 @@ for iLaser=1:length(Laser)
                 Y(:,:,1:FrameTotal/nPlane,i)=XBin(1:Lx,1:Ly,i:nPlane:size(XBin,3));
             end
 
-            PSTHtemp(:,:,:,iTrial)=nanmean(Y(:,:,PostInd-1,:),3)-nanmean(Y(:,:,PreInd,:),3);
+            Temp11(:,:,:,iTrial)=mean(Y(:,:,PreInd,:),3);
+            Temp22(:,:,:,iTrial)=mean(Y(:,:,PostInd-1,:),3);
+            PSTHtemp(:,:,:,iTrial)=mean(Y(:,:,PostInd-1,:),3)-mean(Y(:,:,PreInd,:),3);
 
          end
          PSTHtemp=squeeze(mean(PSTHtemp,4));
          PSTHtemp=permute(PSTHtemp,[2,1,3]);
-         PSTHtemp=SmoothDecDim(PSTHtemp,2,3);
+         PSTHtemp=SmoothDecDim3(PSTHtemp,1.5);
 
          PSTHBin{iLaser,iPoint}=PSTHtemp;
     end
@@ -204,10 +223,11 @@ end
 
 
 
-
-
-
-
+for iTrial=1:5
+figure;
+subplot(1,2,1);imagesc(Temp2(:,:,1,iTrial))
+subplot(1,2,2);imagesc(Temp22(:,:,1,iTrial)')
+end
 
 
 close all
@@ -221,7 +241,7 @@ for iPoint = 1:length(Point)
          Radius=10;
          colormap(ColorPN3);
          set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
-         plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
+         plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
          ylabel('Tiff Data')
 
          subplot(length(Laser),2,(iLaser-1)*2+2)
@@ -230,7 +250,7 @@ for iPoint = 1:length(Point)
          Radius=10;
          colormap(ColorPN3);
          set(gca,'xlim',[0 512],'ylim',[0 512],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
-         plotCellCenter3D(SinglePxyz(:,:,iPoint), Radius, [0 1 0],1.5);
+         plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
          ylabel('Bin Data')
 
      end
@@ -239,7 +259,7 @@ for iPoint = 1:length(Point)
       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'png'); 
       saveas(gcf,[SinglePSTHFolder 'Point' num2str(Point(iPoint))],'fig'); 
 
-     close all
+     % close all
 end
 
 
@@ -275,5 +295,9 @@ for iPoint = 1:length(Point)
 
      close all
 end
+
+
+
+
 
 
