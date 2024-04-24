@@ -26,7 +26,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
        ExcuteIndex=1:length(MarkPointList);
        [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
        SaveDataFolder=[ProcessFolder 'Data\'];
-       LogDataFolder=[csv.folder '\DataLog\'];
+       LogDataFolder=[ProcessFolder '\DataLog\'];
 
        % MarkPointGPL=dir([ProcessFolder 'SingleP\*.gpl']);
     end
@@ -92,7 +92,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
 
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
-         LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.log'],'w');
+         LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
          pause(0.1);
 
          flushing = 1;
@@ -202,17 +202,17 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
                       end
 
                       fwrite(fileID, frame, 'uint16');
-                      if preview
-                         Image.CData = frame';
-                         FrameCounter.String = msg;
-                         pause(0.00001);
-                      end
+%                       if preview
+%                          Image.CData = frame';
+%                          FrameCounter.String = msg;
+%                          pause(0.00001);
+%                       end
 
                                
                      if preview&& (frameNum == BreakPointFrame+1)
                         figure(figHandle);
                         subplot(1,3,1)
-                        Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
+                        Image = imagesc(frame);
                         axis off; axis square; axis tight;
                         xlabel('1st frame after breakpoint');
                      end
@@ -250,6 +250,7 @@ function PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,maxFrame,
               LogMessage(LogfileID,[num2str(frameNum) ' frame saved from ' num2str(framesCounter) ' frames detected']);
               saveas(figHandle,[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.png'],'png');
           end
+          preview=1;
          if preview
             figHandle=figure(2);
             subplot(1,3,2)
@@ -407,7 +408,8 @@ end
 
 function LogMessage(LogFileID,Message)
          disp(Message);
-         fprintf(LogFileID, '%s\n', Message);
+         fprintf(LogFileID, '%s\r\n', Message);
+%          fprintf(LogFileID, '\n');
 end
 
 

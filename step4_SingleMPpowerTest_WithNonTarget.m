@@ -1,5 +1,5 @@
 clear all
-ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
+ProcessFolder='F:\LuSLMOnlineTest\MouseMei03\04242024Test\50PixelFromEdgeExc\';
 RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimulation.
 % PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
 nPlane=3;
@@ -11,13 +11,13 @@ MaxFrame=nPlane*frameRepetion;
 BreakPoint=PreMarkPointRepetition*nPlane;
 % PV_LinkExcuteFolder(ProcessFolder,RandomDelayInterval,PointRepetition,MaxFrame,BreakPoint);
 
-Round=[3 4 5];
-ExcuteIndex=[];
+Round=[1];
 PV_LinkExcuteFolder_byRound(ProcessFolder,RandomDelayInterval,MaxFrame,BreakPoint,Round,ExcuteIndex)
 
 
-% xmlCSV=[ProcessFolder 'xmlListCurrent.csv'];
-% PV_LinkExcuteFolder_byRound(xmlCSV,RandomDelayInterval,MaxFrame,BreakPoint,Round,[2]);
+xmlCSV=[ProcessFolder 'xmlListCurrent.csv'];
+ExcuteIndex=[2];
+PV_LinkExcuteFolder_byRound(xmlCSV,RandomDelayInterval,MaxFrame,BreakPoint,Round,ExcuteIndex);
 
 %Point 7 Only
 

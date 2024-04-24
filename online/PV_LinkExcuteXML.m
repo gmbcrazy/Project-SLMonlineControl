@@ -8,9 +8,9 @@
 
 
 % callback function
-function varargout=PV_LinkExcuteXML(XMLparam,maxFrame,PVparam,confSet,varargin)
+function varargout=PV_LinkExcuteXML(XMLparam,PVparam,confSet,varargin)
 
-if nargin==6
+if nargin==4
     PSTHparam=varargin{1};
     if ~isempty(PSTHparam)
         CalPSTH=1;
@@ -38,7 +38,7 @@ end
      % ExcuteIndex=1:length(MarkPointList);
      [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      SaveDataFolder=[ProcessFolder 'Data\'];
-     LogDataFolder=[csv.folder '\DataLog\'];
+     LogDataFolder=[ProcessFolder '\DataLog\'];
 
 
     mkdir(SaveDataFolder);
@@ -102,7 +102,7 @@ end
 
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
-         LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.log'],'w');
+         LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
          pause(0.1);
 
          flushing = 1;
@@ -222,7 +222,7 @@ end
                      if preview&& (frameNum == BreakPointFrame+1)
                         figure(figHandle);
                         subplot(1,3,1)
-                        Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
+                        imagesc(frame);
                         axis off; axis square; axis tight;
                         xlabel('1st frame after breakpoint');
                      end
@@ -260,7 +260,8 @@ end
               LogMessage(LogfileID,[num2str(frameNum) ' frame saved from ' num2str(framesCounter) ' frames detected']);
               saveas(figHandle,[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.png'],'png');
           end
-         if previewfigHandle
+         preview=1;
+         if preview==1
             figHandle=figure(2);
             subplot(1,3,2)
             hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
@@ -304,19 +305,25 @@ end
 
     pl.Disconnect();
     delete(pl);
+
     if CalPSTH==1
+       PSTHmap=squeeze(PSTHmap);
         varargout{1}=PSTHmap;
-       if PSTHparam.Plot=1
+       if PSTHparam.Plot==1
+           PlaneZ=confSet.ETL+confSet.scan_Z;
          figure
-         MultiMatrix3DPlotZ(PSTHBin{iLaser,iPoint},PlaneZ,0.9);
+         MultiMatrix3DPlotZ(PSTHmap,PlaneZ,0.9);
          caxis(PSTHparam.Clim);
          Radius=10;
-         colormap(PSTHparam.ColorMap);;
-         set(gca,'xlim',[0 confSet.SLM_Pixels_Y],'ylim',[0 confSet.SLM_Pixels_X],'zlim',PlaneZ([1 end]),'View',[64 24],'zDir','reverse');
+         colormap(PSTHparam.ColorMap);
+         set(gca,'xlim',[0 confSet.SLM_Pixels_Y],'ylim',[0 confSet.SLM_Pixels_X],'zlim',PlaneZ([1 end]),'ztick',PlaneZ,'View',[64 24],'zDir','reverse');
          % plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
-         if isfield(PSTHparam.TargetPos)
+         if isfield(PSTHparam,'TargetPos')
             plotCellCenter3D(PSTHparam.TargetPos, Radius, [0 1 0],1.5);
          end
+         papersizePX=[0 0 12 20]
+         set(gcf, 'PaperUnits', 'centimeters');
+         set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
          saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
 
        end
@@ -439,7 +446,8 @@ end
 
 function LogMessage(LogFileID,Message)
          disp(Message);
-         fprintf(LogFileID, '%s\n', Message);
+         fprintf(LogFileID, '%s\r\n', Message);
+%          fprintf(LogFileID, '\n');
 end
 
 
@@ -447,12 +455,12 @@ end
 
 
 
-function PSTHtempCal=PSTHmap(BinFile,PSTHparam,confSet)
+function PSTHtemp=PSTHmapCal(BinFile,PSTHparam,confSet)
 
 
          PreData = Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), PSTHparam.PreInd);
          PostData= Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), PSTHparam.PostInd);
-         PSTHtemp=mean(PostData,3)-mean(PreData,3);
+         PSTHtemp=squeeze(mean(PostData,3)-mean(PreData,3));
          PSTHtemp=SmoothDecDim3(PSTHtemp,PSTHparam.SmoothSD);
 
 end
