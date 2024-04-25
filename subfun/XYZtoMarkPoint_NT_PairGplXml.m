@@ -1,4 +1,4 @@
-function XYZtoMarkPoint_NT_PairGplXml(SavePathAllPoint, Pos3D, IndexNeed, NonTargets, IndexNonTargetTrial, yaml, confSet)
+function XYZtoMarkPoint_NT_PairGplXml(SavePathAllPoint, Pos3D, IndexNeed, NonTargets, IndexNonTargetTrial, yaml, confSet,Cellstat)
 % This function processes 3D points for optical stimulation experiments, 
 % including selecting specific target and non-target points and generating
 % the necessary output files for experimental trials.
@@ -8,7 +8,7 @@ Pos3DNeed=Pos3D(IndexNeed,:);
 % Record the indices of included positions from iscell (indicating selected cells).
 SLMIncludedIndFromIscell=IndexNeed;
 % Save the relevant indices and position data along with configuration settings to a .mat file.
-save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3DNeed','yaml','confSet','NonTargets','IndexNonTargetTrial');
+save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3DNeed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat');
 
 % Iterate over each trial specified in the configuration settings.
 for iTrial=1:confSet.NumTrial

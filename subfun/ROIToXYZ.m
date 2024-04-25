@@ -75,6 +75,7 @@ end
 
 
 
+CaData.statCell=statTemp;
 
 CaData.CellPlaneID=CellPlaneID;
 Pos3D=[];
