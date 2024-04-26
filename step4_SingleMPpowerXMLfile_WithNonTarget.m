@@ -1,12 +1,14 @@
 clear all
-% ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
-ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
+load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+
 [~,~,~,CaData,CaDataPlane,stat,~,~]=ROIToXYZ(ConfigFolder);
 
 
 
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 ProcessFolder='F:\LuSLMOnlineTest\MouseMei03\04252024\SingleP\20PixelFromEdgeExc\';
@@ -28,7 +30,7 @@ PVparam.BreakPointFrame=PreMarkPointRepetition*nPlane;
 
 XMLparam.ProcessFolder=ProcessFolder;
 % load([XMLparam.ProcessFolder 'SLMIncludedIndFromIscell.mat']);
-PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
+% PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
 PSTHparam.PreInd=PreMarkPointRepetition-20:PreMarkPointRepetition;
 PSTHparam.PostInd=PreMarkPointRepetition+1:PreMarkPointRepetition+3;
 PSTHparam.Plot=1;
@@ -121,7 +123,7 @@ shuffledIndices = randperm(size(FinalList,1));
 FinalListRandom=FinalList(shuffledIndices,:);
 
 
-for iTrial=48:size(FinalListRandom)
+for iTrial=1:size(FinalListRandom)
     XMLparam.Point=FinalListRandom(iTrial,1);
     XMLparam.Laser=FinalListRandom(iTrial,2);
     XMLparam.RoundID=FinalListRandom(iTrial,3);
