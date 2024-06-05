@@ -67,9 +67,12 @@ fseek(fid,0,'bof');
 str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
 if ~isempty(str)
     ReadZ=1;
+    ReadZdepth=1;
 else
     ReadZ=0;
+    ReadZdepth=0;
 end
+
 
 % Extract Z axis information if available
 iZ=1;
@@ -85,6 +88,30 @@ while ReadZ
     else
         ReadZ=0;
     end
+end
+fseek(fid,0,'bof');
+if ReadZdepth==1
+str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
+iZ=1;
+while iZ<20
+    str=fgetl(fid);
+    pattern = 'SubindexedValue subindex="([^"]*)" value="([^"]*)" description="Optotune ETL.*?"';
+    tokens = regexp(str, pattern, 'tokens');
+    if ~isempty(tokens)
+        % ZInd(iZ)=str2num(tokens{1}{1});
+        Zdepth(iZ)=str2num(tokens{1}{2});
+        % Zdescription{iZ}=tokens{1}{3};
+    % else
+    %     ReadZdepth=0;
+         iZ=iZ+1;
+         str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
+    end
+   
+
+end
+Zdepth_ETL=unique(Zdepth);
+else
+Zdepth_ETL=NaN;
 end
 
 % Find and extract bit depth
@@ -106,6 +133,8 @@ yaml.ScanAmp_Y=ScanAmp_Y;
 yaml.scan_Z=Zmicro;
 yaml.scan_ZInd=ZInd;
 yaml.scan_Zdescription=Zdescription;
+yaml.Zdepth_ETL=Zdepth_ETL;
+
 yaml.FOVsize_OpticalZoom=ZoomX;
 yaml.FOVsize_PX=Xnum;
 yaml.FOVsize_PY=Ynum;

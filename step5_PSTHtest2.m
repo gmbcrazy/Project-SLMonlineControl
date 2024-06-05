@@ -1,5 +1,5 @@
 clear all
-TestFile='TSeries-04222024-0926-062'
+TestFile='TSeries-04222024-0926-040'
 DataFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\Data\'
 
 nPlane=3;
@@ -73,3 +73,14 @@ end
 end
 
 sum(sum(sum(abs(MeanTif(:,:,3)-MeanBin(:,:,1)))))
+
+
+40
+
+59
+
+62
+
+
+
+

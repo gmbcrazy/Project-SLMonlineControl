@@ -1,7 +1,7 @@
 function plotCellBoundary3D(cellBoundary, CellZ,varargin)
     % Check the number of input arguments
     if nargin < 3
-        colorCell = jet(size(cellCenter, 1));
+        colorCell = jet(length(cellBoundary));
         LineWidth = 1;
     elseif nargin == 3
         colorCell = varargin{1};
