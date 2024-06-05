@@ -1,19 +1,19 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: F:\LuSLMOnlineTest\MouseMei03\04252024\
+save_path0: F:\LuSLMOnlineTest\MouseMei03\05142024\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 154.14 #Z device depth
+scan_Z: 149.45 #Z device depth
 ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 SpiralSizeUM: 15
 SpiralRevolution: 3
 Repetition: 8 #Pulse Number of SLM stimuli
-UncagingLaserPower: 1.4 1.5 #SLM power LevelTest
+UncagingLaserPower: 0.5 1.4 1.5 1.6 #SLM power LevelTest
 
 # SLM Nontargets
-NumNonTarget: 30 #Total Num. of NonCell-targets
+NumNonTarget: 20 #Total Num. of NonCell-targets
 NumNTperTrial: 9 #X NonCell Targets per trial
 NumTrial: 5      #Total trials repeated in Single Target SLM, noted that single Target inlcuding 1 Cells and X NonCell Targets
 RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
@@ -23,4 +23,4 @@ RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
 # Suite2p
 nchannels: 1 #
 fs: 6.9  #sampling rate for 1 Zseries
-tau: 0.9  #sutie2p parameters
+tau: 0.9  #suite2p parameters

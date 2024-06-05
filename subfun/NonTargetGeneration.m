@@ -4,7 +4,7 @@ function [NonTargets,NonTargetsPlane]=NonTargetGeneration(SavePath,Pos3DRaw,PosP
 % NonAvoidRadius=confSet.SpiralSizeUM*2;
 NumNonTargets=confSet.NumNonTarget;
 
-RadiusByPixel=ceil(confSet.SpiralSizeUM/yaml.umPerlPixelX)/2;
+RadiusByPixel=ceil(confSet.SpiralSizeUM/yaml.umPerlPixelX/2);
 
 if nargin==7 %% avoid vessel region for nontarget generating
    MeanImg=varargin{1};

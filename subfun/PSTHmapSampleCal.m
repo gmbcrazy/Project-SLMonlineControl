@@ -1,8 +1,7 @@
-function varargout=PSTHmapSampleCal(BinFile,PSTHparam,confSet,ROIrowcol,CellPlane)
-
+function varargout=PSTHmapSampleCal(BinFile,PSTHparam,confSet,varargin)
 
   if nargin>3
-     Cellstat=vargargin{1};
+     ROIrowcol=varargin{1};
      CellPlane=varargin{2};
   end
 

@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Experiment>
+  <Name>Current</Name>
+  <UpdateRate>10000</UpdateRate>
+  <isFPGA>false</isFPGA>
+  <Waveform>
+    <Name>Camera StartStop</Name>
+    <Enabled>true</Enabled>
+    <AOLine>0</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-256</PlotColor>
+    <WaveformComponent_FixedVoltage>
+      <Name>Waveform Component #1</Name>
+      <Potential>0</Potential>
+      <HoldTime>1200000</HoldTime>
+      <ChangeAtEnd>true</ChangeAtEnd>
+      <EndingPotential>0</EndingPotential>
+    </WaveformComponent_FixedVoltage>
+    <WaveformComponent_Ramp>
+      <Name>Waveform Component #2</Name>
+      <InitialPotential>0</InitialPotential>
+      <InitialDelay>0</InitialDelay>
+      <RampStartPotential>0</RampStartPotential>
+      <RampStopPotential>5</RampStopPotential>
+      <RampDuration>100</RampDuration>
+      <FinalPotential>0</FinalPotential>
+      <FinalHoldTime>0</FinalHoldTime>
+      <Repetitions>1</Repetitions>
+    </WaveformComponent_Ramp>
+  </Waveform>
+  <Waveform>
+    <Name>Voltage Output 1</Name>
+    <Enabled>false</Enabled>
+    <AOLine>1</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-7876870</PlotColor>
+    <WaveformComponent_FixedVoltage>
+      <Name>Waveform Component #1</Name>
+      <Potential>0</Potential>
+      <HoldTime>1300</HoldTime>
+      <ChangeAtEnd>false</ChangeAtEnd>
+      <EndingPotential>0</EndingPotential>
+    </WaveformComponent_FixedVoltage>
+    <WaveformComponent_PulseTrain>
+      <Name>WhiskerStim</Name>
+      <PulseCount>2</PulseCount>
+      <PulseWidth>400</PulseWidth>
+      <PulseSpacing>1000</PulseSpacing>
+      <PulsePotentialStart>5</PulsePotentialStart>
+      <PulsePotentialDelta>0</PulsePotentialDelta>
+      <RestPotential>0</RestPotential>
+      <FirstPulseDelay>0</FirstPulseDelay>
+      <Repetitions>1</Repetitions>
+      <DelayBetweenReps>0</DelayBetweenReps>
+      <isLowTimeChecked>true</isLowTimeChecked>
+    </WaveformComponent_PulseTrain>
+  </Waveform>
+  <Waveform>
+    <Name>SLM Trigger</Name>
+    <Enabled>true</Enabled>
+    <AOLine>2</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-38476</PlotColor>
+    <WaveformComponent_PulseTrain>
+      <Name>Waveform Component #1</Name>
+      <PulseCount>20</PulseCount>
+      <PulseWidth>500</PulseWidth>
+      <PulseSpacing>20000</PulseSpacing>
+      <PulsePotentialStart>5</PulsePotentialStart>
+      <PulsePotentialDelta>0</PulsePotentialDelta>
+      <RestPotential>-5</RestPotential>
+      <FirstPulseDelay>300000</FirstPulseDelay>
+      <Repetitions>1</Repetitions>
+      <DelayBetweenReps>0</DelayBetweenReps>
+      <isLowTimeChecked>true</isLowTimeChecked>
+    </WaveformComponent_PulseTrain>
+  </Waveform>
+  <Waveform>
+    <Name>SLM Trigger</Name>
+    <Enabled>false</Enabled>
+    <AOLine>3</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-8586240</PlotColor>
+    <WaveformComponent_PulseTrain>
+      <Name>Waveform Component #1</Name>
+      <PulseCount>50</PulseCount>
+      <PulseWidth>10</PulseWidth>
+      <PulseSpacing>10</PulseSpacing>
+      <PulsePotentialStart>-9</PulsePotentialStart>
+      <PulsePotentialDelta>0.35</PulsePotentialDelta>
+      <RestPotential>-10</RestPotential>
+      <FirstPulseDelay>0</FirstPulseDelay>
+      <Repetitions>1</Repetitions>
+      <DelayBetweenReps>0</DelayBetweenReps>
+      <isLowTimeChecked>true</isLowTimeChecked>
+    </WaveformComponent_PulseTrain>
+  </Waveform>
+  <Waveform>
+    <Name>PMT Shutter</Name>
+    <Enabled>false</Enabled>
+    <AOLine>4</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-16776961</PlotColor>
+  </Waveform>
+  <Waveform>
+    <Name>Uncaging X Galvo</Name>
+    <Enabled>false</Enabled>
+    <AOLine>5</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-65536</PlotColor>
+  </Waveform>
+  <Waveform>
+    <Name>Satsuma</Name>
+    <Enabled>false</Enabled>
+    <AOLine>6</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-23296</PlotColor>
+  </Waveform>
+  <Waveform>
+    <Name>Uncaging Y Galvo</Name>
+    <Enabled>false</Enabled>
+    <AOLine>7</AOLine>
+    <Units>V</Units>
+    <UnitScaleFactor>1</UnitScaleFactor>
+    <UnitVoltageOffset>0</UnitVoltageOffset>
+    <UnitScaleOffset>0</UnitScaleOffset>
+    <PlotColor>-7077677</PlotColor>
+  </Waveform>
+</Experiment>

@@ -1,17 +1,17 @@
 clear all
-ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
-% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+% ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
+% load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
+ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
 [~,~,~,CaData,CaDataPlane,stat,~,~]=ROIToXYZ(ConfigFolder);
 
 
 
-% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-ProcessFolder='F:\LuSLMOnlineTest\MouseMei03\04252024\SingleP\20PixelFromEdgeExc\';
+ProcessFolder='F:\LuSLMOnlineTest\MouseMei03\05142024\SingleP\20PixelFromEdgeExc\';
 
 DataFolder=[ProcessFolder 'Data\'];
 
@@ -42,9 +42,9 @@ PSTHparam.Clim=[-400 400]
 
 % Round=[1];
 % ExcuteIndex=[];
-XMLparam.Point=21;
-XMLparam.Laser=1.5;
-XMLparam.RoundID=2;
+XMLparam.Point=3;
+XMLparam.Laser=1.6;
+XMLparam.RoundID=1;
 PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 
@@ -52,21 +52,52 @@ PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 
 % PV_LinkExcuteXML(ProcessFolder,RandomDelayInterval)
 % PV_LinkExcuteXML(XMLparam,PVparam,confSet)
-PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
+% PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
+PV_LinkExcuteXMLnoBin(XMLparam,PVparam,confSet)
+
+
 
 [cellIDMap,CellPixCount,MedCenter]=Suite2pCellIDMapFromStat(CaData.statCell(SLMIncludedIndFromIscell),[confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
 cellBoundary = CellIDMap2Boundary(cellIDMap);
 
-BinFile='F:\LuSLMOnlineTest\MouseMei03\04252024\SingleP\20PixelFromEdgeExc\Data\TSeries-04252024-0936-070R3Laser1.5GPoint19.bin';
-XMLparam.Point=19;
+BinFile='F:\LuSLMOnlineTest\MouseMei03\04252024\SingleP\20PixelFromEdgeExc\Data\TSeries-04252024-0936-096R3Laser1.5GPoint7.bin';
+XMLparam.Point=7;
 XMLparam.Laser=1.5;
 XMLparam.RoundID=3;
 PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
+PSTHparam.PlaneID=CaData.CellPlaneID(SLMIncludedIndFromIscell(XMLparam.Point));
+
+median(PSTHparam.CellStat.xpix)
+median(PSTHparam.CellStat.ypix)
+
+ROI=[PSTHparam.CellStat.xpix(:) PSTHparam.CellStat.ypix(:)];
+[PSTHtemp,ROITseries]=PSTHmapSampleCal(BinFile,PSTHparam,confSet,ROI,PSTHparam.PlaneID);
 
 
 
-PSTHtemp=PSTHmapCal(BinFile,PSTHparam,confSet);
+figure;hold on;
+for i=1:size(ROITseries,2)
+    plot(i,ROITseries(:,i),'r.')
+end
+
+errorbar(1:size(ROITseries,2), mean(ROITseries),ste(ROITseries))
+
+figure;
+plot(mean(ROITseries),'r.')
+
+figure;
+imagesc(squeeze(PSTHtemp(:,:,3)))
+         caxis(PSTHparam.Clim);
+         Radius=10;
+         colormap(PSTHparam.ColorMap);
+         hold on;
+plot(median(PSTHparam.CellStat.ypix),median(PSTHparam.CellStat.xpix),'go')
+plotCellBoundary3D(cellBoundary(XMLparam.Point), [],[0 1 0],1)
+
+
+PSTHparam.CellStat.med
+PSTHtemp=PSTHmapSampleCal(BinFile,PSTHparam,confSet);
          PlaneZ=confSet.ETL+confSet.scan_Z;
          figure
          subplot(1,2,1)

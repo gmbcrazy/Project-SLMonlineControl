@@ -8,7 +8,7 @@
 
 
 % callback function
-function varargout=PV_LinkExcuteXML(XMLparam,PVparam,confSet,varargin)
+function PV_LinkExcuteXMLnoBin(XMLparam,PVparam,confSet,varargin)
 
 if nargin==4
     PSTHparam=varargin{1};
@@ -94,14 +94,12 @@ end
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
          pause(0.2);
          pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
-         pause(0.1);
+         pause(0.2);
 
          filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
          completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
-         completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
 
-    % open binary file for writing
-         fileID = fopen([completeFileName '.bin'], 'wb');
+         
          LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
          LogMessage(LogfileID,MarkPointList(ixml).name(1:end-4));
 
@@ -119,7 +117,7 @@ end
          pl.SendScriptCommands('-TSeries');
     % initialise state variables, buffer, and counters/records
          running        = 1;
-         started        = 0;
+         started        = 1;
          loopCounter    = 1;
          totalSamples   = 0;
          framesCounter  = 0;
@@ -131,116 +129,15 @@ end
          droppedData    = [];
 
 
-    % get data, do conversion, save to file
+
         while running   
         % start timer
               tic;    
 
         % get raw data stream (timer = ~20ms)
               [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
-
         % append new data to any remaining old data
-               buffer = [buffer samples(1:numSamplesRead)];
-        IncludedInd=[];
-        % extract full frames
-        numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-        IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
-        toProcess = buffer(IncludedInd);
 
-        % clear data from buffer
-%         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
-        buffer(IncludedInd)=[];
-        RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
-
-
-
-        % process the acquired frames (timer = ~5ms)
-
-          if numWholeFramesGrabbed > 0
-             framesCounter = framesCounter + numWholeFramesGrabbed;
-                if BreakYet==0 && framesCounter>=BreakPointFrame
-                   LogMessage(LogfileID,['Check Redundant' num2str(frameNum) ' ' num2str(framesCounter)]);
-                   BreakYet=1;
-                   buffer=[];
-                   CheckRedundant=1;
-%                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
-                end
-
-%                   if BreakYet==0&&started && loopCounter > 10 && sum(allSamplesRead(end-5:end)) == 0  % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-%                      BreakYet=1
-%                      disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])
-% 
-%                      CheckRedundant=1;
-%                      buffer=[];
-%                   end
-
-
-
-                for i = 1:numWholeFramesGrabbed
-                      if started == 0
-                        started = 1;
-                      end
-
-                % get single frame
-                      frame = toProcess(((i-1)*totalSamplesPerFrame)+1:(i*totalSamplesPerFrame));
-
-                % process the frame (C++ mex code)
-                      frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
-%                       size(frame)
-                % save processed frames to file
-                % increment frame counter
-                % BreakPointFrame is number of frames in total before a
-                % MarkPoint stimuli is applied, PV has redudant data/frame
-                % after this; So when this happen, clean the buffer, and do
-                % not write this redudant data into .bin file
-                      frameNum = frameNum + 1;
-%                       disp([num2str(frameNum) ' ' num2str(framesCounter)])
-                      if CheckRedundant==1 && frameNum>BreakPointFrame+0.1
-                         CheckRedundant=0;
-                         frameNum=frameNum-1;
-                         LogMessage(LogfileID,['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)]);
-
-                         break;
-                      elseif CheckRedundant==1 && frameNum<=BreakPointFrame
-                         disp(['Keep frame ' num2str(frameNum)])
-                         LogMessage(LogfileID,['Keep frame ' num2str(frameNum)]);
-                         CheckRedundant=1;
-                         if i == numWholeFramesGrabbed
-                              CheckRedundant=0;
-                              LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
-                         end      
-                      else
-
-                      end
-
-                      fwrite(fileID, frame, 'uint16');
-                      if preview
-                         Image.CData = frame';
-                         FrameCounter.String = msg;
-                         pause(0.00001);
-                      end
-
-                               
-                     if preview&& (frameNum == BreakPointFrame+1)
-                        figure(figHandle);
-                        subplot(1,3,1)
-                        imagesc(frame);
-                        axis off; axis square; axis tight;
-                        xlabel('1st frame after breakpoint');
-                     end
-
-               end
-          end
-
-        % display progress
-%         fprintf(repmat('\b', 1, length(msg)));  % delete previous 'message'
-             msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
-%         fprintf(msg);
-%         handles.ProgressText.String = msg;
-%         drawnow
-
-        % increment counters
-              % framesCounter = framesCounter + numWholeFramesGrabbed;
               loopCounter = loopCounter + 1;
               totalSamples = totalSamples + numSamplesRead;
               allSamplesRead(end+1) = numSamplesRead;
@@ -251,52 +148,19 @@ end
               if droppedData(end)
                  LogMessage(LogfileID,['\n!!! DROPPED DATA AT FRAME ' num2str(frameNum) ' !!!\n']);
               end
-
-
-
-
-
-        % exit loop if finished if maxFrame frames were collected
-          if started && frameNum >= maxFrame
-              running = 0;
-              LogMessage(LogfileID,[num2str(frameNum) ' frame saved from ' num2str(framesCounter) ' frames detected']);
-              saveas(figHandle,[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.png'],'png');
-          end
-         preview=1;
-         if preview==1
-            figHandle=figure(2);
-            subplot(1,3,2)
-            hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
-            ylabel('numWholeFramesGrabbed')
-            subplot(1,3,3)
-            if exist('numWholeFramesGrabbed')
-               hold on;plot(loopCounter,frameNum,'g.')
-               hold on;plot(loopCounter,framesCounter,'r.')
-%                plot(loopCounter,BreakPointFrame,'y.')
-            end
-            set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
-            ylabel('Frame # recorded')
-         end
-%             if BreakYet&&started && loopCounter > 10 && sum(allSamplesRead(end-9:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-%                buffer=[];
-%                running = 1;
-%                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
+%             if loopCounter > 150
+%             sum(allSamplesRead(end-119:end))
 %             end
-
+%             allSamplesRead(end)
+         
             if started && loopCounter > 150 && sum(allSamplesRead(end-119:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
          end
 
-    % clean up
-         fclose(fileID);
+
          fclose(LogfileID);
-         % disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
-         % disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
-         % % pause(InterTrialDelay(ixml));
-        if CalPSTH==1
-           PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
-         end
+
 
 
     %% Update file name for next recording trial
@@ -308,30 +172,6 @@ end
     pl.Disconnect();
     delete(pl);
 
-    if CalPSTH==1
-       PSTHmap=squeeze(PSTHmap);
-        varargout{1}=PSTHmap;
-       if PSTHparam.Plot==1
-           PlaneZ=confSet.ETL+confSet.scan_Z;
-         figure
-         MultiMatrix3DPlotZ(PSTHmap,PlaneZ,0.9);
-         caxis(PSTHparam.Clim);
-         Radius=10;
-         colormap(PSTHparam.ColorMap);
-         set(gca,'xlim',[0 confSet.SLM_Pixels_Y],'ylim',[0 confSet.SLM_Pixels_X],'zlim',PlaneZ([1 end]),'ztick',PlaneZ,'View',[64 24],'zDir','reverse');
-         % plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
-         if isfield(PSTHparam,'TargetPos')
-            plotCellCenter3D(PSTHparam.TargetPos, Radius, [0 1 0],1.5);
-         end
-         papersizePX=[0 0 12 20]
-         set(gcf, 'PaperUnits', 'centimeters');
-         set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-         saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
-
-       end
-    else
-        varargout{1}=0;
-    end
 end
 
 

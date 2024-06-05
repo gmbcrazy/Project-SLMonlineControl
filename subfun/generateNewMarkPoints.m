@@ -33,23 +33,24 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
        MeanImg=SmoothDecDim3(MeanImg,[1,1]);
 
        VesselMask(MeanImg<vesselTh)=1;
-       % figure;
-       % imagesc(VesselMask);
-       % PlotImagePlane(VesselMask)
+%        figure;
+%        imagesc(VesselMask);
+%        PlotImagePlane(VesselMask)
 
-       % VesselMask=SmoothDecDim3(VesselMask,[1,1]);
-       % VesselMask(VesselMask>0.5)=1;
+       VesselMask=SmoothDecDim3(VesselMask,[1,1]);
+       VesselMask(VesselMask>0.5)=1;
        % VesselMask(VesselMask<=0.5)=0;
        % VesselMask(VesselMask>=0.33)=1;
-       nonNeighbourhood(VesselMask==1)=0;   %%avoid vessel region for nontarget generating
+%        nonNeighbourhood(VesselMask==0)=1;   %%avoid vessel region for nontarget generating
+       nonNeighbourhood(VesselMask==1)=1;   %%using vessel region for nontarget generating
       
-       % figure;
-       % PlotImagePlane(nonNeighbourhood)
+%        figure;
+%        PlotImagePlane(nonNeighbourhood)
 
    end
 
-       % figure;
-       % PlotImagePlane(nonNeighbourhood);
+%        figure;
+%        PlotImagePlane(nonNeighbourhood);
 
    
    %% 
@@ -65,8 +66,8 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
         % Randomly select a plane
         z = randi(numPlanes);
         % Randomly select x and y within the plane dimensions, ensuring margins for the radius
-        x = randi([newPointRadius+1, planeSize(2)-newPointRadius]);
-        y = randi([newPointRadius+1, planeSize(1)-newPointRadius]);
+        x = randi([(newPointRadius+1), (planeSize(2)-newPointRadius)]);
+        y = randi([(newPointRadius+1), (planeSize(1)-newPointRadius)]);
         
         % Calculate indices for the neighbourhood check
         xRange = max(1, x-newPointRadius):min(planeSize(2), x+newPointRadius);
