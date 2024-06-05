@@ -32,32 +32,12 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
 
        MeanImg=SmoothDecDim3(MeanImg,[1,1]);
 
-       VesselMask(MeanImg<vesselTh)=1;
-       % figure;
-       % imagesc(VesselMask);
-       % PlotImagePlane(VesselMask)
-
-       % VesselMask=SmoothDecDim3(VesselMask,[1,1]);
-       % VesselMask(VesselMask>0.5)=1;
-       % VesselMask(VesselMask<=0.5)=0;
-       % VesselMask(VesselMask>=0.33)=1;
+       % VesselMask(MeanImg<vesselTh)=1;  %% Previouslyavoid vessels as non-target region 
+       VesselMask(MeanImg>vesselTh)=1;    %% Currently prefer to vessels region as non-target region 05032024
        nonNeighbourhood(VesselMask==1)=0;   %%avoid vessel region for nontarget generating
-      
-       % figure;
-       % PlotImagePlane(nonNeighbourhood)
-
    end
 
-       % figure;
-       % PlotImagePlane(nonNeighbourhood);
 
-   
-   %% 
-    % Convert nonNeighbourhood to a GPU array
-    %nonNeighbourhood = gpuArray(nonNeighbourhood);
-    
-    % Initialize the new MarkPoints
-    % newMarkPoints = zeros(numNewPoints, 3, 'gpuArray');
     count = 0;
     
     % Try to find valid positions for the new points
