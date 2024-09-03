@@ -32,33 +32,11 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
 
        MeanImg=SmoothDecDim3(MeanImg,[1,1]);
 
-<<<<<<< HEAD
-       VesselMask(MeanImg<vesselTh)=1;
-%        figure;
-%        imagesc(VesselMask);
-%        PlotImagePlane(VesselMask)
-
-       VesselMask=SmoothDecDim3(VesselMask,[1,1]);
-       VesselMask(VesselMask>0.5)=1;
-       % VesselMask(VesselMask<=0.5)=0;
-       % VesselMask(VesselMask>=0.33)=1;
-%        nonNeighbourhood(VesselMask==0)=1;   %%avoid vessel region for nontarget generating
-       nonNeighbourhood(VesselMask==1)=1;   %%using vessel region for nontarget generating
-      
-%        figure;
-%        PlotImagePlane(nonNeighbourhood)
-
-   end
-
-%        figure;
-%        PlotImagePlane(nonNeighbourhood);
-=======
        % VesselMask(MeanImg<vesselTh)=1;  %% Previouslyavoid vessels as non-target region 
        VesselMask(MeanImg>vesselTh)=1;    %% Currently prefer to vessels region as non-target region 05032024
        nonNeighbourhood(VesselMask==1)=0;   %%avoid vessel region for nontarget generating
    end
 
->>>>>>> 5d9705633a507e90d89ed4694d4d5458dae57738
 
     count = 0;
     

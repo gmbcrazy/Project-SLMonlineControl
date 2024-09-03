@@ -1,4 +1,4 @@
-function Data=AmpNormalizeRow(Data,varargin)
+function Data=AmpNormalizeRow(Data,prcTh)
 
 %% AmpNormalize - Normalize Data by Amplitude
 %   Data = AmpNormalize(Data)
@@ -21,5 +21,5 @@ function Data=AmpNormalizeRow(Data,varargin)
 
 
 for iRow=1:size(Data,1)
-    Data(iRow,:)=AmpNormalize(Data(iRow,:),varargin);
+    Data(iRow,:)=AmpNormalize(Data(iRow,:),prcTh);
 end

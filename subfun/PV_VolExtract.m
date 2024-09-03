@@ -1,7 +1,7 @@
-function [fSpeed,timeStampCa_Plane]=PV_SpeedExtract(confSet)
+function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet)
 
 
-% PV_SpeedExtract extracts speed and timestamps from photovoltaic speed recording systems.
+% PV_SpeedExtract extracts Voltage signals including speed, Stim, and timestamps from photovoltaic speed recording systems.
 % This function aligns the extracted speed data with timestamps from calcium imaging data,
 % facilitating the analysis of movement alongside neuronal activity across different planes.
 %
@@ -10,6 +10,7 @@ function [fSpeed,timeStampCa_Plane]=PV_SpeedExtract(confSet)
 %
 % Outputs:
 % fSpeed - A matrix containing the processed speed data for each imaging plane.
+% fStim - A matrix containing the processed stim data (triggering whisking stimuli) for each imaging plane.
 % timeStampCa_Plane - A matrix containing the timestamps for calcium imaging data for each plane.
 
 % The following commented-out code block was intended for selecting a trial based on directory structure.
@@ -138,6 +139,13 @@ for iPlane=1:numPlanes
     % fSpeed = [fSpeed; tempSpeed];
     fSpeed(:,iPlane)=tempSpeed;
 
+
+    vRecTemp(vRecTemp(:,12)==0,:)=[];
+    tempStim = [];
+    tempStim = accumarray(vRecTemp(:,12), vRecTemp(:,4), [], @nanmean);
+    tempStim = tempStim(min(vRecTemp(:,12)):end);
+    % fSpeed = [fSpeed; tempSpeed];
+    fStim(:,iPlane)=tempStim;
    
 end
 
