@@ -27,7 +27,7 @@ function plotCellBoundary3D(cellBoundary, CellZ,varargin)
         
         for iB = 1:length(cellBoundary{i})
             % Plot the cell boundary using specified color and LineWidth
-            plot(cellBoundary{i}{iB}(:, 1), cellBoundary{i}{iB}(:, 2), 'color',colorCell(i, :), 'LineWidth', LineWidth);
+            plot(cellBoundary{i}{iB}(:, 2), cellBoundary{i}{iB}(:, 1), 'color',colorCell(i, :), 'LineWidth', LineWidth);
         end
 
     end
