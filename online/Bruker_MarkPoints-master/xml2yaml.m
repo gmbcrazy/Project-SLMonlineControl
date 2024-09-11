@@ -31,6 +31,14 @@ Ymin=str2num(tokens{1}{1});
 ScanAmp_X= [Xmin Xmax];
 ScanAmp_Y= [Ymin Ymax];
 
+% Find and extract the 2P imaging laser power
+fseek(fid,0,'bof');
+str=FindKeywords(fid,'key="laserPower"');
+str=fgetl(fid);
+pattern = 'index="0" value="(-?[\d.]+)" description="Insight"';
+tokens = regexp(str, pattern, 'tokens');
+DefaultlaserPower=str2num(tokens{1}{1});
+
 % Find and extract the number of lines per frame and pixels per line
 fseek(fid,0,'bof');
 str=FindKeywords(fid,'key="linesPerFrame" value');
@@ -68,9 +76,11 @@ str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
 if ~isempty(str)
     ReadZ=1;
     ReadZdepth=1;
+    laserPower=[];
 else
     ReadZ=0;
     ReadZdepth=0;
+    laserPower=DefaultlaserPower;
 end
 
 
@@ -91,9 +101,29 @@ while ReadZ
 end
 fseek(fid,0,'bof');
 if ReadZdepth==1
-str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
-iZ=1;
+    iZ=1;
+
+    str=FindKeywords(fid,'Frame relativeTime="');
+
+% pattern = 'subindex="([^"]*)" value="([^"]*)" description="([^"]*)"';
 while iZ<20
+    str=FindKeywords(fid,'key="framePeriod" value="');
+    str=fgetl(fid);
+    ispower=findstr(str,'laserPower');
+    if isempty(ispower)
+        tempPower(iZ)=DefaultlaserPower;
+    else
+        str=fgetl(fid);
+        pattern = 'index="0" value="([^"]*)" description="Insight"';
+        tokens = regexp(str, pattern, 'tokens');
+        if ~isempty(tokens)
+            tempPower(iZ)=str2num(tokens{1}{1});
+        else
+            tempPower(iZ)=DefaultlaserPower;
+        end
+    end
+    str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
+    str=fgetl(fid);
     str=fgetl(fid);
     pattern = 'SubindexedValue subindex="([^"]*)" value="([^"]*)" description="Optotune ETL.*?"';
     tokens = regexp(str, pattern, 'tokens');
@@ -104,12 +134,13 @@ while iZ<20
     % else
     %     ReadZdepth=0;
          iZ=iZ+1;
-         str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
+         % str=FindKeywords(fid,'SubindexedValues index="ZAxis"');
     end
    
 
 end
-Zdepth_ETL=unique(Zdepth);
+[Zdepth_ETL,ic]=unique(Zdepth);
+laserPower=tempPower(ic);
 else
 Zdepth_ETL=NaN;
 end
@@ -134,6 +165,7 @@ yaml.scan_Z=Zmicro;
 yaml.scan_ZInd=ZInd;
 yaml.scan_Zdescription=Zdescription;
 yaml.Zdepth_ETL=Zdepth_ETL;
+yaml.Zdepth_laserPower=laserPower;
 
 yaml.FOVsize_OpticalZoom=ZoomX;
 yaml.FOVsize_PX=Xnum;

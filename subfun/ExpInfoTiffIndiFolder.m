@@ -1,4 +1,4 @@
-function [totalRepetitions, framesAfterStimuli] = ExpInfoTiffIndiFolder(folderPath)
+function [totalRepetitions, framesAfterStimuli,StimuliPower] = ExpInfoTiffIndiFolder(folderPath)
     % AnalyzeImagingSeries - Analyzes 3D imaging time series and outputs
     %                        total repetitions and frame IDs after stimuli.
     %
@@ -15,6 +15,8 @@ function [totalRepetitions, framesAfterStimuli] = ExpInfoTiffIndiFolder(folderPa
     files = dir(fullfile(folderPath, '*.ome.tif'));
     xmlFiles = dir(fullfile(folderPath, '*MarkPoints.xml'));
     
+    tifInfo=imfinfo([files(1).folder '\' files(1).name]);
+    tempnumPlanes=length(tifInfo);
     % Initialize arrays to store cycle numbers and plane numbers
     cycleNumbers = [];
     planeNumbers = [];
@@ -26,7 +28,7 @@ function [totalRepetitions, framesAfterStimuli] = ExpInfoTiffIndiFolder(folderPa
         tokens = regexp(fileName, '_Cycle(\d{5})_Ch2_(\d{6})\.ome\.tif', 'tokens');
         if ~isempty(tokens)
          cycleNumbers(end+1) = str2num(tokens{1}{1});
-         planeNumbers(end+1) = str2num(tokens{1}{2});
+         planeNumbers(end+1) = max(str2num(tokens{1}{2}),tempnumPlanes);
          % disp(['Cycle Number: ', cycleNumber]);
          % disp(['Plane Number: ', planeNumber]);
         % else
@@ -39,11 +41,15 @@ function [totalRepetitions, framesAfterStimuli] = ExpInfoTiffIndiFolder(folderPa
     numPlanes = length(uniquePlanes);
     
     % Calculate the total repetitions
-    totalRepetitions = length(files) / numPlanes;
-    
+    if tempnumPlanes>1
+       totalRepetitions = length(files);
+
+    else
+        totalRepetitions = length(files) / numPlanes;
+    end
     % Identify frames after each MarkPoints.xml file
     framesAfterStimuli = [];
-    
+    StimuliPower=[];
     for i = 1:length(xmlFiles)
         % Extract the cycle number from the MarkPoints.xml file name
         xmlFileName = xmlFiles(i).name;
@@ -62,8 +68,15 @@ function [totalRepetitions, framesAfterStimuli] = ExpInfoTiffIndiFolder(folderPa
             % end
         end
         framesAfterStimuli=[framesAfterStimuli;nextCycle];
+        StimuliPower=[StimuliPower;MPxml2yaml([xmlFiles(i).folder '\' xmlFiles(i).name])];
+        
     end
     if isempty(framesAfterStimuli)
        framesAfterStimuli=0;
     end
+    if isempty(StimuliPower)
+       StimuliPower=NaN;
+    end
+
+
 end

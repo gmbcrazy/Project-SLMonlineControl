@@ -9,13 +9,17 @@ TiffTable=TiffTable(:,1);
 
 for i=1:size(TiffTable,1)
     tempName=[DataFolder TiffTable.name{i} '\'];
-    [totalRepetitions(i,1), framesAfterStimuli(i,1)] = ExpInfoTiffIndiFolder(tempName);
+    [totalRepetitions(i,1), framesAfterStimuli(i,:),laser(i,:)] = ExpInfoTiffIndiFolder(tempName);
 
 end
 
 TiffTable.totalRepetitions=totalRepetitions;
 TiffTable.PostSLMframe=framesAfterStimuli;
+TiffTable.Laser=laser;
 TiffTable = addFileID(TiffTable);
+
+
+
 end
 
 
