@@ -45,7 +45,7 @@ XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet,CaData.statCell);
 
 
 %% Automatic generate Non-Targets 
-NonTargetPath=[SavePath  'NonTargets\'];
+NonTargetPath=[SavePath  'NonTargetsTest\'];
 mkdir(NonTargetPath)
 SaveNonTargets=[NonTargetPath 'Raw']
 BloodVesselTh=0.1;
@@ -160,21 +160,43 @@ rRank=[rankSpeed(:) rankStim(:)]
 rScoreInclude=rScore(IncludeCellI,:);
 rRankInclude=rRank(IncludeCellI,:);
 
-IncludeCellIFinal=CenterCloseI(IncludeCellI);
-SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\']
+IncludeCellFunFilter=CenterCloseI(IncludeCellI);
+SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExcTest\']
 mkdir(SavePathStimSpeed)
-% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
-% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
-IncludePath=[SavePathStimSpeed '\AllIncludedTest\'];
+% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellFunFilter,NonTargets, IndexNonTargetTrial, yaml,confSet)
+% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellFunFilter,NonTargets, IndexNonTargetTrial, yaml,confSet)
+IncludePath=[SavePathStimSpeed '\AllIncludedOrigin\'];
 mkdir(IncludePath)
-XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellIFinal,yaml,confSet,CaData.statCell);
+XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell);
 
 
-EditedTable=gpl2Table([IncludePath 'GPLedited.gpl'])
+EditedTable=gpl2Table([IncludePath 'SelectedGPL.gpl'])
 OriTable=gpl2Table([IncludePath 'GPL.gpl'])
+[temp,I1,I2]=intersect(EditedTable.Name,OriTable.Name);
+
+IncludePath=[SavePathStimSpeed '\AllIncluded\'];
+mkdir(IncludePath)
+IncludeCellFinal=IncludeCellFunFilter(I2);
+SLMIncludedIndFromIscell=IncludeCellFinal;
+[XYPosPixel,Z]=gplXYtoPixel(EditedTable,yaml);
+Pos3DNeed=[XYPosPixel Z(:,1)];
+Cellstat=CaData.statCell;
+save([IncludePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3DNeed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat');
+
+Pos3DFromGPL=[EditedTable.X EditedTable.Y EditedTable.Z];
+Pos3DFromGPL=[EditedTable.X EditedTable.Y EditedTable.Z];
+
+NonTargetsTable=gpl2Table([NonTargetPath 'SelectedFromRaw.gpl']);
+NonTargetsGPL=[NonTargetsTable.X NonTargetsTable.Y NonTargetsTable.Z];
+
+[a,b]=gplXYtoPixel(NonTargetsTable,yaml);
+
+SavePathStimSpeed=[SavePath 'FinalTop' num2str(TopCellN) 'SpeedStimEdgeExc\'];
+mkdir(SavePathStimSpeed);
+% XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellFunFilter, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
+EditedGPLtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3DFromGPL, SLMIncludedIndFromIscell, NonTargetsGPL, IndexNonTargetTrial, yaml, confSet,Cellstat)
 
 
-XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellIFinal, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 
 %%
 figure;

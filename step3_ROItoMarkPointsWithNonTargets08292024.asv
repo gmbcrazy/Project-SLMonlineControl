@@ -171,7 +171,6 @@ XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellIFinal,yaml,confSet,CaData.statCell)
 
 
 EditedTable=gpl2Table([IncludePath 'GPLedited.gpl'])
-OriTable=gpl2Table([IncludePath 'GPL.gpl'])
 
 
 XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellIFinal, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);

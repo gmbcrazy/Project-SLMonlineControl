@@ -12,7 +12,7 @@ ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-ProcessFolder='F:\LuSLMOnlineTest\SL0242-Ai203\08292024\SingleP\Top5SpeedStimEdgeExc\';
+ProcessFolder='F:\LuSLMOnlineTest\SL0702-G7-Ai203\09162024\SingleP\Top6SpeedStimEdgeExc\';
 
 DataFolder=[ProcessFolder 'Data\'];
 
@@ -27,8 +27,8 @@ load([ProcessFolder 'SLMIncludedIndFromIscell.mat'])
 % PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
 nPlane=length(confSet.ETL);
 
-PreMarkPointRepetition=50;
-PostMarkPointRepetition=40;
+PreMarkPointRepetition=40;
+PostMarkPointRepetition=20;
 frameRepetion=PreMarkPointRepetition+PostMarkPointRepetition; %%Total repepitions of Z series in T series setting.
 PVparam.maxFrame=nPlane*frameRepetion;
 PVparam.BreakPointFrame=PreMarkPointRepetition*nPlane;
@@ -59,12 +59,12 @@ PSTHparam.Clim=[-400 400]
 % 
 
 %%
-PointsTest=[1:9];
-PointsTest=[4];
+PointsTest=[1:9];  %%7 should not work
+for iRound=4:5
 for iPP=1:length(PointsTest)
 XMLparam.Point=PointsTest(iPP);
-XMLparam.Laser=1.5;
-XMLparam.RoundID=4;
+XMLparam.Laser=1.6;
+XMLparam.RoundID=iRound;
 PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 
@@ -83,7 +83,7 @@ PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
 % PV_LinkExcuteXMLnoBin(XMLparam,PVparam,confSet)
 end
-
+end
 
 
 % 
