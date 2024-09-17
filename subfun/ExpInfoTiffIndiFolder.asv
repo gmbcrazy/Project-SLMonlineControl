@@ -32,16 +32,14 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser]
     clear Zdepth
     Zdepth(:,1)=yaml.Zdepth_ETL;
 
-    I1=find(abs(yaml.Zdepth_ETL-yaml.scan_Z(2))<0.01);
+    I1=find(yaml.Zdepth_ETL==yaml.scan_Z(2));
     Zdepth(I1,2)=yaml.scan_Z(1);
     
-    I2=setdiff(1:length(yaml.Zdepth_ETL),I1);
+    I2=setdiff(1:length(yanml.Zdepth_ETL),I1);
     for j=1:length(I2)
         Zdepth(I2(j),2)=Zdepth(I2(j),1)-Zdepth(I1,1)+Zdepth(I1,2);
     end
 
-    Zdepth=Zdepth(:,2);
-    ZdepthLaser=yaml.Zdepth_laserPower;
 
     % Extract cycle numbers and plane numbers from the TIFF files
     for i = 1:length(files)

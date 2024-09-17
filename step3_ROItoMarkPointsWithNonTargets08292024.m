@@ -165,14 +165,22 @@ SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\']
 mkdir(SavePathStimSpeed)
 % XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
 % XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
+<<<<<<< HEAD
 IncludePath=[SavePathStimSpeed '\AllIncludedTest\'];
+=======
+
+IncludePath=[SavePathStimSpeed '\AllIncluded\'];
+>>>>>>> 9aa629a643d84768118b0a049c688e49da735880
 mkdir(IncludePath)
 XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellIFinal,yaml,confSet,CaData.statCell);
 
 
+<<<<<<< HEAD
 EditedTable=gpl2Table([IncludePath 'GPLedited.gpl'])
 OriTable=gpl2Table([IncludePath 'GPL.gpl'])
 
+=======
+>>>>>>> 9aa629a643d84768118b0a049c688e49da735880
 
 XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellIFinal, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 

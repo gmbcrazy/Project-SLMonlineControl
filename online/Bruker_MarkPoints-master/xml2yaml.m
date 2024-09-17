@@ -139,6 +139,11 @@ while iZ<20
    
 
 end
+
+Zdepth(end+1)=Zmicro(2);
+Zdepth=round(Zdepth);
+tempPower(end+1)=DefaultlaserPower;
+
 [Zdepth_ETL,ic]=unique(Zdepth);
 laserPower=tempPower(ic);
 else
