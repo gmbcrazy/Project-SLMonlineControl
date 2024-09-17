@@ -165,12 +165,14 @@ SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\']
 mkdir(SavePathStimSpeed)
 % XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
 % XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellIFinal,NonTargets, IndexNonTargetTrial, yaml,confSet)
-XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellIFinal, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 
 IncludePath=[SavePathStimSpeed '\AllIncluded\'];
 mkdir(IncludePath)
 XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellIFinal,yaml,confSet,CaData.statCell);
 
+
+
+XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellIFinal, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 
 %%
 figure;
