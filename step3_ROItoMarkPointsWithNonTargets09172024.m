@@ -1,201 +1,62 @@
+%% Initialize, run this part before mannual correction of Suite2p processed data for saving time
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
-[SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
+ConfigFile='SLMsettingG7.yml';
+confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
-PlaneZ=confSet.ETL+confSet.scan_Z;
-% MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
-numPlanes=length(confSet.ETL);
-iscell=find(CaData.iscell(:,1)==1);
-
+% This part cost 3 minutes.
 if ~exist('fSpeed')
     [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet);
     fSpeed=AmpNormalizeRow(double(fSpeed)',[0 100])';
     fStim=AmpNormalizeRow(double(fStim)',[0 100])';
 end
 
-
-XTimesStdTh = 3;
-MinInterVal = 20;
-maxLag = 10;
-
-
+%% After Suite2p processeing is done
 % Intially all cells were dectected by suite2p were considered as SLM targets
-SavePathAllPoint=[SavePath 'AllPoint\']
-mkdir(SavePathAllPoint)
-IndexNeed=1:1:size(Pos3D,1);
-XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet,CaData.statCell);
-numPlanes=length(confSet.ETL);
-iscell=find(CaData.iscell(:,1)==1);
-
-
-
-%% Exlude cells near the edge of the FOV as SLM targets
 SLMrangePix=20; %Pixel number close to FOV is excluded
-numPoint=size(Pos3D,1);
-XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
-OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
-CenterCloseI=setdiff(1:numPoint,OutRange);
-SavePathExc=[SavePath 'EdgeExc\']
-mkdir(SavePathExc)
-% IndexNeed=[1 3 6 13 21 23 28 30 31 32];
-% CenterCloseI=CenterCloseI(IndexNeed)
-% IndexNeed=1:1:size(Pos3D,1);
-XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet,CaData.statCell);
+% Exlude cells near the edge of the FOV as SLM targets
+step3_SubStep1_FOVedgeExcludedROIMP;
 
 
-%% Automatic generate Non-Targets 
-NonTargetPath=[SavePath  'NonTargetsTest\'];
-mkdir(NonTargetPath)
-SaveNonTargets=[NonTargetPath 'Raw']
-BloodVesselTh=0.1;
-[NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet,CaData.PlaneMeanImg,BloodVesselTh);
-% confSet.NumNonTarget=20;
-% confSet.RadiusAvoidParam=3;
-% % [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,Pos3DRaw,CaData.CellPlaneIDRaw,yaml,confSet);
-figure;
-FigSavePath=[NonTargetPath 'Raw'];
-PlotTargetNonTarget(Pos3D,NonTargets,NonTargetsPlane,CaData,FigSavePath)
+%% Automatic generate Raw Non-Targets 
+step3_SubStep2_RawNonTarget
 
-
-% [ s ] = gpl2struct('F:\LuSLMOnlineTest\04112024\SingleP\NonTargets\NonTargets.gpl')
 
 %% Please do mannual correction to exclude disqualified non-targets in PV, after that, exported all selected targets to SelectedFromRaw.gpl file
-s=gpl2struct([NonTargetPath 'SelectedFromRaw.gpl']);
-% TempTable=struct2table(s.PVGalvoPointList.PVGalvoPoint{1}.Attributes);
-for i=1:length(s.PVGalvoPointList.PVGalvoPoint)
-    TempStr(i)=s.PVGalvoPointList.PVGalvoPoint{i}.Attributes;
-end
-NonTargetNeed = convertTableEntries(struct2table(TempStr));
-NonTargetNeedInd = NonTargetNeed.Index+1;
-
-NonTargets=NonTargets(NonTargetNeedInd,:);
-NonTargetsPlane=NonTargetsPlane(NonTargetNeedInd,:);
-SaveNonTargets=[NonTargetPath 'SelectedNonTargets'];
-% [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,NonTargets,NonTargetsPlane,yaml,confSet);
-MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SaveNonTargets,[], 'NonTarget');    %%<< This file is not used in this script, just saved for note, or visulization in PV.
-
-% load([SavePath 'NonTargets\SelectedNonTargets']);
-
-% Visulize all targets and non-targets
-figure;
-FigSavePath=[NonTargetPath 'TargetNonTarget'];
-PlotTargetNonTarget(Pos3D,NonTargets,NonTargetsPlane,CaData,FigSavePath)
-
-
-
-% Visulize all targets and non-targets selected for each trial 
-for iTrial=1:confSet.NumTrial
-    figure;
-    IndexNonTargetTrial(:,iTrial)=randperm(size(NonTargets,1),confSet.NumNTperTrial);
-    FigSavePath=[NonTargetPath 'Trial' num2str(iTrial)];
-    PlotTargetNonTarget(Pos3D,NonTargets(IndexNonTargetTrial(:,iTrial),:),NonTargetsPlane(IndexNonTargetTrial(:,iTrial)),CaData,FigSavePath);
-    close all
-end
+step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 
 
-
-% % %% Intially all cells were dectected by suite2p were considered as SLM targets
-% SavePathAllPoint=[SavePath 'AllPoint\']
-% mkdir(SavePathAllPoint)
-% IndexNeed=1:1:size(Pos3D,1);
-% % XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet);
-% XYZtoMarkPoint_NT(SavePathAllPoint,Pos3D,IndexNeed,NonTargets, IndexNonTargetTrial, yaml,confSet)
-% 
-
-
-
-
-%% Exlude cells near the edge of the FOV as SLM targets
+%% step3_generateMP from steps above without Functional Filter Exlude cells near the edge of the FOV as SLM targets
 % SLMrangePix=50; %Pixel number close to FOV is excluded
 % numPoint=size(Pos3D,1);
 % XYrange=[SLMrangePix;yaml.SLM_Pixels_Y-SLMrangePix]  %%Cell locates close to edge of the view, were not considered as SML targets.
 % OutRange=find(Pos3D(:,1)<XYrange(1)|Pos3D(:,2)<XYrange(1)|Pos3D(:,1)>XYrange(2)|Pos3D(:,2)>XYrange(2));
 % CenterCloseI=setdiff(1:numPoint,OutRange);
-SavePathExc=[SavePath num2str(SLMrangePix) 'PixelFromEdgeExc\']
-mkdir(SavePathExc)
-XYZtoMarkPoint_NT_PairGplXml(SavePathExc, Pos3D, CenterCloseI, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
+% SavePathExc=[SavePath num2str(SLMrangePix) 'PixelFromEdgeExc\']
+% mkdir(SavePathExc)
+% XYZtoMarkPoint_NT_PairGplXml(SavePathExc, Pos3D, CenterCloseI, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 
 %% 
 
-% [Neighbourhood1,  ~] = MarkPoint2Neighbourhood(MarkPoints, radius*2, numPlanes,planeSize);
-% [Neighbourhood2,  ~] = MarkPoint2Neighbourhood(newMarkPoints, radius, numPlanes,planeSize);
-% 
-
-
-
-
 %% Including top cells highly correlated associated with speed.
-
-deltaFoF=F2deltaFoF(double(CaData.F),double(CaData.Fneu),double(confSet.fs));
-NeuroData=AmpNormalizeRow(deltaFoF',[0 100])';
-
-for iPlane=1:numPlanes
-    I1=find(CaData.CellPlaneID==iPlane);
-    [rSpeed(I1),pSpeed(I1)]=corr(NeuroData(:,iscell(I1)),fSpeed(:,iPlane),'type','Spearman','rows','pairwise');
-end
-clear rStim
-for iCell = 1:size(iscell, 1)
-    iPlane=CaData.CellPlaneID(iCell);
-    [c, lags] = xcorr(NeuroData(:,iscell(iCell)), fStim(:,iPlane), maxLag, 'coeff');
-    PostI = find(lags >= 0);
-    [~, i1] = max(abs(c(PostI)));
-    rStim(iCell, 1) = c(PostI(i1));
-end
-[~,rCenterIStim]=sort(rStim(CenterCloseI),'descend');  %%Cell locates close to edge of the view, were not considered as SML targets.
-[~,~,rankStim]=intersect(1:length(CenterCloseI),rCenterIStim);
-
-% ExcludeStimI=setdiff(CenterCloseI,)
-[~,rCenterISpeed]=sort(rSpeed(CenterCloseI),'descend');  %%Cell locates close to edge of the view, were not considered as SML targets.
-[~,~,rankSpeed]=intersect(1:length(CenterCloseI),rCenterISpeed);
-
-
-TopCellN=6;  
-IncludeCellI=union(rCenterISpeed(1:TopCellN),rCenterIStim(1:TopCellN));
-rScore=double([rSpeed(:) rStim(:)]);
-rScore=rScore(CenterCloseI,:);
-rRank=[rankSpeed(:) rankStim(:)]
-rScoreInclude=rScore(IncludeCellI,:);
-rRankInclude=rRank(IncludeCellI,:);
-
-IncludeCellFunFilter=CenterCloseI(IncludeCellI);
-SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExcTest\']
-mkdir(SavePathStimSpeed)
-% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellFunFilter,NonTargets, IndexNonTargetTrial, yaml,confSet)
-% XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,IncludeCellFunFilter,NonTargets, IndexNonTargetTrial, yaml,confSet)
-IncludePath=[SavePathStimSpeed '\AllIncludedOrigin\'];
-mkdir(IncludePath)
-XYZtoMarkPoint(IncludePath,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell);
-
-
-EditedTable=gpl2Table([IncludePath 'SelectedGPL.gpl'])
-OriTable=gpl2Table([IncludePath 'GPL.gpl'])
-[temp,I1,I2]=intersect(EditedTable.Name,OriTable.Name);
-IncludePath=[SavePathStimSpeed '\AllIncluded\'];
-mkdir(IncludePath)
-IncludeCellFinal=IncludeCellFunFilter(I2);
-SLMIncludedIndFromIscell=IncludeCellFinal;
-[XYPosPixel,Z]=gplXYtoPixel(EditedTable,yaml);
-Pos3DNeed=[XYPosPixel Z(:,1)];
-Cellstat=CaData.statCell;
-save([IncludePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3DNeed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat');
-
-Pos3DFromGPL=[EditedTable.X EditedTable.Y EditedTable.Z];
-
-NonTargetsTable=gpl2Table([NonTargetPath 'SelectedFromRaw.gpl']);
-NonTargetsGPL=[NonTargetsTable.X NonTargetsTable.Y NonTargetsTable.Z];
-
-
-SavePathStimSpeed=[SavePath 'FinalTop' num2str(TopCellN) 'SpeedStimEdgeExc\'];
+TopCellN=15;  
+SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
-% XYZtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3D, IncludeCellFunFilter, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
-EditedGPLtoMarkPoint_NT_PairGplXml(SavePathStimSpeed, Pos3DFromGPL, SLMIncludedIndFromIscell, NonTargetsGPL, IndexNonTargetTrial, yaml, confSet,Cellstat)
+
+step3_SubStep4_FuncFilterMPs;
 
 
 
+
+%% After Mannual Adjust Generated Functional Filtered MarkPoints in PV
+PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial);
 %%
+
+
+
+
 figure;
 plot(rSpeed(CenterCloseI),'r-');
 hold on;

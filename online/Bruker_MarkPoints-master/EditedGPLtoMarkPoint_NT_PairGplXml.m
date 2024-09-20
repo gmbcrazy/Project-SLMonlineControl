@@ -21,7 +21,7 @@ for iTrial=1:confSet.NumTrial
     % Create group points for stimulation, marking both targets and non-targets, and save the result.
 %     GroupPoints=MarkPoints3D_GPLmaker_TandNonT(Pos3DNeed, NonTargetsNeed, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,[SavePathAllPoint 'R' num2str(iTrial)]);
 %     GroupPoints = MarkPoints3D_GPLmaker_1TAndMultiNonT(Pos3DNeed, NonTargetsNeed, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution, [SavePathAllPoint 'R' num2str(iTrial)]);
-    GroupPoints = MarkPoints3D_GPLMerge_1TAndMultiNonT(Pos3DFromGPL, NonTargetsNeed, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution, [SavePathAllPoint 'R' num2str(iTrial)])
+    GroupPoints = MarkPoints3D_GPLMerge_1TAndMultiNonT(Pos3DFromGPL, NonTargetsNeed, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution, [SavePathAllPoint 'R' num2str(iTrial)]);
     % For each stimulation intensity specified, create an XML file for the laser control.
     for iStim =1: length(confSet.UncagingLaserPower)
         MarkPoints3D_XMLmaker_Group(GroupPoints, confSet.Repetition, confSet.UncagingLaserPower(iStim),[SavePathAllPoint 'R' num2str(iTrial) 'Laser' num2str(confSet.UncagingLaserPower(iStim))]);

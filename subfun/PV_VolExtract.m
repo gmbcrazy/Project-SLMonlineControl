@@ -17,8 +17,9 @@ function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet)
 % It has been disabled for this version.
 
 % Read XML configuration and trial data.
+tic
 caTrials=XMLread_SLM(confSet.save_path0,1);
-
+toc
 numPlanes=length(confSet.ETL);
 TSall=caTrials.FrameTS.relativeTime;
 TSplane=caTrials.FrameTS.index;
@@ -67,6 +68,7 @@ for iPlane=1:numPlanes
        disp('sampleRate of Voltage Recording does not match;');
     end
 
+    tic
 % Analyze camera TTL pulses to identify frame edges and distinguish between positive and negative TTL scenarios.
     if sum(vRecTemp(:,3)<1)>sum(vRecTemp(:,3)>2)
        IsPositiveTTL=1;
@@ -76,7 +78,7 @@ for iPlane=1:numPlanes
        IsPositiveTTL=0;
        fallingEdges = LocalMinima(diff(vRecTemp(:,3)),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
     end
-
+    toc
     % plot(vRecTemp(1:10000,3));hold on;
     % plot(fallingEdges(1:50),vRecTemp(fallingEdges(1:50),3),'r.')
     

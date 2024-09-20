@@ -81,7 +81,6 @@ end
     tSeriesIterID=str2num(tSeriesIter);
 %     tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIterID))
 
-    preview=1;
 
 
     for ixml=1:length(MarkPointList) %%Randomized the MarkPoint Stimulation Order
@@ -309,12 +308,16 @@ end
     pl.Disconnect();
     delete(pl);
 
+    ResultInfo=[];
+    XMLparam.Point=PointsTest(iPP);
+XMLparam.Laser=1.7;
+XMLparam.RoundID=iRound;
+PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
+PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 
     if CalPSTH==1
        PSTHmap=squeeze(PSTHmap);
-       varargout{1} = [tSeriesIterID XMLparam.Point XMLparam.Laser XMLparam.RoundID PSTHparam.TargetPos];
-       varargout{2}=PSTHmap;
-
+        varargout{1}=PSTHmap;
        if PSTHparam.Plot==1
            PlaneZ=confSet.ETL+confSet.scan_Z;
          figure
@@ -333,11 +336,11 @@ end
          saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
          saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
 
+         ResultInfo = [tSeriesIterID XMLparam.Point XMLparam.Laser XMLparam.RoundID PSTHparam.TargetPos];
+         ResultPSTH = PSTHmap;
        end
     else
-        varargout{1}=[];
-        varargout{2}=[];
-
+        varargout{1}=0;
     end
 end
 

@@ -1,6 +1,14 @@
-function [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder)
+function [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder,varargin)
 
-confSet = ReadYaml([ConfigFolder '\SLMsetting.yml' ]);
+if nargin==1
+   SLMsettingFile='SLMsetting.yml';
+elseif nargin==2
+   SLMsettingFile=varargin{1};
+else
+   SLMsettingFile='SLMsetting.yml';
+end
+
+confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 LoadPath=confSet.save_path0;
 SavePath=[LoadPath 'SingleP\'];
 mkdir(SavePath)
