@@ -177,7 +177,7 @@ yaml.FOVsize_PX=Xnum;
 yaml.FOVsize_PY=Ynum;
 yaml.FOVsize_UM=[microsPerPixelx*Xnum microsPerPixely*Ynum];
 yaml.umPerlPixelX=microsPerPixelx;
-yaml.umPerlPixely=microsPerPixely;
+yaml.umPerlPixelY=microsPerPixely;
 
 
 function output=FindKeywords(filePtr,Keywords)

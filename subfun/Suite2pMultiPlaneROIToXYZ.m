@@ -20,6 +20,15 @@ function [Pos3D, Pos3DRaw, CaData, CaDataPlane, stat, yaml] = Suite2pMultiPlaneR
     % If only one Suite2P folder is found, use it
     if length(Suite2PPath) == 1
         Suite2PPath = Suite2PPath{1};
+    elseif length(Suite2PPath) > 1
+        for isuite=1:length(Suite2PPath)
+            tempL(isuite)=length(Suite2PPath{isuite});
+        end
+        [~,i1]=min(tempL);
+        Suite2PPath=Suite2PPath{i1};
+    else
+        disp(['No suite2p processed folder is found in ' LoadPath])
+        return
     end
 
     % Determine the FileID based on input arguments

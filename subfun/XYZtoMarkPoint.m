@@ -1,4 +1,8 @@
-function XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet,Cellstat)
+function XYZtoMarkPoint(SavePathAllPoint,Pos3D,IndexNeed,yaml,confSet,Cellstat,FunScore)
+
+if nargin<7
+   FunScore=[];    %%Function score related to Pos3D(IndexNeed,:).
+end
 
 Pos3Dneed=Pos3D(IndexNeed,:);
 
@@ -10,7 +14,8 @@ UncagingLaserPower=confSet.UncagingLaserPower;
 SaveName=[SavePathAllPoint 'GPL'];
 % SLMIncludedIndFromIscell=IncludedI(tempI);
 SLMIncludedIndFromIscell=IndexNeed;
-save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','Cellstat');
+TargetCellstat=Cellstat(SLMIncludedIndFromIscell);
+save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','Cellstat','TargetCellstat','FunScore');
 
 
 

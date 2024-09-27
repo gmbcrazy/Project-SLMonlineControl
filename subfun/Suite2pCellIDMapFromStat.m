@@ -1,4 +1,4 @@
-function [cellIDMap,CellPixCount,MedCenter,cellBoundary]=Suite2pCellIDMapFromStat(stat,FovSize)
+function [cellIDMap,CellPixCount,MedCenter,cellBoundary,varargout]=Suite2pCellIDMapFromStat(stat,FovSize)
 
 %% Get cellIDMap from Suite2p processed data; This function is originally one part of
 %roiMatchPub.m https://github.com/ransona/ROIMatchPub
@@ -10,6 +10,7 @@ cellIDMap = zeros(FovSize);
 MedCenter=[];
 [m,n]=size(cellIDMap);
 
+cellIDMap3D=repmat(cellIDMap,[1,1,length(stat)]);
 
 for iCell = 1:length(stat)
     % iCell
@@ -22,9 +23,14 @@ for iCell = 1:length(stat)
     MedCenter(iCell,1)=max(min(round(median(stat{cellID}.ypix)),m),1); 
     MedCenter(iCell,2)=max(min(round(median(stat{cellID}.xpix)),n),1); 
     cellBoundary{iCell} = bwboundaries(cellIDMapTemp);
-
+    cellIDMap3D(:,:,iCell)=cellIDMapTemp;
 end
 
 %% 
 temp=setdiff(cellIDMap(:),0);
 CellPixCount=histcounts(categorical(temp));
+
+if nargout==5
+   varargout{1}=cellIDMap3D;
+end
+

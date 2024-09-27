@@ -1,4 +1,4 @@
-function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser] = ExpInfoTiffIndiFolder(folderPath)
+function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,cycleID,planeID,files] = ExpInfoTiffIndiFolder(folderPath)
     % AnalyzeImagingSeries - Analyzes 3D imaging time series and outputs
     %                        total repetitions and frame IDs after stimuli.
     %
@@ -57,6 +57,8 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser]
         %   disp('No match found');
         end
     end
+    cycleID=cycleNumbers;
+    planeID=planeNumbers;
     cycleNumbers=unique(cycleNumbers);
     % Calculate the number of unique planes
     uniquePlanes = unique(planeNumbers);

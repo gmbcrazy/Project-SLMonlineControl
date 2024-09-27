@@ -18,20 +18,42 @@ for iCell = 1:size(iscell, 1)
     [~, i1] = max(abs(c(PostI)));
     rStim(iCell, 1) = c(PostI(i1));
 end
-[~,rCenterIStim]=sort(rStim(CenterCloseI),'descend');  %%Cell locates close to edge of the view, were not considered as SML targets.
-[~,~,rankStim]=intersect(1:length(CenterCloseI),rCenterIStim);
 
-% ExcludeStimI=setdiff(CenterCloseI,)
-[~,rCenterISpeed]=sort(rSpeed(CenterCloseI),'descend');  %%Cell locates close to edge of the view, were not considered as SML targets.
-[~,~,rankSpeed]=intersect(1:length(CenterCloseI),rCenterISpeed);
+rSpeed=rSpeed(:);
+rStim=rStim(:);
 
-IncludeCellI=union(rCenterISpeed(1:TopCellN),rCenterIStim(1:TopCellN));
-rScore=double([rSpeed(:) rStim(:)]);
-rScore=rScore(CenterCloseI,:);
-rRank=[rankSpeed(:) rankStim(:)]
-rScoreInclude=rScore(IncludeCellI,:);
-rRankInclude=rRank(IncludeCellI,:);
-IncludeCellFunFilter=CenterCloseI(IncludeCellI);
+[~,rIStim]=sort(rStim,'descend');  
+[~,~,rankStim]=intersect(1:numPoint,rIStim);
+
+
+[~,rISpeed]=sort(rSpeed,'descend'); 
+[~,~,rankSpeed]=intersect(1:numPoint,rISpeed);
+
+%%Cell locates close to edge of the view, were not considered as SML targets.
+rCenterIStim=intersect(CenterCloseI,rIStim(1:TopCellN));
+rCenterISpeed=intersect(CenterCloseI,rISpeed(1:TopCellN));
+
+AllFunctionI=union(rCenterIStim,rCenterISpeed);
+ColFunctionI=intersect(rCenterIStim,rCenterISpeed);
+randperm(5,3)
+NonFunctionI=setdiff(CenterCloseI,ColFunctionI);
+
+rCenterIStim=setdiff(rCenterIStim,ColFunctionI);
+rCenterISpeed=setdiff(rCenterISpeed,ColFunctionI);
+if length(NonFunctionI)<=TopCellN
+   NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
+end
+
+IncludeCellFunFilter=[rCenterISpeed(:);rCenterIStim(:);NonFunctionI(:)];
+IncludeCellFunID=[repmat(1,length(rCenterISpeed),1);repmat(2,length(rCenterIStim),1);repmat(3,length(NonFunctionI),1)];
+IncludeCellFunSore=[rSpeed(IncludeCellFunFilter);rStim(IncludeCellFunFilter)];
+
+IncludeInfo=[IncludeCellFunFilter IncludeCellFunID IncludeCellFunSore];
+[~,sortI]=sort(IncludeCellFunFilter);
+IncludeInfo=IncludeInfo(sortI,:);
+
+IncludeCellFunFilter=IncludeInfo(:,1);
+FunScore=IncludeInfo(:,2:end);
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\']
 mkdir(SavePathStimSpeed)
 
@@ -40,4 +62,4 @@ IncludePathOri=[SavePathStimSpeed '\AllIncludedOrigin\'];
 IncludePath=[SavePathStimSpeed '\AllIncluded\'];
 mkdir(IncludePathOri)
 mkdir(IncludePath)
-XYZtoMarkPoint(IncludePathOri,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell);
+XYZtoMarkPoint(IncludePathOri,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell,FunScore);

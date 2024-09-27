@@ -70,7 +70,11 @@ resultPaths = findAllFiles([ProcessFolder], 'All.gpl');
 
 if exist([ProcessFolder 'SLMIncludedIndFromIscell.mat'])
     MPtemp=load([ProcessFolder 'SLMIncludedIndFromIscell.mat']);
-    MP3D=MPtemp.Pos3DNeed;
+    if  isfield(MPtemp,'Pos3DNeed')
+       MP3D=MPtemp.Pos3DNeed;
+   else
+       MP3D=MPtemp.Pos3Dneed;
+   end
     [~,LocB]=ismember(ceil(MP3D(:,3)),ceil(yaml.scan_Z(1)+yaml.Zdepth_ETL));
     MP3D(:,3)=yaml.Zdepth_ETL(LocB);
     for i=1:size(MP3D,1)
@@ -88,10 +92,26 @@ else
 end
 
 %% Load Suite2p
+% suite2pPath = findAllFolders(DataFolder, 'suite2p');
 suite2pPath = findAllFolders(DataFolder, 'suite2p');
-if length(suite2pPath)==1
-   CombinedSuite2p= findAllFiles([suite2pPath{1} 'combined\'], 'Fall.mat');
-end
+    
+    % If only one Suite2P folder is found, use it
+    if length(suite2pPath) == 1
+        suite2pPath = suite2pPath{1};
+    elseif length(suite2pPath) > 1
+        for isuite=1:length(suite2pPath)
+            tempL(isuite)=length(suite2pPath{isuite});
+        end
+        [~,i1]=min(tempL);
+        suite2pPath=suite2pPath{i1};
+    else
+        disp(['No suite2p processed folder is found in ' LoadPath])
+        return
+    end
+
+
+CombinedSuite2p= findAllFiles([suite2pPath 'combined\'], 'Fall.mat');
+
 if length(CombinedSuite2p)==1
 Fall=load(CombinedSuite2p{1});
 cellInfo=Suite2pCellInfo(Fall);
@@ -108,7 +128,9 @@ Point=unique(DataList.Point);
 Laser(isnan(Laser))=[];
 Point(isnan(Point))=[];
 % % SinglePxyz=Pos3DNeed(Point,:);
-SLMframe=median(DataList.PostSLMframe)-1;
+% SLMframe=median(DataList.PostSLMframe)-1;
+SLMframe=median(DataList.PostSLMframe);
+
 % DataList.PostSLMframe(1);
 
 % TrialRepTh=4;
@@ -210,8 +232,9 @@ close
 close all
 ResultFolderCell=[ResultFolder 'SLMtarget\'];
 mkdir(ResultFolderCell);
-PostSLMFrameN=3;
-PreSLMFrameN=30;
+% PostSLMFrameN=3;
+% PreSLMFrameN=30;
+nPlane=length(CaDataPlane);
 
 SLMTable = [];
 LaserG=setdiff(LaserG,0);
@@ -256,6 +279,10 @@ for jCell=1:length(SLMtarget)
                    [~,p,~,t]=ttest2(postSLM,preSLM,'Tail','right');
                    ChangePerc=100*(mean(postSLM)-mean(preSLM))/mean(preSLM); 
                    SLMTable(end+1,:) =  [Point(jCell) iCell LaserG(iLaser) ChangePerc p length(I3) PreSLMFrameN PostSLMFrameN t.tstat t.df t.sd ];
+
+                   
+
+
                 end
 
                 if ~isempty(I3)
@@ -264,6 +291,7 @@ for jCell=1:length(SLMtarget)
                    for iSess = 1:length(I3)
                        TempI=SessInfoNeed.PreFrame(I3(iSess)):SessInfoNeed.PostFrame(I3(iSess));
                        tempPSTH(:,iSess)=TempData(TempI);
+
                    end
                    PSTHLaser(:,iLaser)=squeeze(mean(tempPSTH,2));
                    subplotLU(1,length(NData),1,iData,P);hold on
@@ -335,12 +363,13 @@ SLMresponse=SLMTable(SLMTable.PercChange>0&SLMTable.p_value<0.05,:);
 clear WriteStr;
 WriteStr{1}=[num2str(length(unique(SLMresponse.MarkPointID))) ' out of ' num2str(length(unique(SLMTable.MarkPointID))) ' SLM targets respond' ' from ' AnimalInfo '(' Genotype{1,1} ') with Virus ' Virus{1,1}  ' on ' DateInfo];
 % xlswrite([ResultFolderCell 'SLMtable.xlsx'],WriteStr,'Conclusion');
+if isempty(GlobalSavePath)
 GlobalResult=[GlobalSavePath '.txt'];
 FID=fopen(GlobalResult,'a');
 fprintf(FID, '%s\r\n', WriteStr{1});
 fclose(FID);
 GlobalTable=[GlobalSavePath '.xlsx'];
 updateTable(GlobalTable, SLMTable);
-
+end
 
 

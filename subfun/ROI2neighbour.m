@@ -43,7 +43,8 @@ for iC=1:length(cellIDNeed)
     xrange=MedCenter(iC,2)-PixFromMedCenter:MedCenter(iC,2)+PixFromMedCenter;
 
     % Extract the ROI neighborhood and adjust its intensity
-    roiNeighbour(:,:,iC)=imadjust(MeanFieldMapExt(yrange,xrange));
+    % roiNeighbour(:,:,iC)=imadjust(MeanFieldMapExt(yrange,xrange));  
+    roiNeighbour(:,:,iC)=MeanFieldMapExt(yrange,xrange);  
 
     % Extract the ROI neighborhood IDs
     temp=cellIDMapExt(yrange,xrange);

@@ -15,7 +15,7 @@ end
 % Intially all cells were dectected by suite2p were considered as SLM targets
 SLMrangePix=20; %Pixel number close to FOV is excluded
 % Exlude cells near the edge of the FOV as SLM targets
-step3_SubStep1_FOVedgeExcludedROIMP;
+step3_SubStep1_FOVedgeExcludedROIMP;    %% CenterCloseI is generated at this step
 
 
 %% Automatic generate Raw Non-Targets 
@@ -51,7 +51,7 @@ step3_SubStep4_FuncFilterMPs;
 
 
 %% After Mannual Adjust Generated Functional Filtered MarkPoints in PV
-PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial);
+PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, FunScore, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial);
 %%
 
 

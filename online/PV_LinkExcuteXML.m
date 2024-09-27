@@ -470,7 +470,8 @@ function PSTHtemp=PSTHmapCal(BinFile,PSTHparam,confSet)
          PreData = Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), PSTHparam.PreInd);
          PostData= Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), PSTHparam.PostInd);
          PSTHtemp=squeeze(mean(PostData,3)-mean(PreData,3));
+         if PSTHparam.SmoothSD>0
          PSTHtemp=SmoothDecDim3(PSTHtemp,PSTHparam.SmoothSD);
-
+         end
 end
 

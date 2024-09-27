@@ -45,3 +45,12 @@ ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\09122024\SingleP\Top8SpeedStim
 SessinInfo=[];
 SLMTable=SLMtargetAnalysis(ProcessFolder, Param,GlobalSavePath,SessinInfo, TargetZ);
 
+ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\09172024\SingleP\Top10SpeedStimEdgeExcTest\';
+SessinInfo=[];
+SLMTable=SLMtargetAnalysis(ProcessFolder, Param,GlobalSavePath,SessinInfo, TargetZ);
+
+
+
+ProcessFolder='F:\LuSLMOnlineTest\SL0702-G7-Ai203\09192024\SingleP\Top15SpeedStimEdgeExc\';
+SessinInfo=[];
+SLMTable=SLMtargetAnalysis(ProcessFolder, Param,GlobalSavePath,SessinInfo, TargetZ);

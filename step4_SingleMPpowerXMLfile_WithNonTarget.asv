@@ -72,10 +72,17 @@ PointsTest=[2 5 10 11 13 15 22];  %%
 
 PointsTest=[1 3 4 6:9 12 14 16:21];  %%
 
-for iRound=5:6
+
+PointsTest=[12 14 19 21];  %%
+
+PointsTest=[3 4 6 8 9];  %%
+
+PointsTest=[3 19 21];  %%
+
+for iRound=1:5
 for iPP=1:length(PointsTest)
 XMLparam.Point=PointsTest(iPP);
-XMLparam.Laser=1.5;
+XMLparam.Laser=1.7;
 XMLparam.RoundID=iRound;
 PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
@@ -112,18 +119,83 @@ PointAll=1:size(Pos3DNeed,1);
 PointAll=PointsTest;
 
 
-LaserPower = [1.5];
-RoundCheck=[1 3 4 5 6]
+LaserPower = [1.7];
+RoundCheck=[1:7]
 PSTHparam.Clim=[-300 300]
 
 step4_SubStep_CheckingSLMmap;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 colormap(colorMapPN1)
-saveas(gcf,[SumDataFolder 'D4.png'],'png');
+saveas(gcf,[SumDataFolder 'D8.png'],'png');
+
+save([SumDataFolder 'SLMresponse.mat']);
+
+
+PointAll=1:size(Pos3DNeed,1);
+LaserPower=[1.5 1.6 1.7];
+TrialNTh=3;
+
+
+   P.xLeft=0.06;        %%%%%%Left Margin
+   P.xRight=0.02;       %%%%%%Right Margin
+   P.yTop=0.02;         %%%%%%Top Margin
+   P.yBottom=0.06;      %%%%%%Bottom Margin
+   P.xInt=0.02;         %%%%%%Width-interval between subplots
+   P.yInt=0.01;         %%%%%%Height-interval between subplots
+
+NeighbourRadPixel=50;
+NeighbourRange=[-1 1]*NeighbourRadPixel;
+figure;
+PSTHparam.Clim=[-400 400]
+for iPoint=1:length(PointAll)
+    for iLaser=1:length(LaserPower)
+
+        Point=PointAll(iPoint);
+%         subplot(ShowRow,ShowCol,iPoint)
+        I1=find((SLMTrialInfo(:,2)==Point&ismember(SLMTrialInfo(:,3),LaserPower(iLaser)))==1);
+        if length(I1)>=TrialNTh          
+           subplotLU(length(PointAll),length(LaserPower),iPoint,iLaser,P);
+           PlaneI=find(abs(Pos3DNeed(Point,3)-PlaneZ)<1);
+           PSTHtemp=squeeze(mean(SLMTrialMap(:,:,:,I1),4));     
 
 
 
+
+           MultPlaneIs2DShow1Plane(PSTHtemp, [], Pos3DNeed(Point,:), [], PlaneZ, PlaneI, [0 1 0], PSTHparam.Clim);
+           % text(confSet.SLM_Pixels_X/2,0, ['P' num2str(Point) ', n = ' num2str(length(I1))],'color',[0 1 0]);
+           text(Pos3DNeed(Point,1),Pos3DNeed(Point,2)+NeighbourRadPixel/2, ['P' num2str(Point) ', n = ' num2str(length(I1))],'color',[0 1 0]);
+           
+           set(gca,'xtick',[],'ytick',[],'xlim',Pos3DNeed(Point,1)+NeighbourRange,'ylim',Pos3DNeed(Point,2)+NeighbourRange);
+
+        end
+
+
+    end
+end
+colormap(colorMapPN1)
+papersizePX=[0 0 length(LaserPower)*8 length(PointAll)*8]
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[SumDataFolder 'Summary2.png'],'png');
+
+Point=17;
+iLaser=2;
+Xstep=50;
+I1=find((SLMTrialInfo(:,2)==Point&ismember(SLMTrialInfo(:,3),LaserPower(iLaser)))==1);
+PlaneI=find(abs(Pos3DNeed(Point,3)-PlaneZ)<1);
+PSTHtrial=squeeze(SLMTrialMap(:,:,PlaneI,I1));     
+MultiMatrixImg2DSlice(PSTHtrial,Xstep)
+MultiMatrix3DHeatmap(PSTHtrial)
+
+figure;
+% MultiMatrix2DMatPlot(PSTHtrial,1:512,1:512)
+P.Xticklabel=[]
+P.XLabel=[]
+
+MultiMatrix2DPlot(PSTHtrial,1:length(I1))
+colormap(colorMapPN1);
+set(gca,'clim',PSTHparam.Clim)
 %%
 
 % % figure;
