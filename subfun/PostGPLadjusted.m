@@ -12,7 +12,7 @@ OriTable=gpl2Table([IncludePathOri 'GPL.gpl']);
 
 
 IncludeCellFinal=IncludeCellFunFilter(I2);
-if ~isempty(FuncScore)
+if ~isempty(FunScore)
    FunScore=FunScore(I2,:);
 end
 

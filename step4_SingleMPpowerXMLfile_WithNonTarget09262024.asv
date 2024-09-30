@@ -7,7 +7,7 @@ ConfigFile='SLMsetting.yml';%<--------------------------------------------------
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-ProcessFolder='F:\LuSLMOnlineTest\SL0242-Ai203\09302024\SingleP\Top10SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder='F:\LuSLMOnlineTest\SL0242-Ai203\09302024\SingleP\Top10SpeedStimEdgeExc\';%<---------------------Edit, Data folder
 
 step4_SubStep1_LoadData;
 
@@ -39,13 +39,13 @@ clear SLMTable;
 SLMTable(:,1)=round(1:size(Pos3DNeed,1));
 SLMTable(:,2)=NaN;
 
-FileIDrange=[];                   %<-------------------------------------------------------------------------------Edit, BinFile ID range to calculate SLMresponse
+FileIDrange=[];
 minTrialN=1;
 % PointTest=PointAll;
 ROIparam.PointsTest=PointsTest;
 ROIparam.Clim=[-400 400];
 SLMTestParam.TerminalTrialN=5;    %<-------------------------------------------------------------------------------Edit, Trials # to define SLM responsive cells
-SLMTestParam.ExcludeTrialN=2;     %<-------------------------------------------------------------------------------Edit, Trials # to define Non-SLM responsive cells
+SLMTestParam.ExcludeTrialN=2;
 SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
 
 
@@ -53,17 +53,16 @@ SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
 %% Keep alternating following 2 lines to do all necessary SLM tests and online analysis
 step4_SubStep3_InitiateTest
 
-% FileIDrange=[1;400];             %<------------------------------------------------------------------------------Edit, BinFile ID range to calculate SLMresponse
+
+step4_SubStep3_InitiateTest
+close all
+size(SLMTrialInfo)
+size(SLMTrialMap)
 [SLMRes,sampleN]=SLMResponseROIMap(SLMTrialMap,SLMTrialInfo,ROIparam,minTrialN,SumDataFolder,FileIDrange);
 
 
-ROIparam.LaserPower=confSet.UncagingLaserPower([1 2 3]);  %<-------------------------------------------------------Edit,It is not necessary to test all possible power levels
+ROIparam.LaserPower=confSet.UncagingLaserPower([1 2 3]);  %<--------------------------------------------------------Edit,It is not necessary to test all possible power levels
 [UpdateXml, SLMTable, PointsTest, XMLparam, InfoListByLaser]=step3Fun_NextSLMtest(SLMRes,sampleN,ROIparam,XMLparam,SLMTestParam,SLMTable);
 
-
-
-
-%% Save results
-save([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
-
-
+PointsTest=InfoListByLaser(3).ExcludeList;
+XMLparam.Laser=1.7;

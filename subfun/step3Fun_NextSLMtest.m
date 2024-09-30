@@ -10,15 +10,16 @@ UpdateXml=0;
 % Potential next round of Non-targets were chosen.
 NextRoundID=randperm(XMLparam.TotalRounds,1);
 
-
+CheckedPoints=[];
 for iLaser=1:length(ROIparam.LaserPower)
     % [~,iLaser]=ismember(ROIparam.LaserPower(iLaser),confSet.UncagingLaserPower);
-    if iLaser==1
-       CheckedPoints = [];
-    else
-       CheckedPoints=find(sum(find(SLMRes(:,1:iLaser-1)==1&sampleN(:,1:iLaser-1)>=TerminalTrialN),2)>0);
-    end
-    
+%     if iLaser==1
+%        CheckedPoints=find(sum(find(SLMRes(:,1)==1&sampleN(:,1)>=TerminalTrialN),2)>0);
+%     else
+%        CheckedPoints=find(sum(find(SLMRes(:,1:iLaser-1)==1&sampleN(:,1:iLaser-1)>=TerminalTrialN),2)>0);
+%     end
+
+
 
     SLMList{iLaser}=find(SLMRes(:,iLaser)==1&sampleN(:,iLaser)>=TerminalTrialN);
     PriorityConfirmList{iLaser}=find(SLMRes(:,iLaser)==1&sampleN(:,iLaser)<TerminalTrialN);
@@ -29,6 +30,11 @@ for iLaser=1:length(ROIparam.LaserPower)
     PriorityConfirmList{iLaser}=setdiff(PriorityConfirmList{iLaser},CheckedPoints);    %Exclude previous responsive cells for current level 
     ExcludeList{iLaser}=setdiff(ExcludeList{iLaser},CheckedPoints);                    %Exclude previous responsive cells for current level
     UnkownConfirmList{iLaser}=setdiff(UnkownConfirmList{iLaser},CheckedPoints);        %Exclude previous responsive cells for current level 
+
+
+    %Add current responsive cell to CheckedPoints
+    CheckedPointsTemp=SLMList{iLaser};                                                 
+    CheckedPoints=union(CheckedPoints,CheckedPointsTemp);
 
 
 
@@ -65,17 +71,17 @@ for iLaser=1:length(ROIparam.LaserPower)
        UpdateXml=1;
        PointsTest=PriorityConfirmList{iLaser};
        XMLparam.Laser=ROIparam.LaserPower(iLaser);
-       XMLparam.RoundID=NextRoundID;
+%        XMLparam.RoundID=NextRoundID;
        disp([num2str(length(PriorityConfirmList{iLaser})) ' Priority Points need more test with laser power' num2str(ROIparam.LaserPower(iLaser)) ':' num2str(PriorityConfirmList{iLaser}') ]);
        % continue
        % break
     end
 
     %% Then, test the MP point without response while trial # is not enough
-    if ~isempty(PriorityConfirmList{iLaser})&&UpdateXml==0
+    if ~isempty(UnkownConfirmList{iLaser})&&UpdateXml==0
        UpdateXml=1;
        PointsTest= UnkownConfirmList{iLaser};
-       XMLparam.RoundID=NextRoundID;
+%        XMLparam.RoundID=NextRoundID;
        XMLparam.Laser=ROIparam.LaserPower(iLaser);
        disp([num2str(length(UnkownConfirmList{iLaser})) ' Unkown Points need more test with laser power' num2str(ROIparam.LaserPower(iLaser)) ': ' num2str(UnkownConfirmList{iLaser}') ]);
        % break
@@ -84,9 +90,9 @@ for iLaser=1:length(ROIparam.LaserPower)
     if isempty(PointsTest)&&(~isempty(ExcludeList{iLaser}))
        I1=find(SLMTestParam.AllLaserPower>ROIparam.LaserPower(iLaser));
        if isempty(I1)&&UpdateXml==0
-          PointsTest= UnkownConfirmList{iLaser};      
+          PointsTest= ExcludeList{iLaser};      
           XMLparam.Laser=SLMTestParam.AllLaserPower(min(I1));
-          XMLparam.RoundID=NextRoundID;
+%           XMLparam.RoundID=NextRoundID;
           UpdateXml=1;
           disp('Warning: power is updated to higher than ROIparam levels');
        else
@@ -99,6 +105,9 @@ end
 
 if UpdateXml==1
    disp(['Next Points will be test: ' num2str(PointsTest') ' at power level ' num2str(XMLparam.Laser)]);
+else
+   disp('All Points were sufficent tests with current inclusion and exlusion criteras');
+
 end
 
 

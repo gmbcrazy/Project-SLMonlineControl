@@ -42,11 +42,9 @@ rCenterIStim=setdiff(rCenterIStim,ColFunctionI);
 rCenterISpeed=setdiff(rCenterISpeed,ColFunctionI);
 if length(NonFunctionI)<=TopCellN
    NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
-else
-   NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
 end
 
-
+NonFunctionI=NonFunctio
 
 IncludeCellFunFilter=[rCenterISpeed(:);rCenterIStim(:);NonFunctionI(:)];
 IncludeCellFunID=[repmat(1,length(rCenterISpeed),1);repmat(2,length(rCenterIStim),1);repmat(3,length(NonFunctionI),1)];

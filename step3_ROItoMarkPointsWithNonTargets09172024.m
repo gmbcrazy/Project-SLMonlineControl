@@ -1,7 +1,7 @@
 %% Initialize, run this part before mannual correction of Suite2p processed data for saving time
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFile='SLMsettingG7.yml';
+ConfigFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 % This part cost 3 minutes.
@@ -41,7 +41,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 %% 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=15;  
+TopCellN=10;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 
@@ -127,7 +127,7 @@ XYZtoMarkPoint_NT(SavePathSpeed,Pos3D,TopSpeedCellI,NonTargets, IndexNonTargetTr
 % load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat');
 % rCellspks=partialcorr(CaData.spks(iscell,:)',fSpeed);
 rCellspks=corr(double(CaData.spks(iscell,:))','type','Spearman','rows','pairwise');
-load('C:\Users\zhangl33\Projects\GenMatCode\Plotfun\Color\colorMapPN3.mat')
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat')
 AdjMat=rCellspks+1;  %%%%%%%%%%Non-negative weighted correlation.
 clear SampleCorr;
 for itt=1:size(AdjMat,1)

@@ -1,7 +1,7 @@
 function [SLMRes,sampleN]=SLMResponseROIMap(SLMTrialMap,SLMTrialInfo,ROIparam,minTrialN,SumDataFolder,FileIDrange)
 
-PointAll=ROIparam.PointTest;
-PointTest=ROIparam.PointTest;
+PointAll=ROIparam.PointsTest;
+PointsTest=ROIparam.PointsTest;
 LaserPower=ROIparam.LaserPower;
 if isempty(FileIDrange)
    FileIDrange=[min(SLMTrialInfo(:,1));max(SLMTrialInfo(:,1))];
@@ -47,9 +47,9 @@ SLMRes=zeros(length(PointAll),length(ROIparam.LaserPower));
 sampleN=SLMRes;
 
 figure;
-for iPoint=1:length(PointTest)
+for iPoint=1:length(PointsTest)
     for iLaser=1:length(LaserPower)
-        Point=PointTest(iPoint);
+        Point=PointsTest(iPoint);
         I1=find((SLMTrialInfo(:,2)==Point&ismember(SLMTrialInfo(:,3),LaserPower(iLaser)))==1);
 
         % limit range FileID in binFile 
@@ -61,7 +61,7 @@ for iPoint=1:length(PointTest)
 
 
         if length(I1)>=minTrialN         
-           subplotLU(length(PointTest),length(LaserPower),iPoint,iLaser,P);
+           subplotLU(length(PointsTest),length(LaserPower),iPoint,iLaser,P);
            PlaneI=find(abs(ROIparam.TotalSLMPos3D(Point,3)-ROIparam.PlaneZ)<1);
            PSTHtemp=squeeze(mean(SLMTrialMap(:,:,:,I1),4));     
 
@@ -90,7 +90,7 @@ for iPoint=1:length(PointTest)
     end
 end
 
-papersizePX=[0 0 length(LaserPower)*4 length(PointTest)*4]
+papersizePX=[0 0 length(LaserPower)*4 length(PointsTest)*4]
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,OutPng,'png');

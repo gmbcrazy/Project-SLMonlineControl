@@ -7,14 +7,14 @@ if nargin<9
 end
 % Extract only the needed 3D positions based on IndexNeed.
 [XYPosPixel,Z]=gplXYPostoPixel(Pos3DFromGPL,yaml);
-Pos3DNeed=[XYPosPixel Z(:,1)];
+Pos3Dneed=[XYPosPixel Z(:,1)];
 [NonTargetsPosPixel,ZNonTargets]=gplXYPostoPixel(NonTargetsGPL,yaml);
 NonTargets=[NonTargetsPosPixel ZNonTargets(:,1)];
 
 % Pos3DNeed=Pos3D(IndexNeed,:);
 % Record the indices of included positions from iscell (indicating selected cells).
 % Save the relevant indices and position data along with configuration settings to a .mat file.
-save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3DNeed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
+save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
 
 % Iterate over each trial specified in the configuration settings.
 for iTrial=1:confSet.NumTrial
