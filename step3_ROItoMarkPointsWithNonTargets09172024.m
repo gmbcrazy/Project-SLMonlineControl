@@ -38,10 +38,10 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 % mkdir(SavePathExc)
 % XYZtoMarkPoint_NT_PairGplXml(SavePathExc, Pos3D, CenterCloseI, NonTargets, IndexNonTargetTrial, yaml, confSet,CaData.statCell);
 
-%% 
+
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=10;  
+TopCellN=13;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 

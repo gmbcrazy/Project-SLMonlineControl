@@ -7,7 +7,7 @@ ConfigFile='SLMsetting.yml';%<--------------------------------------------------
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-ProcessFolder='F:\LuSLMOnlineTest\SL0242-Ai203\10012024\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\10032024\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
 
 step4_SubStep1_LoadData;
 
@@ -49,12 +49,14 @@ SLMTestParam.ExcludeTrialN=2;     %<--------------------------------------------
 SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
 ROIparam.LaserPower=confSet.UncagingLaserPower;
 
-ROIparam.min_merged_region_size=20;
-ROIparam.threshold_percentage=0.25
+ROIparam.min_merged_region_size=30;
+ROIparam.threshold_percentage=0.3;
+
+ROIparam.max_distance=8;
 %% Keep alternating following 2 lines to do all necessary SLM tests and online analysis
-tic
 step4_SubStep3_InitiateTest
-toc
+
+
 
 % FileIDrange=[1;400];             %<------------------------------------------------------------------------------Edit, BinFile ID range to calculate SLMresponse
 [SLMRes,sampleN]=SLMResponseROIMap(SLMTrialMap,SLMTrialInfo,ROIparam,minTrialN,SumDataFolder,FileIDrange);
@@ -63,9 +65,9 @@ toc
 ROIparam.LaserPower=confSet.UncagingLaserPower([1 2 3]);  %<-------------------------------------------------------Edit,It is not necessary to test all possible power levels
 [UpdateXml, SLMTable, PointsTest, XMLparam, InfoListByLaser]=step3Fun_NextSLMtest(SLMRes,sampleN,ROIparam,XMLparam,SLMTestParam,SLMTable);
 
-PointsTest=[1 2 3 4];
-XMLparam.Laser=1.5;
-PSTHparam.Plot=1;
+% PointsTest=[1 2 3 4];
+% XMLparam.Laser=1.5;
+% PSTHparam.Plot=1;
 
 %% Save results
 save([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
@@ -73,21 +75,17 @@ save([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','samp
 load([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
 
 
-SLMTable([3 5 6 8 15 18 20],2)=1.5
-SLMTable([1 2 4 7 11 16 19 25 28 29 30],2)=1.6
-SLMTable([17 22 23 24],2)=1.7
+% SLMTable([3 5 6 8 15 18 20],2)=1.5
+% SLMTable([1 2 4 7 11 16 19 25 28 29 30],2)=1.6
+% SLMTable([17 22 23 24],2)=1.7
 
-TestPower=xmlPower2PVpower(ROIparam.LaserPower);
-
+% TestPower=xmlPower2PVpower(ROIparam.LaserPower);
 SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
-
 refPVpower=max(SMLTablePowerPV);
 %refPVpower=max(SMLTablePowerPV)+10;  %%make the fixed PV power slightly higher than the maximal power tested, such that we can increase the laser power in real experiment slighly higher than all power we tested.
-
-SMLTablePowerPerc=ceil(PVpower2PVperc(SMLTablePowerPV, refPVpower));
+% SMLTablePowerPerc=ceil(PVpower2PVperc(SMLTablePowerPV, refPVpower));
 
 CellPerGroup=10;
-
 FunType=unique(FunScore(:,1));
 clear Group
 % GroupCandi=unique(FunID);
@@ -117,7 +115,7 @@ for iGroup=1:numFun
 %     cellstattemp=Cellstat(SLMIncludedIndFromIscell(I1));
      if length(I1)>=CellPerGroup  %cells is more than needed
          if iGroup<numFun % functional group cells is mroe than need, choose cells with the highest functional score
-            [~,I2]=sort(FunScore(:,iGroup+1),'descend');
+            [~,I2]=sort(FunScore(I1,iGroup+1),'descend');
             I1=I1(I2(1:CellPerGroup));
          else             % nonfunctional group cells is mroe than need, simple choose the first CellPerGroup cells
             I1=I1(1:CellPerGroup); 
@@ -149,6 +147,11 @@ confSetFinal=confSet;
 confSetFinal.UncagingLaserPower=PVpower2xmlPower(refPVpower);
 XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal,FinalCellstat)
 
+
+
+
+
+
 iFun=1;
 find(FunScore(:,1)==FunType(iFun)&SLMTable(:,2)>0)
 PointGroup
@@ -156,6 +159,10 @@ XYZtoMarkPoint(ProcessFolder,Pos3Dneed,CenterCloseI,yaml,confSet,CaData.statCell
 
 
 
+XMLparam.Point=PointsTest(iPP);
+PSTHparam.TargetPos=Pos3Dneed(XMLparam.Point,:);
+PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
+[SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
 
 
 

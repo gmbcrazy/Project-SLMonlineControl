@@ -18,11 +18,11 @@ PSTHparam.Clim=[-400 400];
 %param for xml files
 XMLparam.ProcessFolder=ProcessFolder;
 XMLparam.TotalRounds=confSet.NumTrial;
-PointAll=1:size(Pos3DNeed,1);
+PointAll=1:size(Pos3Dneed,1);
 
 
 %param for ROI neighbourhood to determine wether there is SLM response.
-ROIparam.TotalSLMPos3D=Pos3DNeed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)
+ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)
 ROIparam.PointAll=PointAll;
 ROIparam.PlaneZ=PlaneZ;
 ROIparam.CellSize=20;                %%normal neuron diameter by um;        

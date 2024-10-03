@@ -363,7 +363,7 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
     %%files
     if ~isfield(MarkPointList,'gplname')
         for ixml=1:length(MarkPointList)
-            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\GPLFunGroup' num2str(pointIDs(ixml)) '.gpl']);
+            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\Group' num2str(pointIDs(ixml)) '.gpl']);
             MarkPointList(ixml).gplname=MarkPointGPL(ixml).name;
         end
     end

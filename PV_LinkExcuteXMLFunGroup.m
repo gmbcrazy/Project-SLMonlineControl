@@ -24,17 +24,17 @@ end
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
-     XMLpattern = 'Laser([\d.]+)Group\s?(\d+)';
-     iGroup=XMLparam.Group;
+     XMLpattern = 'Laser([\d.]+)GPoint\s?(\d+)';
+     Point=XMLparam.Point;
      Laser=XMLparam.Laser;
-%      Round=XMLparam.RoundID;
+     Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
 
      maxFrame=PVparam.maxFrame;
      BreakPointFrame=PVparam.BreakPointFrame;
 
 
-     MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Group' num2str(iGroup) '.xml']);
+     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point' num2str(Point) '.xml']);
      % ExcuteIndex=1:length(MarkPointList);
      [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      SaveDataFolder=[ProcessFolder 'Data\'];
@@ -363,7 +363,7 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
     %%files
     if ~isfield(MarkPointList,'gplname')
         for ixml=1:length(MarkPointList)
-            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\GPLFunGroup' num2str(pointIDs(ixml)) '.gpl']);
+            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\R' num2str(roundIDs(ixml)) 'GPoint' num2str(pointIDs(ixml)) '.gpl']);
             MarkPointList(ixml).gplname=MarkPointGPL(ixml).name;
         end
     end

@@ -3,10 +3,12 @@
 % XMLparam.RoundID = permute()
 XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
 for iPP=1:length(PointsTest)
+    tic
 XMLparam.Point=PointsTest(iPP);
-PSTHparam.TargetPos=Pos3DNeed(XMLparam.Point,:);
+PSTHparam.TargetPos=Pos3Dneed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 [SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
+    toc
 
     if size(SLMTrialInfo,1)==size(SLMTrialMap,4)
        disp(['SLMTrialInfo matches SLMTrialMap'])

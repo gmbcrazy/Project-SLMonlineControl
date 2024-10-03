@@ -50,7 +50,7 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 % NumPoints = numel(Xpx);
 % for i = 1:NumPoints
   if isfield(GroupPoints, 'PowerWeight')
-     CustomLaserPercent=GroupPoint(iGroup).PowerWeight;
+     CustomLaserPercent=GroupPoints(iGroup).PowerWeight;
      WeightsStr='';
      for i=1:length(PointIndex)-1
          WeightsStr=[WeightsStr num2str(CustomLaserPercent(i)) ','];
@@ -104,9 +104,14 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
         ];
 
 
+% SaveGroupName = ['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];
+% SaveGroupName = ['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];
 
 
+% SaveName=[SavePath SaveGroupName];
 SaveName=[SavePath GroupName];
+
+SaveName=[SavePath 'Laser' num2str(UncagingLaserPower) GroupName];
 
 if ~strcmpi(SaveName, '')  % if save name provided, save to file
     fid = fopen([SaveName '.xml'], 'w', 'l');
