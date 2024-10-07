@@ -15,7 +15,11 @@ function MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, colorCe
     % Determine the dimensions of the input image and position data
     Dim = size(Img);
     DimPos = size(Pos3D);
-    
+
+    if size(colorCell,1)==1
+       colorCell=repmat(colorCell,DimPos(1),1);
+
+    end
     % Extract the Z-position (3rd column) from Pos3D if it exists
     if DimPos(2) == 3
         PosZ = Pos3D(:, 3);
@@ -40,7 +44,7 @@ function MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, colorCe
     elseif length(Dim) == 3
         % Loop through each plane and display it in a subplot
         for iplane = 1:size(Img,3)
-            subplot(1, size(Img,3), iplane);
+            subplotLU(1, size(Img,3), 1, iplane);
             
             % Display the current plane's image
             imagesc(Img(:,:,iplane)');
@@ -64,8 +68,9 @@ function MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, colorCe
             
             % Plot the centers of the cells in the current plane
             if ~isempty(Pos3D)
-                 plotCellCenter(Pos3D(I,[2 1]), 6, colorCell(I,:),1)
+                 plotCellCenter(Pos3D(I,[2 1]), 7, colorCell(I,:),1)
             end
+            set(gca,'xtick',[],'ytick',[]);
         end
     else
         % Handle any other cases (if needed)

@@ -68,96 +68,25 @@ ROIparam.LaserPower=confSet.UncagingLaserPower([1 2 3]);  %<--------------------
 % XMLparam.Laser=1.5;
 % PSTHparam.Plot=1;
 
-%% Save results
+%% Save results and generate final MarkPoints and Functional groups
 SLMTableOrigin=SLMTable;
-save([SumDataFolder 'SLMResponseTable.mat'],'SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
-
 PostSLMTable;
+FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
+SLMTable(FalsePositiveID,:)=nan;
+
+save([SumDataFolder 'SLMResponseTable.mat'],'SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
 % load([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
 
 SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
 refPVpower=max(SMLTablePowerPV);
-%refPVpower=max(SMLTablePowerPV)+10;  %%make the fixed PV power slightly higher than the maximal power tested, such that we can increase the laser power in real experiment slighly higher than all power we tested.
-% SMLTablePowerPerc=ceil(PVpower2PVperc(SMLTablePowerPV, refPVpower));
 
 CellPerGroup=10;
-FunType=unique(FunScore(:,1));
-clear Group
-% GroupCandi=unique(FunID);
-% for iGroup=1:length(GroupCandi)
-%     Group(iGroup).Indices=find(FunID==GroupCandi(iGroup));
-%     Group(iGroup).PowerWeight;
-% end
-
-FinalPos3D=[];
-FinalCellstat={};
-FinalFunScore=[];
-numFun=length(FunType);
-
-
-for iGroup=1:numFun
-    Group(iGroup).Indices=[1:CellPerGroup]+(iGroup-1)*CellPerGroup;
-
-    FinalFunScore(Group(iGroup).Indices,1)=iGroup;
-
-    Group(iGroup).PowerWeight=ones(CellPerGroup,1);
-%     Group(iGroup).PowerWeight(1:length(I1))
+[Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet)
+save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
 
 
-    I1=find(FunScore(:,1)==FunType(iGroup)&SLMTable(:,2)>0);
-%     Pos3Dtemp=Pos3Dneed(I1,:);
-%     cellstattemp=Cellstat(SLMIncludedIndFromIscell(I1));
-     if length(I1)>=CellPerGroup  %cells is more than needed
-         if iGroup<numFun % functional group cells is mroe than need, choose cells with the highest functional score
-            [~,I2]=sort(FunScore(I1,iGroup+1),'descend');
-            I1=I1(I2(1:CellPerGroup));
-         else             % nonfunctional group cells is mroe than need, simple choose the first CellPerGroup cells
-            I1=I1(1:CellPerGroup); 
-         end
-            AddedTargetN=0;
-            AddedPos=[];
-            AddedCell=cell(1,0);
-            AddedFromNonTarget{iGroup}=[];
-     else                        %cells is less than needed, added Non-Target as fake cells
-          AddedTargetN=CellPerGroup-length(I1);
-          AddedPos=NonTargets(1:AddedTargetN,:);
-          AddedCell=cell(1,AddedTargetN);
-          AddedFromNonTarget{iGroup}=1:AddedTargetN;
-
-     end
-      Pos3Dtemp=Pos3Dneed(I1,:);
-      cellstattemp=Cellstat(SLMIncludedIndFromIscell(I1));
-
-      Group(iGroup).PowerWeight(1:length(I1))=PVpower2PVweight(xmlPower2PVpower(SLMTable(I1,2)), refPVpower);
-%       Group(iGroup).PowerWeight(1:length(I1))=SLMTable(I1,2);
-
-      FinalFunScore(Group(iGroup).Indices(1:length(I1)),2:numFun)=FunScore(I1,2:numFun);
-      FinalFunScore(Group(iGroup).Indices(length(I1)+1:CellPerGroup),2:numFun)=nan;
-      FinalPos3D=[FinalPos3D;Pos3Dtemp;AddedPos];
-      FinalCellstat=[FinalCellstat cellstattemp AddedCell];
-
-end
-confSetFinal=confSet;
-confSetFinal.UncagingLaserPower=PVpower2xmlPower(refPVpower);
-XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal,FinalCellstat)
-
-
-
-
-
-
-iFun=1;
-find(FunScore(:,1)==FunType(iFun)&SLMTable(:,2)>0)
-PointGroup
-XYZtoMarkPoint(ProcessFolder,Pos3Dneed,CenterCloseI,yaml,confSet,CaData.statCell);
-
-
-
-XMLparam.Point=PointsTest(iPP);
-PSTHparam.TargetPos=Pos3Dneed(XMLparam.Point,:);
-PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 [SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
 
 

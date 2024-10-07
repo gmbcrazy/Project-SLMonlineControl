@@ -23,26 +23,12 @@ end
 
 
 
-%%     % Determine the source of MarkPoint files; load from structure or directory'
-     XMLpattern = 'Laser([\d.]+)GPoint\s?(\d+)';
-     Point=XMLparam.Point;
-     Laser=XMLparam.Laser;
-     Round=XMLparam.RoundID;
-     ProcessFolder=XMLparam.ProcessFolder;
 
-     maxFrame=PVparam.maxFrame;
-     BreakPointFrame=PVparam.BreakPointFrame;
-
-
-     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point' num2str(Point) '.xml']);
-     % ExcuteIndex=1:length(MarkPointList);
-     [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      SaveDataFolder=[ProcessFolder 'Data\'];
      LogDataFolder=[ProcessFolder '\DataLog\'];
 
-
-    mkdir(SaveDataFolder);
-    mkdir(LogDataFolder);
+     mkdir(SaveDataFolder);
+     mkdir(LogDataFolder);
 
 
 
@@ -81,67 +67,99 @@ end
     tSeriesIterID=str2num(tSeriesIter);
 %     tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIterID))
 
+
+%%     % Determine the source of MarkPoint files; load from structure or directory'
+     XMLpattern = 'Laser([\d.]+)Group\s?(\d+)';
+     % Point=XMLparam.Point;
+     % Laser=XMLparam.Laser;
+     % Round=XMLparam.RoundID;
+     ProcessFolder=XMLparam.ProcessFolder;
+
+     BreakPointFrame=PVparam.BreakPointFrame;
+
+
+     GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
+     pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).gplname] );
+
+
+
+     MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Group' num2str(Point) '.xml']);
+
+     x=XMLparam.TrialMPSwitch;
+     InterMPFrame=XMLparam.InterMPFrame;
+     CumInterMPFrame=cumsum(InterMPFrame);
+     maxFrame=max(CumInterMPFrame);
+
+     XMLparam.ShamPossibility=0.1;
+     XMLparam.SwithXMLPostMPFrame;
+     ShamPossibility=0.1
+     ExXMLList = generateExecutableList(MarkPointList, XMLparam.TrialMPSwitch, XMLparam.ShamPossibility)
+
+     % ExcuteIndex=1:length(MarkPointList);
+     % [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
+    [groupIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
+     ExgroupIDs=[];
+     ExlaserPowers=[];
+
+
     preview=0;
+    BreakYet=0;
+    FlushYet=0;
+    CheckRedundant=0;
+    HavedChecked=0;
+    pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
+    pause(0.01);
 
+     filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
+     completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
+     completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
 
-    for ixml=1:length(MarkPointList) %%Randomized the MarkPoint Stimulation Order
-        % ixml=StimList(jxml);
-    % flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
-        close all
-         BreakYet=0;
-         FlushYet=0;
-         CheckRedundant=0;
-         HavedChecked=0;
-         pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
-         pause(0.01);
-         pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
-         pause(0.01);
+     fileID = fopen([completeFileName '.bin'], 'wb');
+     LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
+     % LogMessage(LogfileID,MarkPointList(ixml).name(1:end-4));
 
-         filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
-         completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
-         completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
+     flushing = 1;
+    while flushing
+          [samples, numSamplesRead] = pl.ReadRawDataStream(0);
+          if numSamplesRead == 0
+             flushing = 0;
+          end
+    end
 
-    % open binary file for writing
-         fileID = fopen([completeFileName '.bin'], 'wb');
-         LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
-         LogMessage(LogfileID,MarkPointList(ixml).name(1:end-4));
-
-         pause(0.01);
-
-         flushing = 1;
-         while flushing
-            [samples, numSamplesRead] = pl.ReadRawDataStream(0);
-            if numSamplesRead == 0
-                flushing = 0;
-            end
-         end
-
-    % start the current t-series
-         pl.SendScriptCommands('-TSeries');
+    pl.SendScriptCommands('-TSeries');
     % initialise state variables, buffer, and counters/records
-         running        = 1;
-         started        = 0;
-         loopCounter    = 1;
-         totalSamples   = 0;
-         framesCounter  = 0;
-         frameNum       = 0;
-         buffer         = [];
-         allSamplesRead = [];
-         msg            = [];
+    running        = 1;
+    started        = 0;
+    loopCounter    = 1;
+    totalSamples   = 0;
+    framesCounter  = 0;
+    frameNum       = 0;
+    buffer         = [];
+    allSamplesRead = [];
+    msg            = [];
 %          loopTimes      = [];
-         droppedData    = [];
-
-
-    % get data, do conversion, save to file
-        while running   
+    droppedData    = [];
+    ixml=1;
+    loadxml=1;
+     while running   
         % start timer
-%               tic;    
+%               tic;
+            if loadxml==1&&frameNum>CumInterMPFrame(ixml)+XMLparam.SwithXMLPostMPFrame   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+               pl.SendScriptCommands(['-LoadMarkPoints ' ProcessFolder  ExXMLList{ixml}] );
+               BreakPointFrame=CumInterMPFrame(ixml);
+               loadxml=0;
+               BreakYet=0;
+               ExgroupIDs(ixml)=groupIDs(ixml);
+               ExlaserPowers(ixml)=laserPowers(ixml);
+               LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);
+               ixml=ixml+1;
 
+            end
         % get raw data stream (timer = ~20ms)
-              [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+           [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
 
         % append new data to any remaining old data
-               buffer = [buffer samples(1:numSamplesRead)];
+        buffer = [buffer samples(1:numSamplesRead)];
         IncludedInd=[];
         % extract full frames
         numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
@@ -153,10 +171,6 @@ end
         buffer(IncludedInd)=[];
         RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
 
-
-
-        % process the acquired frames (timer = ~5ms)
-
           if numWholeFramesGrabbed > 0
              framesCounter = framesCounter + numWholeFramesGrabbed;
                 if BreakYet==0 && framesCounter>=BreakPointFrame
@@ -166,14 +180,6 @@ end
                    CheckRedundant=1;
 %                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
                 end
-
-%                   if BreakYet==0&&started && loopCounter > 10 && sum(allSamplesRead(end-5:end)) == 0  % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-%                      BreakYet=1
-%                      disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])
-% 
-%                      CheckRedundant=1;
-%                      buffer=[];
-%                   end
 
 
 
@@ -185,22 +191,14 @@ end
                 % get single frame
                       frame = toProcess(((i-1)*totalSamplesPerFrame)+1:(i*totalSamplesPerFrame));
 
-                % process the frame (C++ mex code)
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
-%                       size(frame)
-                % save processed frames to file
-                % increment frame counter
-                % BreakPointFrame is number of frames in total before a
-                % MarkPoint stimuli is applied, PV has redudant data/frame
-                % after this; So when this happen, clean the buffer, and do
-                % not write this redudant data into .bin file
+
                       frameNum = frameNum + 1;
 %                       disp([num2str(frameNum) ' ' num2str(framesCounter)])
                       if CheckRedundant==1 && frameNum>BreakPointFrame+0.1
                          CheckRedundant=0;
                          frameNum=frameNum-1;
                          LogMessage(LogfileID,['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)]);
-
                          break;
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
                          disp(['Keep frame ' num2str(frameNum)])
@@ -233,29 +231,16 @@ end
                end
           end
 
-        % display progress
-%         fprintf(repmat('\b', 1, length(msg)));  % delete previous 'message'
-             msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
-%         fprintf(msg);
-%         handles.ProgressText.String = msg;
-%         drawnow
 
-        % increment counters
-              % framesCounter = framesCounter + numWholeFramesGrabbed;
+             msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
               loopCounter = loopCounter + 1;
               totalSamples = totalSamples + numSamplesRead;
               allSamplesRead(end+1) = numSamplesRead;
-%               loopTimes(end+1) = toc;
 
-        % test for dropped data
               droppedData(end+1) = pl.DroppedData();
               if droppedData(end)
                  LogMessage(LogfileID,['\n!!! DROPPED DATA AT FRAME ' num2str(frameNum) ' !!!\n']);
               end
-
-
-
-
 
         % exit loop if finished if maxFrame frames were collected
           if started && frameNum >= maxFrame
@@ -288,29 +273,26 @@ end
             if started && loopCounter > 150 && sum(allSamplesRead(end-119:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
-         end
+    end
 
-    % clean up
          fclose(fileID);
          fclose(LogfileID);
          % disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
          % disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
          % % pause(InterTrialDelay(ixml));
-        if CalPSTH==1
-           PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
-         end
+
 
 
     %% Update file name for next recording trial
-         tSeriesIterID=tSeriesIterID+1;
-         tSeriesIter   = sprintf('%0.3d', tSeriesIterID);
 
-    end
+
 
     pl.Disconnect();
     delete(pl);
 
-
+    if CalPSTH==1
+        PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
+    end
     if CalPSTH==1
        PSTHmap=squeeze(PSTHmap);
        varargout{1} = [tSeriesIterID XMLparam.Point XMLparam.Laser XMLparam.RoundID PSTHparam.TargetPos];
@@ -347,30 +329,8 @@ end
 
 
 
-
-
-function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round)
-
-
-    [roundIDs,pointIDs,laserPowers]=XMLPatterExtract(MarkPointList,XMLpattern);
-    NeedXMLIndex=ismember(roundIDs,Round);
-    roundIDs=roundIDs(NeedXMLIndex);
-    pointIDs=pointIDs(NeedXMLIndex);
-    laserPowers=laserPowers(NeedXMLIndex);
-    MarkPointList=MarkPointList(NeedXMLIndex);
-
-    %%Find the corresponding gpl files defining MarkPoint based on each xml
-    %%files
-    if ~isfield(MarkPointList,'gplname')
-        for ixml=1:length(MarkPointList)
-            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\R' num2str(roundIDs(ixml)) 'GPoint' num2str(pointIDs(ixml)) '.gpl']);
-            MarkPointList(ixml).gplname=MarkPointGPL(ixml).name;
-        end
-    end
-
-
- %% Random execution of all XML files to prevent consecutive executions of the same point
-    % Initialize the shuffled execution order
+%% Random execution of all XML files to prevent consecutive executions of the same point
+ % Initialize the shuffled execution order
 %     executionOrder = zeros(length(MarkPointList), 1);
 % 
 % % Generate a randomized execution order with the constraint
@@ -411,30 +371,28 @@ function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,
 
 
 
-end
 
 
 
 
-function [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern)
+
+function [groupIDs, laserPowers] = FunXMLPatterExtract(MarkPointList, XMLpattern)
     % PatterExtract Extracts round IDs, point IDs, and laser powers from a list of filenames.
     % Inputs:
     %   MarkPointList - A structure array containing file information, typically from a dir() call.
     %   XMLpattern - A regular expression pattern designed to extract specific numerical IDs from the filenames.
     % Outputs:
-    %   roundIDs - An array containing numerical round IDs extracted from the file names.
-    %   pointIDs - An array containing point identifiers.
+    %   groupIDs - An array containing point identifiers.
     %   laserPowers - An array of laser power values extracted from file names.
 
     % Initialize arrays to hold extracted data
-    roundIDs = zeros(length(MarkPointList), 1);
     laserPowers = zeros(length(MarkPointList), 1);
-    pointIDs = zeros(length(MarkPointList), 1);
+    groupIDs = zeros(length(MarkPointList), 1);
 
     % Iterate through each file in the MarkPointList
     for ixml = 1:length(MarkPointList)
         % Extract the file name from the structure
-        fileName = MarkPointList(ixml).name;
+        fileName = MarkPointList{ixml};
         
         % Use regex to parse out the desired data from the file name
         tokens = regexp(fileName, XMLpattern, 'tokens');
@@ -442,15 +400,13 @@ function [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XML
         % Check if the regex pattern matched and tokens were found
         if ~isempty(tokens)
             % Convert the captured strings to numbers and store them in the respective arrays
-            roundIDs(ixml) = str2double(tokens{1}{1});
-            laserPowers(ixml) = str2double(tokens{1}{2});
-            pointIDs(ixml) = str2double(tokens{1}{3});
+            laserPowers(ixml) = str2double(tokens{1}{1});
+            groupIDs(ixml) = str2double(tokens{1}{2});
         end
     end
 
     % Round the extracted numeric values to ensure they are integers
-    roundIDs = round(roundIDs);
-    pointIDs = round(pointIDs);
+    groupIDs = round(groupIDs);
 end
 
 
@@ -474,5 +430,43 @@ function PSTHtemp=PSTHmapCal(BinFile,PSTHparam,confSet)
          if PSTHparam.SmoothSD>0
          PSTHtemp=SmoothDecDim3(PSTHtemp,PSTHparam.SmoothSD);
          end
+end
+
+
+
+
+function executableList = generateExecutableList(xmlFilesStruct, x, ShamPossibility)
+%GENERATEEXECUTABLELIST Generates a list of XML files to be executed.
+%   EXECUTABLELIST = GENERATEEXECUTABLELIST(X) returns a cell array containing
+%   the names of XML files to be executed X times. The selection is random with
+%   Laser0.5 files having ShamPossibility probability and other files having 1-ShamPossibility probability.
+
+    % Get the list of XML files in the current directory
+    % xmlFilesStruct = dir('*.xml');
+    xmlFiles = {xmlFilesStruct.name};
+
+    % Separate the XML files into categories
+    laser05Files = xmlFiles(contains(xmlFiles, 'Laser0.5'));
+    laserNonZeroFiles = xmlFiles(~contains(xmlFiles, 'Laser0.5'));
+    
+    % Probabilities
+    probLaser05 = ShamPossibility; % 10% probability for Laser0.5 files
+    probLaserNonZero = 1-ShamPossibility; % 90% probability for Laser1.7 files
+    
+    % Initialize the output list
+    executableList = cell(x, 1);
+    
+    % Generate the executable list
+    for i = 1:x
+        if rand() < probLaser05
+            % Select a random Laser0.5 file
+            selectedFile = laser05Files{randi(length(laser05Files))};
+        else
+            % Select a random Laser1.7 file
+            selectedFile = laserNonZeroFiles{randi(length(laserNonZeroFiles))};
+        end
+        % Add the selected file to the list
+        executableList{i} = selectedFile;
+    end
 end
 

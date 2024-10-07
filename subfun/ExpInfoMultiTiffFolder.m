@@ -9,13 +9,24 @@ TiffTable=TiffTable(:,1);
 
 for i=1:size(TiffTable,1)
     tempName=[DataFolder TiffTable.name{i} '\'];
-    [totalRepetitions(i,1), framesAfterStimuli(i,:),laser(i,:)] = ExpInfoTiffIndiFolder(tempName);
-
+    % [totalRepetitions(i,1), framesAfterStimuli(i,:),laser(i,:),~,~,~,~] = ExpInfoTiffIndiFolder(tempName);
+    [totalRepetitions(i,1), framesAfterStimuli(i,:),laser(i,:),~,~,~,~,~,StimID{i,1},StimGPLInd{i,1}] = ExpInfoTiffIndiFolder(tempName);
+% Zdepth, ZdepthLaser,cycleID,planeID,files,StimID,StimGPLInd
+% totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,cycleID,planeID,files
 end
 
 TiffTable.totalRepetitions=totalRepetitions;
 TiffTable.PostSLMframe=framesAfterStimuli;
 TiffTable.Laser=laser;
+TiffTable.StimID=StimID;
+TiffTable.StimGPLInd=StimGPLInd;
+
+
+% if ~isempty(StimID)
+% TiffTable.StimID=StimID{1};
+% TiffTable.StimGPLInd=StimGPLInd;
+% end
+
 TiffTable = addFileID(TiffTable);
 
 

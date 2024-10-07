@@ -1,4 +1,4 @@
-function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,cycleID,planeID,files] = ExpInfoTiffIndiFolder(folderPath)
+function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,cycleID,planeID,files,StimID,StimGPLInd] = ExpInfoTiffIndiFolder(folderPath)
     % AnalyzeImagingSeries - Analyzes 3D imaging time series and outputs
     %                        total repetitions and frame IDs after stimuli.
     %
@@ -74,6 +74,8 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
     % Identify frames after each MarkPoints.xml file
     framesAfterStimuli = [];
     StimuliPower=[];
+    StimGPLInd={};
+    StimID={};
     for i = 1:length(MPxmlFiles)
         % Extract the cycle number from the MarkPoints.xml file name
         xmlFileName = MPxmlFiles(i).name;
@@ -92,7 +94,12 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
             % end
         end
         framesAfterStimuli=[framesAfterStimuli;nextCycle];
-        StimuliPower=[StimuliPower;MPxml2yaml([MPxmlFiles(i).folder '\' MPxmlFiles(i).name])];
+        % StimuliPower=[StimuliPower;MPxml2yaml([MPxmlFiles(i).folder '\' MPxmlFiles(i).name])];
+        
+        [tbl,StimID{i},StimPowerTemp]=MPxml2Table([MPxmlFiles(i).folder '\' MPxmlFiles(i).name]);
+        StimGPLInd{i}=tbl.Index;
+        StimuliPower=[StimuliPower;StimPowerTemp];
+        
         
     end
     if isempty(framesAfterStimuli)
