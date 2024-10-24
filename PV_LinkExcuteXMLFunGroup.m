@@ -74,12 +74,11 @@ end
      % Laser=XMLparam.Laser;
      % Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
-
      BreakPointFrame=PVparam.BreakPointFrame;
 
 
      GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
-     pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).gplname] );
+     pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).gplname] );  %Load the gpl file including all MP as well as all Functional Groups.
 
 
 
@@ -107,8 +106,8 @@ end
     FlushYet=0;
     CheckRedundant=0;
     HavedChecked=0;
-    pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
-    pause(0.01);
+    % pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
+    % pause(0.01);
 
      filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
      completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
@@ -141,22 +140,21 @@ end
     droppedData    = [];
     ixml=1;
     loadxml=1;
-     while running   
+    while running   
         % start timer
 %               tic;
-            if loadxml==1&&frameNum>CumInterMPFrame(ixml)+XMLparam.SwithXMLPostMPFrame   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+            if loadxml==1&&frameNum>CumInterMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
                pl.SendScriptCommands(['-LoadMarkPoints ' ProcessFolder  ExXMLList{ixml}] );
-               BreakPointFrame=CumInterMPFrame(ixml);
+               BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
                loadxml=0;
                BreakYet=0;
                ExgroupIDs(ixml)=groupIDs(ixml);
                ExlaserPowers(ixml)=laserPowers(ixml);
                LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);
                ixml=ixml+1;
-
             end
         % get raw data stream (timer = ~20ms)
-           [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+        [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
 
         % append new data to any remaining old data
         buffer = [buffer samples(1:numSamplesRead)];
