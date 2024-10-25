@@ -8,7 +8,7 @@
 
 
 % callback function
-function varargout=PV_LinkExcuteXML(XMLparam,PVparam,confSet,varargin)
+function varargout=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam,confSet,varargin)
 
 if nargin==4
     PSTHparam=varargin{1};
@@ -22,7 +22,7 @@ else
 end
 
 
-
+     ProcessFolder=XMLparam.ProcessFolder;
 
      SaveDataFolder=[ProcessFolder 'Data\'];
      LogDataFolder=[ProcessFolder '\DataLog\'];
@@ -74,25 +74,27 @@ end
      % Laser=XMLparam.Laser;
      % Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
-     BreakPointFrame=PVparam.BreakPointFrame;
+%      BreakPointFrame=PVparam.BreakPointFrame;
 
 
      GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
-     pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).gplname] );  %Load the gpl file including all MP as well as all Functional Groups.
+     pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).name] );  %Load the gpl file including all MP as well as all Functional Groups.
 
 
 
-     MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Group' num2str(Point) '.xml']);
+%      MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Group' num2str(Point) '.xml']);
+     MarkPointList=dir([ProcessFolder 'Laser*Group*.xml']);
 
-     x=XMLparam.TrialMPSwitch;
-     InterMPFrame=XMLparam.InterMPFrame;
+%      x=XMLparam.TrialMPSwitch;
+     InterMPFrame=PVparam.InterMPRepetion*PVparam.nPlane;
      CumInterMPFrame=cumsum(InterMPFrame);
-     maxFrame=max(CumInterMPFrame);
+     StartMPFrame=[0 CumInterMPFrame(1:end-1)];
+     maxFrame=PVparam.maxFrame;
 
-     XMLparam.ShamPossibility=0.1;
-     XMLparam.SwithXMLPostMPFrame;
-     ShamPossibility=0.1
-     ExXMLList = generateExecutableList(MarkPointList, XMLparam.TrialMPSwitch, XMLparam.ShamPossibility)
+%      XMLparam.ShamPossibility=0.1;
+%      XMLparam.SwitchXMLPostMPFrame;
+     ShamPossibility=XMLparam.ShamPossibility;
+     ExXMLList = generateExecutableList(MarkPointList, PVparam.TrialMPSwitch, XMLparam.ShamPossibility);
 
      % ExcuteIndex=1:length(MarkPointList);
      % [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
@@ -101,7 +103,7 @@ end
      ExlaserPowers=[];
 
 
-    preview=0;
+    preview=1;
     BreakYet=0;
     FlushYet=0;
     CheckRedundant=0;
@@ -110,8 +112,8 @@ end
     % pause(0.01);
 
      filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
-     completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
-     completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
+     completeFileName = filePath;
+%      completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
 
      fileID = fopen([completeFileName '.bin'], 'wb');
      LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
@@ -140,17 +142,25 @@ end
     droppedData    = [];
     ixml=1;
     loadxml=1;
+    BreakPointFrame=CumInterMPFrame(ixml);
+    PVparam.BreakPointFrame
     while running   
         % start timer
 %               tic;
-            if loadxml==1&&frameNum>CumInterMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
-               pl.SendScriptCommands(['-LoadMarkPoints ' ProcessFolder  ExXMLList{ixml}] );
+
+            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+
+               if ixml<=length(CumInterMPFrame)-1
+                  ExgroupIDs(ixml)=groupIDs(ixml);
+                  ExlaserPowers(ixml)=laserPowers(ixml);
+
+                  pl.SendScriptCommands(['-LoadMarkPoints ' ProcessFolder  ExXMLList{ixml}] );
+                  LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
+               end
                BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
                loadxml=0;
                BreakYet=0;
-               ExgroupIDs(ixml)=groupIDs(ixml);
-               ExlaserPowers(ixml)=laserPowers(ixml);
-               LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);
+               framesCounter=frameNum;
                ixml=ixml+1;
             end
         % get raw data stream (timer = ~20ms)
@@ -167,15 +177,16 @@ end
         % clear data from buffer
 %         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
         buffer(IncludedInd)=[];
-        RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
+%         RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
 
           if numWholeFramesGrabbed > 0
              framesCounter = framesCounter + numWholeFramesGrabbed;
-                if BreakYet==0 && framesCounter>=BreakPointFrame
+                if BreakYet==0&&framesCounter>=BreakPointFrame
                    LogMessage(LogfileID,['Check Redundant' num2str(frameNum) ' ' num2str(framesCounter)]);
                    BreakYet=1;
                    buffer=[];
                    CheckRedundant=1;
+                   loadxml=1;
 %                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
                 end
 
@@ -197,6 +208,7 @@ end
                          CheckRedundant=0;
                          frameNum=frameNum-1;
                          LogMessage(LogfileID,['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)]);
+%                          ixml=ixml+1;
                          break;
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
                          disp(['Keep frame ' num2str(frameNum)])
@@ -218,13 +230,13 @@ end
                       end
 
                                
-                     if preview&& (frameNum == BreakPointFrame+1)
-                        figure(figHandle);
-                        subplot(1,3,1)
-                        imagesc(frame);
-                        axis off; axis square; axis tight;
-                        xlabel('1st frame after breakpoint');
-                     end
+%                      if preview&& (frameNum == BreakPointFrame+1)
+%                         figure(figHandle);
+%                         subplot(1,3,1)
+%                         imagesc(frame);
+%                         axis off; axis square; axis tight;
+%                         xlabel('1st frame after breakpoint');
+%                      end
 
                end
           end
@@ -256,7 +268,7 @@ end
             subplot(1,3,3)
             if exist('numWholeFramesGrabbed')
                hold on;plot(loopCounter,frameNum,'g.')
-               hold on;plot(loopCounter,framesCounter,'r.')
+%                hold on;plot(loopCounter,framesCounter,'r.')
 %                plot(loopCounter,BreakPointFrame,'y.')
             end
             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
@@ -456,7 +468,8 @@ function executableList = generateExecutableList(xmlFilesStruct, x, ShamPossibil
     
     % Generate the executable list
     for i = 1:x
-        if rand() < probLaser05
+        P=rand();
+        if P < probLaser05
             % Select a random Laser0.5 file
             selectedFile = laser05Files{randi(length(laser05Files))};
         else

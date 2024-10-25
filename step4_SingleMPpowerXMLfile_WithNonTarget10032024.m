@@ -15,7 +15,7 @@ step4_SubStep1_LoadData;
 %% 
 % RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimulation.
 % PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
-PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
+PreMarkPointRepetition=40;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
 PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map

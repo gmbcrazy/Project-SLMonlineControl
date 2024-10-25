@@ -15,7 +15,7 @@ step4_SubStep1_LoadData;
 %% 
 % RandomDelayInterval=[0 1]; %%Random delay is induced after each trial of stimulation.
 % PointRepetition=1;  %%Trial Number per each xml MarkPoint stimulation.
-PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
+PreMarkPointRepetition=40;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
 PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
@@ -32,6 +32,8 @@ XMLparam.Laser=1.5;               %<--------------------------------------------
 XMLparam.RoundID=1;               %starting round
 PointAll=1:size(Pos3Dneed,1);     %All possible MarkPoints for testing
 PointsTest=PointAll;              %Initial test Points, this would be updated automatically later
+PointsTest=3;              %Initial test Points, this would be updated automatically later
+
 SLMTrialInfo=[];                  %Inital response information, automatically updated after each single trial test
 SLMTrialMap=[];                   %Inital response map, automatically updated after each single trial test
 clear SLMTable;

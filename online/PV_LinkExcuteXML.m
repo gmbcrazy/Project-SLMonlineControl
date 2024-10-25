@@ -24,17 +24,19 @@ end
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
-     XMLpattern = 'Laser([\d.]+)GPoint\s?(\d+)';
-     iGroup=XMLparam.Group;
+%      XMLpattern = 'Laser([\d.]+)GPoint\s?(\d+)';
+     XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
+
+%      iGroup=XMLparam.Group;
      Laser=XMLparam.Laser;
-%      Round=XMLparam.RoundID;
+     Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
 
      maxFrame=PVparam.maxFrame;
      BreakPointFrame=PVparam.BreakPointFrame;
 
 
-     MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Point' num2str(iGroup) '.xml']);
+     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point*' '.xml']);
      % ExcuteIndex=1:length(MarkPointList);
      [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      SaveDataFolder=[ProcessFolder 'Data\'];
