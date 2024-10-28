@@ -1,0 +1,36 @@
+XMLTable=[XMLTable;tempXMLTable];
+[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal);
+tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector);
+PSTHmap=cat(PSTHmap,tempPSTHmap,3);
+CountExp=CountExp+1;
+
+[averagedPSTHmap,nSample] = AveragePSTHByGroupLaser(XMLTable, PSTHmap,TotalGroupIDs);
+Zdepth=confSet.ETL;
+
+for iFun = 1:length(nSample)
+    if iFun<length(nSample)
+       FinalFunScore(Group(iGroup).Indices, 1) = iGroup;
+       Pos3D=FinalPos3D(Group(iFun).Indices,:);
+       RealMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==0);
+       AddMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==1);
+
+     for iplane = 1:nPlane
+        if nSample(iFun)>0
+           subplotLU(1, size(Img,3), 1, iplane);
+            
+            % Display the current plane's image
+            imagesc(averagedPSTHmap(:,:,iplane,iFun)');
+          
+            I = find(abs(Pos3D(:,3) - Zdepth(iplane)) < 0.1);
+            RealMPInd
+            if ~isempty(Pos3D)
+                plotCellCenter(Pos3D(I,[2 1]), 7, colorCell(I,:),1)
+            end
+
+        end
+     end
+    end
+
+
+end
+

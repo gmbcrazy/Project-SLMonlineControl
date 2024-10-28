@@ -72,7 +72,7 @@ ROIparam.LaserPower=confSet.UncagingLaserPower([1 2 3]);  %<--------------------
 
 %% Save results and generate final MarkPoints and Functional groups
 SLMTableOrigin=SLMTable;
-PostSLMTable;
+% PostSLMTable;
 FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
 SLMTable(FalsePositiveID,:)=nan;
 
@@ -84,13 +84,8 @@ SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
 refPVpower=max(SMLTablePowerPV);
 
 CellPerGroup=10;
-[Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet)
+[Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
-
-
-
-[SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
-
-
+XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal,FinalCellstat);
 
 

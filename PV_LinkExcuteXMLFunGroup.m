@@ -2,24 +2,16 @@
 %% Automatic excute multiple MarkPoint.xml files within a specific Folder
 %Noted that the TimeSeries in PrairieLink should be MarkPoint current
 %setting -> Imaging or Zseries Sequence recording of specific frames
-%Lu Zhang 2024, developed from PV_LinkExcuteFolder.m
+
+%% Lu Zhang 2024, developed from PV_LinkExcuteFolder.m, this is for multiple
+%MarkPoints and multiple Function Groups defined in the same .gpl file, 
+%Excute multiple .xml files, each .xml file define a specific laser power and specific functional group defined in above .gpl file
 
 
 
 
 % callback function
-function varargout=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam,confSet,varargin)
-
-if nargin==4
-    PSTHparam=varargin{1};
-    if ~isempty(PSTHparam)
-        CalPSTH=1;
-    else
-        CalPSTH=0;
-    end
-else
-    CalPSTH=0;
-end
+function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
 
      ProcessFolder=XMLparam.ProcessFolder;
@@ -31,95 +23,61 @@ end
      mkdir(LogDataFolder);
 
 
-
-    % InterTrialDelay = random('uniform',RandomDelayInterval(1),RandomDelayInterval(2),1,length(MarkPointList));
-
-%     pl.SendScriptCommands('-LoadMarkPoints F:\LuSLMOnlineTest\02152024\WriteFileUpdate3\GPL.gpl');
-%     pl.SendScriptCommands('-LoadMarkPoints F:\LuSLMOnlineTest\02152024\WriteFileUpdate3\Point5.xml');
-
-
-
+    %% Initialize PV_Link, looked into the embedded function plIntial.m for details.
     pl = actxserver('PrairieLink.Application');
     pl.Connect();
-    pl.SendScriptCommands(['-SetSavePath ' SaveDataFolder]);
-    pl.SendScriptCommands('-DoNotWaitForScans');
-    pl.SendScriptCommands('-LimitGSDMABufferSize true 100');
-%     pl.SendScriptCommands('-StreamRawData true 50');   
-    pl.SendScriptCommands('-StreamRawData true 50');
-    pl.SendScriptCommands('-fa 1');  % set frame averaging to 1
-
-    samplesPerPixel      = pl.SamplesPerPixel();
-    pixelsPerLine        = pl.PixelsPerLine();
-    linesPerFrame        = pl.LinesPerFrame();
-    totalSamplesPerFrame = samplesPerPixel*pixelsPerLine*linesPerFrame;
-    % yaml = ReadYaml('settings.yml');
-    % flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
-    flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
-    % get file name
-    baseDirectory = pl.GetState('directory', 1);
-    tSeriesName   = pl.GetState('directory', 4);
-    tSeriesIter   = pl.GetState('fileIteration', 4);
-%     tempIter=num2str(tSeriesIter)
-    tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIter));
-
-%     pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointGPL.folder '\' MarkPointGPL.name] );
-
-    tSeriesIterID=str2num(tSeriesIter);
-%     tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIterID))
+    [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl);
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
      XMLpattern = 'Laser([\d.]+)Group\s?(\d+)';
-     % Point=XMLparam.Point;
-     % Laser=XMLparam.Laser;
-     % Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
-%      BreakPointFrame=PVparam.BreakPointFrame;
-
 
      GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
      pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).name] );  %Load the gpl file including all MP as well as all Functional Groups.
-
-
-
-%      MarkPointList=dir([ProcessFolder 'Laser' num2str(Laser) '*Group' num2str(Point) '.xml']);
+     
+     
      MarkPointList=dir([ProcessFolder 'Laser*Group*.xml']);
-
-%      x=XMLparam.TrialMPSwitch;
-     InterMPFrame=PVparam.InterMPRepetion*PVparam.nPlane;
+     InterMPFrame=PVparam.InterMPRepetition*PVparam.nPlane;
      CumInterMPFrame=cumsum(InterMPFrame);
      StartMPFrame=[0 CumInterMPFrame(1:end-1)];
      maxFrame=PVparam.maxFrame;
 
-%      XMLparam.ShamPossibility=0.1;
-%      XMLparam.SwitchXMLPostMPFrame;
+
      ShamPossibility=XMLparam.ShamPossibility;
      ExXMLList = generateExecutableList(MarkPointList, PVparam.TrialMPSwitch, XMLparam.ShamPossibility);
-
-     % ExcuteIndex=1:length(MarkPointList);
-     % [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
     [groupIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
      ExgroupIDs=[];
      ExlaserPowers=[];
 
+    XMLTable=[groupIDs(:) laserPowers(:)];
 
-    preview=1;
+
+    preview=0;
     BreakYet=0;
     FlushYet=0;
     CheckRedundant=0;
     HavedChecked=0;
-    % pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
-    % pause(0.01);
+
 
      filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
      completeFileName = filePath;
-%      completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
+     binFile=[completeFileName '.bin'];
+     logFile=[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'];
 
-     fileID = fopen([completeFileName '.bin'], 'wb');
-     LogfileID = fopen([LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'],'w');
-     % LogMessage(LogfileID,MarkPointList(ixml).name(1:end-4));
 
-     flushing = 1;
+     fileID = fopen(binFile, 'wb');  %Write online collection data to a bin file
+     LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
+
+     FileGenerateInfo.binFile=binFile;
+     FileGenerateInfo.logFile=logFile;
+     FileGenerateInfo.gplFile=[ProcessFolder 'GPLFunGroup.gpl'];
+     FileGenerateInfo.xmlFile=MarkPointList;
+
+
+
+
+    flushing = 1;
     while flushing
           [samples, numSamplesRead] = pl.ReadRawDataStream(0);
           if numSamplesRead == 0
@@ -140,10 +98,13 @@ end
     msg            = [];
 %          loopTimes      = [];
     droppedData    = [];
+
     ixml=1;
     loadxml=1;
     BreakPointFrame=CumInterMPFrame(ixml);
-    PVparam.BreakPointFrame
+
+
+    
     while running   
         % start timer
 %               tic;
@@ -175,10 +136,11 @@ end
         toProcess = buffer(IncludedInd);
 
         % clear data from buffer
-%         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
         buffer(IncludedInd)=[];
-%         RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
 
+
+        % Update the frame, meantime checking if redudant data exist, if it
+        % is, remove them
           if numWholeFramesGrabbed > 0
              framesCounter = framesCounter + numWholeFramesGrabbed;
                 if BreakYet==0&&framesCounter>=BreakPointFrame
@@ -190,8 +152,6 @@ end
 %                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
                 end
 
-
-
                 for i = 1:numWholeFramesGrabbed
                       if started == 0
                         started = 1;
@@ -199,17 +159,16 @@ end
 
                 % get single frame
                       frame = toProcess(((i-1)*totalSamplesPerFrame)+1:(i*totalSamplesPerFrame));
-
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
 
                       frameNum = frameNum + 1;
 %                       disp([num2str(frameNum) ' ' num2str(framesCounter)])
-                      if CheckRedundant==1 && frameNum>BreakPointFrame+0.1
+                      if CheckRedundant==1 && frameNum>BreakPointFrame+0.1       %%Noted that current frameNum should never be higher than the BreakPointFrame (the last frame before a MP stimuli occures). If there is, that frame is redundant. 
                          CheckRedundant=0;
-                         frameNum=frameNum-1;
+                         frameNum=frameNum-1;                                    %%Redundant frame is found, do not write data to frame, thus substract the frameNumber by 1.
                          LogMessage(LogfileID,['Redundant Detected' num2str(frameNum) ' ' num2str(framesCounter)]);
 %                          ixml=ixml+1;
-                         break;
+                         break;                                                  %%Redundant frame is found, do not write data to frame, break the loop of updating.
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
                          disp(['Keep frame ' num2str(frameNum)])
                          LogMessage(LogfileID,['Keep frame ' num2str(frameNum)]);
@@ -243,11 +202,11 @@ end
 
 
              msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
-              loopCounter = loopCounter + 1;
-              totalSamples = totalSamples + numSamplesRead;
-              allSamplesRead(end+1) = numSamplesRead;
+             loopCounter = loopCounter + 1;
+             totalSamples = totalSamples + numSamplesRead;
+             allSamplesRead(end+1) = numSamplesRead;
 
-              droppedData(end+1) = pl.DroppedData();
+             droppedData(end+1) = pl.DroppedData();
               if droppedData(end)
                  LogMessage(LogfileID,['\n!!! DROPPED DATA AT FRAME ' num2str(frameNum) ' !!!\n']);
               end
@@ -287,9 +246,7 @@ end
 
          fclose(fileID);
          fclose(LogfileID);
-         % disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
-         % disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
-         % % pause(InterTrialDelay(ixml));
+
 
 
 
@@ -300,38 +257,7 @@ end
     pl.Disconnect();
     delete(pl);
 
-    if CalPSTH==1
-        PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
-    end
-    if CalPSTH==1
-       PSTHmap=squeeze(PSTHmap);
-       varargout{1} = [tSeriesIterID XMLparam.Point XMLparam.Laser XMLparam.RoundID PSTHparam.TargetPos];
-       varargout{2}=PSTHmap;
 
-       if PSTHparam.Plot==1&&preview==1
-           PlaneZ=confSet.ETL+confSet.scan_Z;
-         figure
-         MultiMatrix3DPlotZ(PSTHmap,PlaneZ,0.9);
-         caxis(PSTHparam.Clim);
-         Radius=10;
-         colormap(PSTHparam.ColorMap);
-         set(gca,'xlim',[0 confSet.SLM_Pixels_Y],'ylim',[0 confSet.SLM_Pixels_X],'zlim',PlaneZ([1 end]),'ztick',PlaneZ,'View',[64 24],'zDir','reverse');
-         % plotCellCenter3D(SinglePxyz(iPoint,:), Radius, [0 1 0],1.5);
-         if isfield(PSTHparam,'TargetPos')
-            plotCellCenter3D(PSTHparam.TargetPos, Radius, [0 1 0],1.5);
-         end
-         papersizePX=[0 0 12 20]
-         set(gcf, 'PaperUnits', 'centimeters');
-         set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-         saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
-         saveas(gcf,[LogDataFolder  filesep tSeriesName '-' tSeriesIter 'PSTHmap.png'],'png');
-
-       end
-    else
-        varargout{1}=[];
-        varargout{2}=[];
-
-    end
 end
 
 
@@ -364,22 +290,37 @@ end
 %     end
 
 
-%%    MarkPointGPL = MarkPointGPL(executionOrder);
-    % MarkPointList = MarkPointList(executionOrder);
-    % MarkPointGPL=MarkPointGPL(executionOrder);
-    % roundIDs=roundIDs(executionOrder);
-    % pointIDs=pointIDs(executionOrder);
-    % laserPowers=laserPowers(executionOrder);
-
-%%
-
-% %     RestFiletable=struct2table(MarkPointList);
-% % %     GPLtable=struct2table(MarkPointGPL);
-% % %     RestFiletable.gplname=GPLtable.name;
-% %     RestFiletable.excutionID=[1:length(MarkPointList)]';
-% %     writetable(RestFiletable,[MarkPointList(1).folder '\xmlListCurrent.csv'])
 
 
+
+function [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl)
+
+    
+         pl.SendScriptCommands(['-SetSavePath ' SaveDataFolder]);
+         pl.SendScriptCommands('-DoNotWaitForScans');
+         pl.SendScriptCommands('-LimitGSDMABufferSize true 100');
+         pl.SendScriptCommands('-StreamRawData true 50');
+         pl.SendScriptCommands('-fa 1');  % set frame averaging to 1
+
+         samplesPerPixel      = pl.SamplesPerPixel();
+         pixelsPerLine        = pl.PixelsPerLine();
+         linesPerFrame        = pl.LinesPerFrame();
+         totalSamplesPerFrame = samplesPerPixel*pixelsPerLine*linesPerFrame;
+    % yaml = ReadYaml('settings.yml');
+    % flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
+        flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
+    % get file name
+        baseDirectory = pl.GetState('directory', 1);
+        tSeriesName   = pl.GetState('directory', 4);
+        tSeriesIter   = pl.GetState('fileIteration', 4);
+%     tempIter=num2str(tSeriesIter)
+        tSeriesIter   = sprintf('%0.3d', str2double(tSeriesIter));
+
+  %     pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointGPL.folder '\' MarkPointGPL.name] );
+
+        tSeriesIterID=str2num(tSeriesIter);
+
+end
 
 
 

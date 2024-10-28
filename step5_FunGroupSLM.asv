@@ -5,15 +5,11 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
-
 ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\10032024\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
-SumDataFolder=[ProcessFolder '\DataSum\'];
 
-load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
 % PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 % PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
@@ -84,26 +80,13 @@ XMLparam.ProcessFolder=ProcessFolder;
 
 %%
 XMLTable=[];
-PSTHmap=[];
+
 CountExp=1;
-TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
-
 [tempXMLTable,ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
-step5_SubStep1_GetResponse;
-
-
-
 XMLTable=[XMLTable;tempXMLTable];
-[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal);
-tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector);
-PSTHmap=cat(PSTHmap,tempPSTHmap,3);
-CountExp=CountExp+1;
 
-
-
-XMLTable=[groupIDs(:) laserPowers(:)];
-
-
+[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal)
+PSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector);
 
 
 sizeV=size(frameCal);
