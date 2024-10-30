@@ -111,7 +111,7 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 % SaveName=[SavePath SaveGroupName];
 SaveName=[SavePath GroupName];
 
-SaveName=[SavePath 'Laser' num2str(UncagingLaserPower) GroupName];
+% SaveName=[SavePath 'Laser' num2str(UncagingLaserPower) GroupName];
 
 if ~strcmpi(SaveName, '')  % if save name provided, save to file
     fid = fopen([SaveName '.xml'], 'w', 'l');

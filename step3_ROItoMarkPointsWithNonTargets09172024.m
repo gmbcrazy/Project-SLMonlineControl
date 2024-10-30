@@ -11,6 +11,7 @@ if ~exist('fSpeed')
     fStim=AmpNormalizeRow(double(fStim)',[0 100])';
 end
 
+
 %% After Suite2p processeing is done
 % Intially all cells were dectected by suite2p were considered as SLM targets
 SLMrangePix=20; %Pixel number close to FOV is excluded

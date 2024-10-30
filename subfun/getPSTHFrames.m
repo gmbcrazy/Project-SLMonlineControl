@@ -20,7 +20,7 @@ function [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames(I
     cumulativeFrames = cumsum(InterMPRepetition);
 
     % Iterate through each stimulus in cumulativeFrames
-    for i = 1:length(cumulativeFrames)
+    for i = 1:length(cumulativeFrames)-1
         % Get the current stimulus frame
         currentStimulus = cumulativeFrames(i);
         

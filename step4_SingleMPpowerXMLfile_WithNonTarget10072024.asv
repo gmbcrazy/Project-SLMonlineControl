@@ -50,7 +50,7 @@ SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
 ROIparam.LaserPower=confSet.UncagingLaserPower;
 
 ROIparam.min_merged_region_size=30;
-ROIparam.threshold_percentage=0.25;
+ROIparam.threshold_percentage=0.3;
 
 ROIparam.max_distance=8;
 %% Keep alternating following 2 lines to do all necessary SLM tests and online analysis
@@ -85,5 +85,6 @@ refPVpower=max(SMLTablePowerPV);
 CellPerGroup=10;
 [Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
-XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
+XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal,FinalCellstat);
+
 

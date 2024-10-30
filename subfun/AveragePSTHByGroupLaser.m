@@ -21,7 +21,7 @@ function [averagedPSTHmap,nSample] = AveragePSTHByGroupLaser(XMLTable, PSTHmap,T
     averagedPSTHmap = zeros(Ly, Lx, nPlanes, nGroups + 1)+nan;
 
     % Average for laserPower == 0 (ignoring group IDs)
-    matchingTrials = (XMLTable(:, 2) == 0);
+    matchingTrials = (XMLTable(:, 2) == 0.5);
     nSampleZero=sum(matchingTrials);
     if isMultiPlane
         selectedPSTHmap = PSTHmap(:, :, matchingTrials, :);

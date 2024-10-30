@@ -45,7 +45,6 @@ end
         for i = 1:length(FrameID)
         % Calculate the jump to the start of the current frame
           Jump = Ly * Lx * nPlanes * (FrameID(i) - 1);
-        
         % Move the file pointer to the start of the current frame
         fseek(fid, Jump * Bytes, 'bof');
         % Read data for the current frame and store it in Data matrix

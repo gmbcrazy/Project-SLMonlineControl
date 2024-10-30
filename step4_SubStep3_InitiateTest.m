@@ -8,6 +8,8 @@ XMLparam.Point=PointsTest(iPP);
 PSTHparam.TargetPos=Pos3Dneed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 [SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
+% [SLMTrialInfo SLMTrialMap]=PV_LinkExcuteXML(XMLparam,PVparam,confSet,PSTHparam);
+
     toc
 
     if size(SLMTrialInfo,1)==size(SLMTrialMap,4)

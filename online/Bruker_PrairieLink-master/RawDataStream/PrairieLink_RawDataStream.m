@@ -159,22 +159,22 @@ function ClickStart(h, e)
 %         disp([num2str(length(buffer)) ' of samples detected'])
 %         Visulize samples recorded in each loop, only use for debugging!
 %         Lu Zhang
-        figure(3);
-        subplot(3,1,1)
-        hold on;plot(icount,numSamplesRead,'r.')
-        subplot(3,1,2)
-        hold on;plot(icount,length(buffer),'r.')
-
-        subplot(3,1,3)
-        if exist('numWholeFramesGrabbed')
-%         hold on;plot(icount,numWholeFramesGrabbed,'b.')
-        icount=icount+1;
-
-           hold on;plot(loopCounter,frameNum,'g.')
-           hold on;plot(loopCounter,framesCounter,'r.')
-
-
-        end
+%         figure(3);
+%         subplot(3,1,1)
+%         hold on;plot(icount,numSamplesRead,'r.')
+%         subplot(3,1,2)
+%         hold on;plot(icount,length(buffer),'r.')
+% 
+%         subplot(3,1,3)
+%         if exist('numWholeFramesGrabbed')
+% %         hold on;plot(icount,numWholeFramesGrabbed,'b.')
+%         icount=icount+1;
+% 
+%            hold on;plot(loopCounter,frameNum,'g.')
+%            hold on;plot(loopCounter,framesCounter,'r.')
+% 
+% 
+%         end
        
         % process the acquired frames (timer = ~5ms)
         if numWholeFramesGrabbed > 0

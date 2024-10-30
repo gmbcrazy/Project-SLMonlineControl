@@ -20,7 +20,7 @@ if nargin==4
 else
     CalPSTH=0;
 end
-
+% CalPSTH=1;
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
@@ -31,12 +31,13 @@ end
      Laser=XMLparam.Laser;
      Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
+     Point=XMLparam.Point;
 
      maxFrame=PVparam.maxFrame;
      BreakPointFrame=PVparam.BreakPointFrame;
 
 
-     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point*' '.xml']);
+     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point' num2str(Point) '.xml']);
      % ExcuteIndex=1:length(MarkPointList);
      [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      SaveDataFolder=[ProcessFolder 'Data\'];
@@ -287,7 +288,7 @@ end
 %                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
 %             end
 
-            if started && loopCounter > 150 && sum(allSamplesRead(end-119:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+            if started && loopCounter > 250 && sum(allSamplesRead(end-219:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
          end
@@ -295,11 +296,13 @@ end
     % clean up
          fclose(fileID);
          fclose(LogfileID);
+%          pause(0.9);
          % disp(['xml file of excutionID ' num2str(ExcuteIndex(ixml)) ' in xmlList.csv is completed']);
          % disp(['Pause ' num2str(InterTrialDelay(ixml)) 's for next trial']);
          % % pause(InterTrialDelay(ixml));
         if CalPSTH==1
            PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
+
          end
 
 

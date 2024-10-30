@@ -1,4 +1,6 @@
 %% Please do mannual correction to exclude disqualified non-targets in PV, after that, exported all selected targets to SelectedFromRaw.gpl file
+NonTargetPath=[SavePath  'NonTargetsTest\'];
+
 s=gpl2struct([NonTargetPath 'SelectedFromRaw.gpl']);
 % TempTable=struct2table(s.PVGalvoPointList.PVGalvoPoint{1}.Attributes);
 for i=1:length(s.PVGalvoPointList.PVGalvoPoint)
@@ -30,3 +32,6 @@ for iTrial=1:confSet.NumTrial
     PlotTargetNonTarget(Pos3D,NonTargets(IndexNonTargetTrial(:,iTrial),:),NonTargetsPlane(IndexNonTargetTrial(:,iTrial)),CaData,FigSavePath);
     close all
 end
+
+
+save([NonTargetPath 'NonTarget.mat'],'IndexNonTargetTrial','NonTargets','NonTargetPath');

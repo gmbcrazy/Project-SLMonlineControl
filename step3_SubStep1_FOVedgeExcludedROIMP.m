@@ -27,3 +27,6 @@ mkdir(SavePathExc)
 % CenterCloseI=CenterCloseI(IndexNeed)
 % IndexNeed=1:1:size(Pos3D,1);
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet,CaData.statCell);
+
+
+save([SavePath 'Beh.mat'],'fStim','fSpeed','timeStampCa_Plane');

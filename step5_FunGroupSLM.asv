@@ -5,11 +5,14 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+
 ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\10032024\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+SumDataFolder=[ProcessFolder '\DataSum\'];
 
+load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
 % PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 % PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
@@ -18,7 +21,7 @@ PostSLMCal=3;                 %<------------------------------------------------
 
 nPlane=length(confSet.ETL);
 
-PVparam.InterMPRepetition=[40 60 30 20];
+PVparam.InterMPRepetition=[40 80 80 30 50 40 60 90 50 30];
 frameRepetition=sum(PVparam.InterMPRepetition); %%Total repepitions of Z series in T series setting;
 
 
@@ -66,7 +69,7 @@ XMLparam.TotalRounds=confSet.NumTrial;
 % ROIparam.Colormap=colorMapPN1;                  
 % ROIparam.LaserPower=confSet.UncagingLaserPower;   
 
-XMLparam.ShamPossibility=0.4;
+XMLparam.ShamPossibility=0.2;
 XMLparam.SwitchXMLPostMPFrame=10;
 XMLparam.ProcessFolder=ProcessFolder;
 
@@ -80,13 +83,108 @@ XMLparam.ProcessFolder=ProcessFolder;
 
 %%
 XMLTable=[];
-
+PSTHmap=[];
 CountExp=1;
-[tempXMLTable,ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
-XMLTable=[XMLTable;tempXMLTable];
+TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
-[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal)
-PSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector);
+[tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
+
+
+
+
+for CountExp=1:length()
+XMLTable=[XMLTable;tempXMLTable];
+[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal);
+tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, PrePostStimuliVector);
+PSTHmap=cat(3,PSTHmap,tempPSTHmap);
+end
+
+CountExp=CountExp+1;
+OutPng=[SumDataFolder 'CheckFunExp' num2str(CountExp) '.png'];
+
+
+
+[averagedPSTHmap,nSample] = AveragePSTHByGroupLaser(XMLTable, PSTHmap,TotalGroupIDs);
+Zdepth=confSet.ETL;
+
+
+
+figure;
+for iFun = 1:length(nSample)
+    if iFun<length(nSample)
+       FinalFunScore(Group(iGroup).Indices, 1) = iGroup;
+       Pos3D=FinalPos3D(Group(iFun).Indices,:);
+       RealMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==0);
+       AddMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==1);
+
+     for iplane = 1:nPlane
+        if nSample(iFun)>0
+           subplotLU(length(nSample), nPlane, iFun, iplane);
+            
+            % Display the current plane's image
+            imagesc(averagedPSTHmap(:,:,iplane,iFun)');
+          
+            I = find(abs(Pos3D(:,3) - Zdepth(iplane)) < 0.1);
+            I1=intersect(I,RealMPInd);
+            I2=intersect(I,AddMPInd);
+            if ~isempty(I1)
+                plotCellCenter(Pos3D(I1,[2 1]), 7, [0.1 0.9 0.1],1);    
+            end
+
+            if ~isempty(I2)
+                plotCellCenter(Pos3D(I2,[2 1]), 7, [0.9 0.1 0.1],1);    
+            end
+        end
+     end
+    else
+     for iplane = 1:nPlane
+        if nSample(iFun)>0
+           subplotLU(length(nSample), size(Img,3), iFun, iplane);
+            
+            % Display the current plane's image
+            imagesc(averagedPSTHmap(:,:,iplane,iFun)');
+
+        end
+     end
+
+
+
+
+    end
+
+
+end
+
+papersizePX=[0 0 nPlane*4 length(nSample)*4]
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,OutPng,'png');
+
+
+
+
+
+
+
+
+
+
+
+step5_SubStep1_GetResponse;
+
+
+
+XMLTable=[XMLTable;tempXMLTable];
+[indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal);
+tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector);
+PSTHmap=cat(PSTHmap,tempPSTHmap,3);
+CountExp=CountExp+1;
+
+
+
+XMLTable=[groupIDs(:) laserPowers(:)];
+
+
 
 
 sizeV=size(frameCal);

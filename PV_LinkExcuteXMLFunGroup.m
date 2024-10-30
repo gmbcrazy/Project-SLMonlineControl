@@ -26,11 +26,11 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
     %% Initialize PV_Link, looked into the embedded function plIntial.m for details.
     pl = actxserver('PrairieLink.Application');
     pl.Connect();
-    [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl);
+    [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl,SaveDataFolder);
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
-     XMLpattern = 'Laser([\d.]+)Group\s?(\d+)';
+     XMLpattern = 'Laser([\d.]+)FunGroup\s?(\d+)';
      ProcessFolder=XMLparam.ProcessFolder;
 
      GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
@@ -239,7 +239,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 %                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
 %             end
 
-            if started && loopCounter > 150 && sum(allSamplesRead(end-119:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+            if started && loopCounter > 250 && sum(allSamplesRead(end-219:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
     end
@@ -293,7 +293,7 @@ end
 
 
 
-function [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl)
+function [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, flipEvenRows,baseDirectory,tSeriesName,tSeriesIter,tSeriesIterID]=plIntial(pl,SaveDataFolder)
 
     
          pl.SendScriptCommands(['-SetSavePath ' SaveDataFolder]);
