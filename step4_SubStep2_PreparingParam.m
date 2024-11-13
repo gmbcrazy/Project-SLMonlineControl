@@ -20,6 +20,11 @@ XMLparam.ProcessFolder=ProcessFolder;
 XMLparam.TotalRounds=confSet.NumTrial;
 PointAll=1:size(Pos3Dneed,1);
 
+XMLparam.Laser=1.5;               %<-------------------------------------------------------------------------------Edit, starting laser power to test    
+XMLparam.RoundID=1;               %starting round
+PointAll=1:size(Pos3Dneed,1);     %All possible MarkPoints for testing
+PointsTest=PointAll;              %Initial test Points, this would be updated automatically later
+
 
 %param for ROI neighbourhood to determine wether there is SLM response.
 ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)

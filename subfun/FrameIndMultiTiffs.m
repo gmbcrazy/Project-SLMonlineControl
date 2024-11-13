@@ -19,9 +19,17 @@ for iframe=1:length(Ind)
     if length(TiffFile)==0
        continue;
     end
-
+    if length(TiffFile)==1
     for iPlane=1:nPlane
         ImageSeq(:,:,iframe,iPlane)=imread([TiffFile(1).folder '\' TiffFile(1).name],iPlane);
+    end
+    elseif length(TiffFile)==nPlane
+    for iPlane=1:nPlane
+        ImageSeq(:,:,iframe,iPlane)=imread([TiffFile(iPlane).folder '\' TiffFile(iPlane).name]);
+    end
+    else
+        ImageSeq=[];
+
     end
 end
 
