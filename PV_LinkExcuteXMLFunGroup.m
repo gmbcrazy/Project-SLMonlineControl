@@ -33,9 +33,10 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
      XMLpattern = 'Laser([\d.]+)FunGroup\s?(\d+)';
      ProcessFolder=XMLparam.ProcessFolder;
 
+     if XMLparam.LoadGPL==1
      GPLPointList=dir([ProcessFolder 'GPLFunGroup.gpl']);
      pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).name] );  %Load the gpl file including all MP as well as all Functional Groups.
-     
+     end
      
      MarkPointList=dir([ProcessFolder 'Laser*Group*.xml']);
      InterMPFrame=PVparam.InterMPRepetition*PVparam.nPlane;
@@ -73,7 +74,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
      FileGenerateInfo.logFile=logFile;
      FileGenerateInfo.gplFile=[ProcessFolder 'GPLFunGroup.gpl'];
      FileGenerateInfo.xmlFile=MarkPointList;
-
+     FileGenerateInfo.checkingTiffBinMatch=0;
 
 
 
@@ -108,6 +109,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
     while running   
         % start timer
 %               tic;
+          pause(0.02);
 
             if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
@@ -132,6 +134,18 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
         IncludedInd=[];
         % extract full frames
         numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+
+        %when exactly arrive at the break point, wait a little bit and get
+        %more data, this is specific for MP synchronized with Zseries recording.
+        if BreakPointFrame<CumInterMPFrame(end)&&(framesCounter + numWholeFramesGrabbed)==BreakPointFrame
+            pause(0.02);
+            [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+             % append new data to any remaining old data
+            buffer = [buffer samples(1:numSamplesRead)];
+            % extract full frames
+            numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+        end
+
         IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
         toProcess = buffer(IncludedInd);
 
@@ -149,6 +163,10 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
                    buffer=[];
                    CheckRedundant=1;
                    loadxml=1;
+                   if BreakPointFrame<CumInterMPFrame(end)&&framesCounter==BreakPointFrame
+                      LogMessage(LogfileID,'framesCounter just match BreakPointFrame, checking if Tiff and Bin match!');
+                      FileGenerateInfo.checkingTiffBinMatch=1;
+                   end
 %                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
                 end
 

@@ -139,6 +139,7 @@ end
         while running   
         % start timer
 %               tic;    
+          pause(0.02);
 
         % get raw data stream (timer = ~20ms)
               [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
@@ -148,6 +149,17 @@ end
         IncludedInd=[];
         % extract full frames
         numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+        %when exactly arrive at the break point, wait a little bit and get
+        %more data, this is specific for MP synchronized with Zseries recording.
+        if (framesCounter + numWholeFramesGrabbed)==BreakPointFrame
+            pause(0.02);
+            [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+             % append new data to any remaining old data
+            buffer = [buffer samples(1:numSamplesRead)];
+            % extract full frames
+            numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+        end
+
         IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
         toProcess = buffer(IncludedInd);
 
@@ -167,7 +179,11 @@ end
                    BreakYet=1;
                    buffer=[];
                    CheckRedundant=1;
-%                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])                   
+%                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])     
+                   if framesCounter==BreakPointFrame
+                      LogMessage(LogfileID,'framesCounter just match BreakPointFrame, checking if Tiff and Bin match!');
+                      FileGenerateInfo.checkingTiffBinMatch=1;
+                   end
                 end
 
 %                   if BreakYet==0&&started && loopCounter > 10 && sum(allSamplesRead(end-5:end)) == 0  % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)

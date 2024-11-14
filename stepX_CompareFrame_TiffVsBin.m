@@ -6,17 +6,21 @@ SLMsettingFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
-DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\11132024\';
+% DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\11142024\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 
-PreMarkPointRepetition=50;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
+PreMarkPointRepetition=40;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
 
 frameRepetition=PreMarkPointRepetition+PostMarkPointRepetition;
 PVparam.maxFrame=nPlane*frameRepetition;
 PVparam.BreakPointFrame=PreMarkPointRepetition*nPlane;
+% PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
+% PVparam.InterMPFrame=[40 60 30 20]*nPlane;
+% PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
+PVparam.nPlane=nPlane;
 
 XMLparam.ProcessFolder=ProcessFolder;
 XMLparam.TotalRounds=confSet.NumTrial;
@@ -24,13 +28,13 @@ XMLparam.TotalRounds=confSet.NumTrial;
 XMLparam.Point=1;
 XMLparam.Laser=1.5;
 XMLparam.RoundID=1;
-PV_LinkExcuteXML(XMLparam,PVparam,confSet);
+% PV_LinkExcuteXML(XMLparam,PVparam,confSet);
 
 
 
 PVparam2=PVparam;
 PVparam2.nPlane=nPlane;
-PVparam2.InterMPRepetition=[50 30 45 50 30 40];
+PVparam2.InterMPRepetition=[20 60 40 30 60 20];
 XMLparam.ShamPossibility=0.0;
 XMLparam.SwitchXMLPostMPFrame=10;
 XMLparam.ProcessFolder=ProcessFolder;
@@ -46,32 +50,39 @@ XMLTable=[];
 PSTHmap=[];
 CountExp=1;
 TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
+XMLparam.LoadGPL=0;
 [tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam2);
-
-
-PVparam.maxFrame=nPlane*frameRepetition;
-PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
-% PVparam.InterMPFrame=[40 60 30 20]*nPlane;
-PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
-PVparam.nPlane=nPlane;
-
-
-PV_LinkExcuteXML(XMLparam,PVparam,confSet);
+CountExp=CountExp+1
 
 
 
+% PVparam.maxFrame=nPlane*frameRepetition;
+% PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
+% % PVparam.InterMPFrame=[40 60 30 20]*nPlane;
+% PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
+% PVparam.nPlane=nPlane;
+% 
 
-TestFile='TSeries-11132024-0936-010';
+% PV_LinkExcuteXML(XMLparam,PVparam,confSet);
+
+
+
+% DataFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\Data\'
+TestFile='TSeries-11142024-0927-028';
 
 
 close all
-StartingFrame=204;
+StartingFrame=120-1;
 IndNeedTiff=[StartingFrame:StartingFrame+3];
+
+% IndNeedTiff=[StartingFrame StartingFrame+2:StartingFrame+2+2];
+
 IndNeedBin=[StartingFrame:StartingFrame+3]
+FrameTotal=frameRepetition*3;
+% FrameTotal=1650
 for j=1:length(IndNeedTiff)
     Ind=IndNeedTiff(j);
     IndBin=IndNeedBin(j);
-FrameTotal=frameRepetition*3;
 
 TiffPath=[DataFolder TestFile '\'];
 BinPath=[DataFolder TestFile '*.bin'];
@@ -132,15 +143,15 @@ end
 % sum(sum(sum(abs(MeanTif-MeanBin))))
 end
 
-sum(sum(sum(abs(MeanTif(:,:,3)-MeanBin(:,:,1)))))
+% sum(sum(sum(abs(MeanTif(:,:,3)-MeanBin(:,:,1)))))
 
-
-40
-
-59
-
-62
-
-
+% 
+% 40
+% 
+% 59
+% 
+% 62
+% 
+% 
 
 
