@@ -102,7 +102,6 @@ end
 
          filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
          completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
-         completeFileName = [filePath MarkPointList(ixml).name(1:end-4)];
 
     % open binary file for writing
          fileID = fopen([completeFileName '.bin'], 'wb');
@@ -134,40 +133,41 @@ end
 %          loopTimes      = [];
          droppedData    = [];
 
+          SLMChecking=0;
+          ZeroSampleSMLCount=0;
+          SampleSML=zeros(4,1);
+
 
     % get data, do conversion, save to file
         while running   
         % start timer
 %               tic;    
-          pause(0.02);
 
         % get raw data stream (timer = ~20ms)
               [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
 
         % append new data to any remaining old data
                buffer = [buffer samples(1:numSamplesRead)];
-        IncludedInd=[];
+               IncludedInd=[];
         % extract full frames
-        numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+               numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
         %when exactly arrive at the break point, wait a little bit and get
         %more data, this is specific for MP synchronized with Zseries recording.
-        if (framesCounter + numWholeFramesGrabbed)==BreakPointFrame
-            pause(0.02);
-            [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
-             % append new data to any remaining old data
-            buffer = [buffer samples(1:numSamplesRead)];
-            % extract full frames
-            numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-        end
+%         if (framesCounter + numWholeFramesGrabbed)==BreakPointFrame
+%             pause(0.02);
+%             [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+%              % append new data to any remaining old data
+%             buffer = [buffer samples(1:numSamplesRead)];
+%             % extract full frames
+%             numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+%         end
 
-        IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
-        toProcess = buffer(IncludedInd);
+             IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
+             toProcess = buffer(IncludedInd);
 
         % clear data from buffer
 %         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
-        buffer(IncludedInd)=[];
-        RestFrameN=length(buffer)/numWholeFramesGrabbed/totalSamplesPerFrame;
-
+             buffer(IncludedInd)=[];
 
 
         % process the acquired frames (timer = ~5ms)
@@ -179,6 +179,7 @@ end
                    BreakYet=1;
                    buffer=[];
                    CheckRedundant=1;
+                   SLMChecking=1;
 %                    disp(['Hi' num2str(frameNum) ' ' num2str(framesCounter)])     
                    if framesCounter==BreakPointFrame
                       LogMessage(LogfileID,'framesCounter just match BreakPointFrame, checking if Tiff and Bin match!');
@@ -222,12 +223,11 @@ end
 
                          break;
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
-                         disp(['Keep frame ' num2str(frameNum)])
                          LogMessage(LogfileID,['Keep frame ' num2str(frameNum)]);
                          CheckRedundant=1;
                          if i == numWholeFramesGrabbed
                               CheckRedundant=0;
-                              LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
+%                               LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
                          end      
                       else
 
@@ -252,6 +252,25 @@ end
                end
           end
 
+
+          if SLMChecking==1
+            while SLMChecking==1
+                 pause(0.04);
+                 [~, SampleTemp] = pl.ReadRawDataStream(0); 
+               
+                 if SampleTemp==0
+                      ZeroSampleSMLCount=ZeroSampleSMLCount+1;
+                 else
+                      ZeroSampleSMLCount=0;
+                 end
+             % append new data to any remaining old data
+                if ZeroSampleSMLCount>=3
+                   LogMessage(LogfileID,[num2str(ZeroSampleSMLCount) ' iterations without samples during SLM period ']);
+                   buffer=[];
+                   SLMChecking=0;
+                end
+            end
+          end 
         % display progress
 %         fprintf(repmat('\b', 1, length(msg)));  % delete previous 'message'
              msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];

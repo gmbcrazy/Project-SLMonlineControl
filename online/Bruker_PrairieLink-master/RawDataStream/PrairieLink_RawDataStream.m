@@ -125,13 +125,13 @@ function ClickStart(h, e)
     droppedData    = [];
 
     % preview image window (only use for debugging!)
-    preview = 0;
-    if preview
-        figure(2);
-        Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
-        FrameCounter = title('');
-        axis off; axis square; axis tight;
-    end
+    preview = 1;
+%     if preview
+%         figure(2);
+%         Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
+%         FrameCounter = title('');
+%         axis off; axis square; axis tight;
+%     end
 
     % get data, do conversion, save to file
     icount=1;
@@ -156,25 +156,25 @@ function ClickStart(h, e)
 %         buffer = buffer((numWholeFramesGrabbed*totalSamplesPerFrame)+1:end);
         buffer(IncludedInd)=[];
 
-%         disp([num2str(length(buffer)) ' of samples detected'])
+        disp([num2str(length(buffer)) ' of samples detected'])
 %         Visulize samples recorded in each loop, only use for debugging!
 %         Lu Zhang
-%         figure(3);
-%         subplot(3,1,1)
-%         hold on;plot(icount,numSamplesRead,'r.')
-%         subplot(3,1,2)
-%         hold on;plot(icount,length(buffer),'r.')
-% 
-%         subplot(3,1,3)
-%         if exist('numWholeFramesGrabbed')
-% %         hold on;plot(icount,numWholeFramesGrabbed,'b.')
-%         icount=icount+1;
-% 
-%            hold on;plot(loopCounter,frameNum,'g.')
-%            hold on;plot(loopCounter,framesCounter,'r.')
-% 
-% 
-%         end
+        figure(3);
+        subplot(3,1,1)
+        hold on;plot(icount,numSamplesRead,'r.')
+        subplot(3,1,2)
+        hold on;plot(icount,length(buffer),'r.')
+
+        subplot(3,1,3)
+        if exist('numWholeFramesGrabbed')
+%         hold on;plot(icount,numWholeFramesGrabbed,'b.')
+        icount=icount+1;
+
+           hold on;plot(loopCounter,frameNum,'g.')
+           hold on;plot(loopCounter,framesCounter,'r.')
+
+
+        end
        
         % process the acquired frames (timer = ~5ms)
         if numWholeFramesGrabbed > 0

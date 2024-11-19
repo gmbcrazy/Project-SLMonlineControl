@@ -103,13 +103,13 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
     ixml=1;
     loadxml=1;
     BreakPointFrame=CumInterMPFrame(ixml);
-
+    SLMChecking=0;
 
     
     while running   
         % start timer
 %               tic;
-          pause(0.02);
+%           pause(0.02);
 
             if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
@@ -123,9 +123,28 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
                BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
                loadxml=0;
                BreakYet=0;
+               SLMChecking=0;
                framesCounter=frameNum;
+               ZeroSampleSMLCount=0;
+               SampleSML=zeros(4,1);
                ixml=ixml+1;
             end
+
+%         %when exactly arrive at the break point, wait a little bit and get
+%         %more data, this is specific for MP synchronized with Zseries recording.
+%         if BreakPointFrame<CumInterMPFrame(end-1)&&(framesCounter + numWholeFramesGrabbed)==BreakPointFrame
+%             pause(0.02);
+%             [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
+%              % append new data to any remaining old data
+%             buffer = [buffer samples(1:numSamplesRead)];
+%             % extract full frames
+%             numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
+%         end
+
+        %when exactly arrive at the break point, wait a little bit and get
+%         %more data, this is specific for MP synchronized with Zseries recording.
+
+
         % get raw data stream (timer = ~20ms)
         [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
 
@@ -134,17 +153,6 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
         IncludedInd=[];
         % extract full frames
         numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-
-        %when exactly arrive at the break point, wait a little bit and get
-        %more data, this is specific for MP synchronized with Zseries recording.
-        if BreakPointFrame<CumInterMPFrame(end)&&(framesCounter + numWholeFramesGrabbed)==BreakPointFrame
-            pause(0.02);
-            [samples, numSamplesRead] = pl.ReadRawDataStream(0); 
-             % append new data to any remaining old data
-            buffer = [buffer samples(1:numSamplesRead)];
-            % extract full frames
-            numWholeFramesGrabbed = floor(length(buffer)/totalSamplesPerFrame);
-        end
 
         IncludedInd=1:numWholeFramesGrabbed*totalSamplesPerFrame;
         toProcess = buffer(IncludedInd);
@@ -162,6 +170,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
                    BreakYet=1;
                    buffer=[];
                    CheckRedundant=1;
+                   SLMChecking=1;
                    loadxml=1;
                    if BreakPointFrame<CumInterMPFrame(end)&&framesCounter==BreakPointFrame
                       LogMessage(LogfileID,'framesCounter just match BreakPointFrame, checking if Tiff and Bin match!');
@@ -188,14 +197,13 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 %                          ixml=ixml+1;
                          break;                                                  %%Redundant frame is found, do not write data to frame, break the loop of updating.
                       elseif CheckRedundant==1 && frameNum<=BreakPointFrame
-                         disp(['Keep frame ' num2str(frameNum)])
                          LogMessage(LogfileID,['Keep frame ' num2str(frameNum)]);
                          CheckRedundant=1;
                          if i == numWholeFramesGrabbed
                               CheckRedundant=0;
-                              LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
+%                               LogMessage(LogfileID,['No Redundnant detected, and stop checking breakpoint']);
                          end      
-                      else
+                      else 
 
                       end
 
@@ -215,9 +223,28 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 %                         xlabel('1st frame after breakpoint');
 %                      end
 
+
                end
           end
 
+          if BreakPointFrame<=CumInterMPFrame(end)&&SLMChecking==1
+            while SLMChecking==1
+                 pause(0.04);
+                 [~, SampleTemp] = pl.ReadRawDataStream(0); 
+               
+                 if SampleTemp==0
+                      ZeroSampleSMLCount=ZeroSampleSMLCount+1;
+                 else
+                      ZeroSampleSMLCount=0;
+                 end
+             % append new data to any remaining old data
+                if ZeroSampleSMLCount>=3
+                   LogMessage(LogfileID,[num2str(ZeroSampleSMLCount) ' iterations without samples during SLM period ']);
+                   buffer=[];
+                   SLMChecking=0;
+                end
+            end
+          end 
 
              msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
              loopCounter = loopCounter + 1;
@@ -239,13 +266,17 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
           end
          if preview==1
             figHandle=figure(2);
+            subplot(1,3,1)
+            hold on;
+            plot(loopCounter,numSamplesRead,'r.')
+            ylabel('numSamples');
             subplot(1,3,2)
             hold on;plot(loopCounter,numWholeFramesGrabbed,'r.')
             ylabel('numWholeFramesGrabbed')
             subplot(1,3,3)
             if exist('numWholeFramesGrabbed')
                hold on;plot(loopCounter,frameNum,'g.')
-%                hold on;plot(loopCounter,framesCounter,'r.')
+               hold on;plot(loopCounter,framesCounter,'r.')
 %                plot(loopCounter,BreakPointFrame,'y.')
             end
             set(gca,'ylim',[0 maxFrame+3],'ytick',[0 maxFrame])
