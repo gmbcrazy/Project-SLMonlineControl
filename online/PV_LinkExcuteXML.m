@@ -90,7 +90,7 @@ end
     for ixml=1:length(MarkPointList) %%Randomized the MarkPoint Stimulation Order
         % ixml=StimList(jxml);
     % flipEvenRows         = 0;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
-        close all
+         close all
          BreakYet=0;
          FlushYet=0;
          CheckRedundant=0;
@@ -337,8 +337,7 @@ end
          % % pause(InterTrialDelay(ixml));
         if CalPSTH==1
            PSTHmap(:,:,:,ixml)=PSTHmapCal([completeFileName '.bin'],PSTHparam,confSet);
-
-         end
+        end
 
 
     %% Update file name for next recording trial

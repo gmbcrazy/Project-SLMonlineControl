@@ -7,7 +7,7 @@ confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
 % DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\NoAnimalTest\11182024\';
+ProcessFolder='E:\LuSLMOnlineTest\NoAnimalTest\11202024\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
@@ -36,7 +36,7 @@ XMLparam.RoundID=1;
 
 PVparam2=PVparam;
 PVparam2.nPlane=nPlane;
-PVparam2.InterMPRepetition=[20 60 40 30 60 20];
+PVparam2.InterMPRepetition=[30 50 40 60 30 20 40];
 XMLparam.ShamPossibility=0.0;
 XMLparam.SwitchXMLPostMPFrame=10;
 XMLparam.ProcessFolder=ProcessFolder;
@@ -51,8 +51,8 @@ PVparam2.nPlane=nPlane;
 XMLTable=[];
 PSTHmap=[];
 CountExp=1;
-TotalGroupIDs=[1 2];   %% All possible Functional Group IDs.
-XMLparam.LoadGPL=0;
+TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
+XMLparam.LoadGPL=1;
 [tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam2);
 CountExp=CountExp+1
 
