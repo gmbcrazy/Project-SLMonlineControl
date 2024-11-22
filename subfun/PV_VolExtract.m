@@ -18,7 +18,11 @@ function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet)
 
 % Read XML configuration and trial data.
 tic
-caTrials=XMLread_SLM(confSet.save_path0,1);
+if ischar(confSet)
+   caTrials=XMLread_SLM(confSet,1);
+else
+   caTrials=XMLread_SLM(confSet.save_path0,1);
+end
 toc
 numPlanes=length(confSet.ETL);
 TSall=caTrials.FrameTS.relativeTime;

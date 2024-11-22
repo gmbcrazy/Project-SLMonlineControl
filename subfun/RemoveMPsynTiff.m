@@ -1,4 +1,4 @@
-function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,cycleID,planeID,files,StimID,StimGPLInd] = ExpInfoTiffIndiFolder(folderPath)
+function RemoveFiles = RemoveMPsynTiff(folderPath)
     % AnalyzeImagingSeries - Analyzes 3D imaging time series and outputs
     %                        total repetitions and frame IDs after stimuli.
     %
@@ -57,6 +57,10 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
         %   disp('No match found');
         end
     end
+
+
+
+
     cycleID=cycleNumbers;
     planeID=planeNumbers;
     cycleNumbers=unique(cycleNumbers);
@@ -81,9 +85,9 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
         xmlFileName = MPxmlFiles(i).name;
         xmlTokens = regexp(xmlFileName, 'Cycle(\d{5})', 'tokens');
         if ~isempty(xmlTokens)
-            markCycle = str2double(xmlTokens{1}{1});
+            markCycle(i) = str2double(xmlTokens{1}{1});
             % Find the next cycle number after the MarkPoints cycle
-            nextCycle = min(find(cycleNumbers > markCycle));
+            nextCycle = min(find(cycleNumbers > markCycle(i)));
             % if ~isempty(nextCycle)
             %     % Find the corresponding file for the next cycle and plane 001
             %     nextFile = sprintf('TSeries-%%*%05d_Cy*_%03d.ome.tif', nextCycle, uniquePlanes(1));
@@ -93,24 +97,27 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
             %     end
             % end
         end
-        framesAfterStimuli=[framesAfterStimuli;nextCycle];
-        % StimuliPower=[StimuliPower;MPxml2yaml([MPxmlFiles(i).folder '\' MPxmlFiles(i).name])];
-        
-        [tbl,StimID{i},StimPowerTemp]=MPxml2Table([MPxmlFiles(i).folder '\' MPxmlFiles(i).name]);
-        StimGPLInd{i}=tbl.Index;
-        StimuliPower=[StimuliPower;StimPowerTemp];
-        
         
     end
+
+    SynFileInd=find(ismember(cycleID,markCycle)==1);
+    RemoveFiles=files(SynFileInd);
+    if isempty(SynFileInd)
+       disp('No Imaging is found synchronized with MarkPoints')
+    else
+       disp([num2str(length(SynFileInd)) 'frames from ' num2str(length(SynFileInd)/numPlanes) 'reptitions of ' num2str(numPlanes) ' were found. Remove them for offline Suite2p Processing']);
+       for i=1:length(SynFileInd)
+           delete([RemoveFiles(i).folder '\' RemoveFiles(i).name]);
+       end
+    end
+
+
+
     if isempty(framesAfterStimuli)
        framesAfterStimuli=0;
     end
     if isempty(StimuliPower)
        StimuliPower=NaN;
-    end
-
-    if ischar(StimuliPower)
-       StimuliPower=str2num(StimuliPower);
     end
 
 

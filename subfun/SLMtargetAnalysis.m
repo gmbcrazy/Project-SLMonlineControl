@@ -50,7 +50,12 @@ DataList = outerjoin(TiffTable, SessInfo, 'Keys', 'FileID', 'MergeKeys', true);
 DataList(isnan(DataList.totalRepetitions),:)=[];
 elseif exist('BinTable')
 
-DataList = outerjoin(TiffTable, BinTable, 'Keys', 'FileID', 'MergeKeys', true);
+       if ~isempty(BinTable)
+          DataList = outerjoin(TiffTable, BinTable, 'Keys', 'FileID', 'MergeKeys', true);
+       else
+          DataList=TiffTable;
+       end
+
 else
 
 

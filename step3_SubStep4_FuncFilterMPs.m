@@ -5,6 +5,7 @@ MinInterVal = 20;
 maxLag = 10;
 deltaFoF=F2deltaFoF(double(CaData.F),double(CaData.Fneu),double(confSet.fs));
 NeuroData=AmpNormalizeRow(deltaFoF',[0 100])';
+NeuroDataCell=NeuroData(:,iscell);
 
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
@@ -13,7 +14,7 @@ end
 clear rStim
 for iCell = 1:size(iscell, 1)
     iPlane=CaData.CellPlaneID(iCell);
-    [c, lags] = xcorr(NeuroData(:,iscell(iCell)), fStim(:,iPlane), maxLag, 'coeff');
+    [c(:,iCell), lags] = xcorr(NeuroData(:,iscell(iCell)), fStim(:,iPlane), maxLag, 'coeff');
     PostI = find(lags >= 0);
     [~, i1] = max(abs(c(PostI)));
     rStim(iCell, 1) = c(PostI(i1));
@@ -46,6 +47,12 @@ else
    NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
 end
 
+
+% plot(lags,c(:,rCenterIStim))
+% figure;
+% plot(NeuroDataCell(:,rCenterIStim));
+% hold on;
+% plot(fStim(:,1),'color',[0.4 0.4 0.4])
 
 
 IncludeCellFunFilter=[rCenterISpeed(:);rCenterIStim(:);NonFunctionI(:)];
