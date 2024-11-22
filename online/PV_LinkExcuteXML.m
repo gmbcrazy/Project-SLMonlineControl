@@ -135,7 +135,6 @@ end
 
           SLMChecking=0;
           ZeroSampleSMLCount=0;
-          SampleSML=zeros(4,1);
 
 
     % get data, do conversion, save to file

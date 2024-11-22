@@ -25,7 +25,53 @@ import time
 import FastBin_Suite2p as FBS
 # Iterate over X and Y values and search for matching files
 #PointFile=[None]*len(PointI_values)
-def NeuroFromBin(matching_files,statCell,plane_idx,SingL,ops0):
+
+
+## This is used for getting neural signals from 1 bin file, including multiple Zseries/SLM trials    <<<<<<<-----------------------------------requried test.  
+def NeuroFromBin(matching_file,statCell,Cellplane,SingL,ops0):
+    Fsig=np.zeros((len(statCell),SingL))
+    DeltaF=np.zeros((len(statCell),SingL))  
+    spks=np.zeros((len(statCell),SingL))
+    nplanes=ops0['nplanes']
+    Invalid=[]
+    maxIneed=np.max(SingL)
+    rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=matching_file)
+    
+    PlaneAll=np.unique(Cellplane)
+
+    for planeID in PlaneAll:
+         plane_data = rawBin[range(0,SingL*nplanes,nplanes),:,:]
+         Ind=np.where(Cellplane == planeID)[0]
+         statCelltemp=statCell[Ind]
+         stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCelltemp, f_reg=plane_data,f_reg_chan2 = plane_data,ops=ops0)
+         dF = F.copy() - ops0['neucoeff']*Fneu
+         dF = suite2p.extraction.preprocess(F=dF, baseline=ops0['baseline'],win_baseline=ops0['win_baseline'],sig_baseline=ops0['sig_baseline'],fs=ops0['fs'],prctile_baseline=ops0['prctile_baseline'])
+         spksTemp = suite2p.extraction.oasis(F=dF, batch_size=ops0['batch_size'], tau=ops0['tau'], fs=ops0['fs'])
+         Fsig[:,Ind]=np.double(F)
+         DeltaF[:,Ind]=np.double(dF)
+         spks[:,Ind]=np.double(spksTemp)
+    
+    return Fsig, DeltaF, spks
+    #preStim=range(0,10)
+   # print(PSTH.shape)
+    
+#baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
+#Response=np.mean(PSTH,axis=1)
+#print(Response.shape)
+#baseLine=np.tile(baseLine.T,(SingL,1)).T
+#print(baseLine.shape)
+#plt.imshow(np.mean(PSTH,axis=1)-baseLine,cmap='seismic')
+#np.shape(Response-baseLine)
+
+
+#fig, ax = plt.subplots(1,3)
+#ax[0].imshow(baseMap[:,:,0],cmap='seismic')
+
+
+
+
+## This is used for getting neural signals from multiple bin file, each bin file associated 1 SLM trial , <<<<<<<-----------------------------------requried correction, plane_idx data is used, but cells in statCell could be from other plane.  
+def NeuroFromMultiBins(matching_files,statCell,plane_idx,SingL,ops0):
     
     TrialNum=len(matching_files)
     Fsig=np.zeros((len(statCell),SingL,TrialNum))
@@ -248,7 +294,7 @@ def plotCellCenter3DGroup(cellCenterGroup, Radius, *args):
     if len(args) < 1:
         colorCell = plt.cm.jet(range(len(cellCenterGroup)))
         LineWidth = 1
-    elif len(args) == 1:
+    elif len(args) == 1: 
         colorCell = args[0]
         LineWidth = 1
     elif len(args) == 2:
