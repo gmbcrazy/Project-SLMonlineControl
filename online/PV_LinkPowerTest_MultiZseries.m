@@ -39,45 +39,47 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      ProcessFolder=XMLparam.ProcessFolder;
 
      Laser=XMLparam.Laser;
+
      Round=XMLparam.RoundID;
      ProcessFolder=XMLparam.ProcessFolder;
 
      %%Define the Cells needs to be test for this Tseries excution;
      PointList=XMLparam.PointList;
-     
+     if length(Laser)==1&&length(PointList)>1
+        Laser=repmat(Laser,1,length(PointList));
+     end
+
 
      % MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point*.xml']);
-     MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser*Point*.xml']);
+%      MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser*Point*.xml']);
+     for iP=1:length(PointList)
+         MarkPointList(iP)=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser(iP)) 'GPoint' num2str(PointList(iP)) '.xml']);
+     end
      
 
      [roundIDs, AllpointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern);
-     MarkPointList=MarkPointList(ismember(AllpointIDs,PointList));
+%      MarkPointList=MarkPointList(ismember(AllpointIDs,PointList));
 %      [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern);
      [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
      
      PVparam.ZRepetition=31;
      Ziteration=length(PointList)+1;   %%Noted that the 1st Z is not syn with MP.
-     InterMPFrame=Ziteration*PVparam.ZRepetition*PVparam.nPlane;
-     CumInterMPFrame=cumsum(InterMPFrame);
-     StartMPFrame=[0 CumInterMPFrame(1:end-1)];
-     maxFrame=PVparam.maxFrame;
-
-
-
+%      InterMPFrame=Ziteration*PVparam.ZRepetition*PVparam.nPlane;
      InterMPFrame=PVparam.InterMPRepetition*PVparam.nPlane;
      CumInterMPFrame=cumsum(InterMPFrame);
      StartMPFrame=[0 CumInterMPFrame(1:end-1)];
      maxFrame=PVparam.maxFrame;
 
 
+
     %  ShamPossibility=XMLparam.ShamPossibility;
     %  ExXMLList = generateExecutableList(MarkPointList, PVparam.TrialMPSwitch, XMLparam.ShamPossibility);
-    % [groupIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
-     % ExgroupIDs=[];
+    % [roundIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
+     % ExroundIDs=[];
      % ExlaserPowers=[];
 %     ExXMLList
     XMLTable=[roundIDs(:) pointIDs(:) laserPowers(:)];
-    % ExGPLPointList=GPLPointList(groupIDs);
+    % ExGPLPointList=GPLPointList(roundIDs);
 
 
     preview=0;
@@ -141,14 +143,14 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
             if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
                if ixml<=length(CumInterMPFrame)-1
-                  ExgroupIDs(ixml)=groupIDs(ixml);
-                  ExlaserPowers(ixml)=laserPowers(ixml);
+                  %ExroundIDs(ixml)=roundIDs(ixml);
+                  %ExlaserPowers(ixml)=laserPowers(ixml);
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
                   pause(0.05);
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
                   pause(0.01);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
-%                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
+%                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExroundIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
                   LogMessage(LogfileID,['Load' [MarkPointList(ixml).gplname ' ' MarkPointList(ixml).name] ' at ' num2str(frameNum)]);   
 
                end
@@ -496,18 +498,18 @@ function [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XML
 end
 
 
-function [groupIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern)
+function [roundIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern)
     % PatterExtract Extracts round IDs, point IDs, and laser powers from a list of filenames.
     % Inputs:
     %   MarkPointList - A structure array containing file information, typically from a dir() call.
     %   XMLpattern - A regular expression pattern designed to extract specific numerical IDs from the filenames.
     % Outputs:
-    %   groupIDs - An array containing point identifiers.
+    %   roundIDs - An array containing point identifiers.
     %   laserPowers - An array of laser power values extracted from file names.
 
     % Initialize arrays to hold extracted data
 %     laserPowers = zeros(length(MarkPointList), 1);
-    groupIDs = zeros(length(MarkPointList), 1);
+    roundIDs = zeros(length(MarkPointList), 1);
 
     % Iterate through each file in the MarkPointList
     for ixml = 1:length(MarkPointList)
@@ -521,12 +523,12 @@ function [groupIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern
         if ~isempty(tokens)
             % Convert the captured strings to numbers and store them in the respective arrays
 %             laserPowers(ixml) = str2double(tokens{1}{1});
-            groupIDs(ixml) = str2double(tokens{1}{1});
+            roundIDs(ixml) = str2double(tokens{1}{1});
         end
     end
 
     % Round the extracted numeric values to ensure they are integers
-    groupIDs = round(groupIDs);
+    roundIDs = round(roundIDs);
 end
 
 
