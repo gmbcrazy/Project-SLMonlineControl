@@ -10,7 +10,7 @@ ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 SpiralSizeUM: 15
 SpiralRevolution: 3
 Repetition: 8 #Pulse Number of SLM stimuli
-UncagingLaserPower: 1.5 1.6 1.7 #SLM power LevelTest
+UncagingLaserPower: 1.4 1.5 1.6 #SLM power LevelTest
 
 # SLM Nontargets
 NumNonTarget: 20 #Total Num. of NonCell-targets
@@ -24,3 +24,8 @@ RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
 nchannels: 1 #
 fs: 6.9  #sampling rate for 1 Zseries
 tau: 1.3  #suite2p parameters
+
+
+# SLM Power customarization
+Ziteration: 11      # NumTrialTseries-1 trials repeated in Single Tseries; As the 1st Zseries is not synchornized with MP. So Actual trials Need to substract 1;
+ZRepetition: 30      # number of repetition in each Zseries

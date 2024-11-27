@@ -3,6 +3,7 @@
 
 # In[ ]:
 import suite2p
+import cv2
 from suite2p.registration import register
 from suite2p.registration import rigid
 from suite2p.io import tiff
@@ -13,12 +14,9 @@ from scipy.signal import convolve, convolve2d
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
-import os
 import glob
 ##python -m pip install -U scikit-image
 from skimage import measure
-from natsort import natsorted
 from collections import defaultdict
 import re
 import time
@@ -27,94 +25,73 @@ import FastBin_Suite2p as FBS
 #PointFile=[None]*len(PointI_values)
 
 
-## This is used for getting neural signals from 1 bin file, including multiple Zseries/SLM trials    <<<<<<<-----------------------------------requried test.  
-def NeuroFromBin(matching_file,statCell,Cellplane,SingL,ops0):
-    Fsig=np.zeros((len(statCell),SingL))
-    DeltaF=np.zeros((len(statCell),SingL))  
-    spks=np.zeros((len(statCell),SingL))
-    nplanes=ops0['nplanes']
-    Invalid=[]
-    maxIneed=np.max(SingL)
-    rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=matching_file)
+## This is used for getting neural signals from 1 bin file, including multiple Zseries/SLM trials 
+def NeuroFromBin(matching_file,statCell,Cellplane,SingL,ops1,DelFrameRep,refMeanImg=None):
+    """
+    Extract neural signals from a bin file, including multiple Z-series or SLM trials.
+
+    Parameters:
+    - matching_file: The file path for the bin file containing imaging data.
+    - statCell: A list of dictionaries containing ROI information for each cell.
+    - Cellplane: An array indicating which plane each cell belongs to.
+    - SingL: The total number of imaging frames per trial.
+    - ops0: A dictionary containing various options and parameters for Suite2p extraction.
+    - DelFrameRep: A list of frame indices to be deleted from the imaging sequence.
+    - refMeanImg: (optional) A reference image for alignment. If provided, pixel shifts are calculated.
+
+    Returns:
+    - Fsig: The fluorescence signals for each cell.
+    - DeltaF: The delta F signals for each cell.
+    - spks: The inferred spike signals for each cell.
+    """
+        # Calculate the effective number of frames after removing repetitions
+        
+    DataL=SingL-len(DelFrameRep)
+    Fsig=np.zeros((len(statCell),DataL))
+    DeltaF=np.zeros((len(statCell),DataL))  
+    spks=np.zeros((len(statCell),DataL))
+    nplanes=ops1['nplanes']
     
+
+    rawBin, FramePerPlane, TotalFrameNeed=FBS.LoadBin(matching_file,ops1)
     PlaneAll=np.unique(Cellplane)
 
     for planeID in PlaneAll:
-         plane_data = rawBin[range(0,SingL*nplanes,nplanes),:,:]
-         Ind=np.where(Cellplane == planeID)[0]
-         statCelltemp=statCell[Ind]
-         stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCelltemp, f_reg=plane_data,f_reg_chan2 = plane_data,ops=ops0)
-         dF = F.copy() - ops0['neucoeff']*Fneu
-         dF = suite2p.extraction.preprocess(F=dF, baseline=ops0['baseline'],win_baseline=ops0['win_baseline'],sig_baseline=ops0['sig_baseline'],fs=ops0['fs'],prctile_baseline=ops0['prctile_baseline'])
-         spksTemp = suite2p.extraction.oasis(F=dF, batch_size=ops0['batch_size'], tau=ops0['tau'], fs=ops0['fs'])
-         Fsig[:,Ind]=np.double(F)
-         DeltaF[:,Ind]=np.double(dF)
-         spks[:,Ind]=np.double(spksTemp)
+         # Extract data for the current plane
+        plane_data = rawBin[range(planeID,SingL*nplanes,nplanes),:,:]
+        plane_data = np.delete(plane_data, DelFrameRep, axis=0)
     
-    return Fsig, DeltaF, spks
-    #preStim=range(0,10)
+            # If a reference image is provided, calculate the pixel shift
+        yxShift=np.zeros((3,2))
+        if refMeanImg is not None:
+           current_mean_img = np.mean(plane_data, axis=0)
+           yxShift[planeID,:] = Pixel_Shift(refMeanImg[planeID, :, :], current_mean_img, 1)
+           if not np.all(yxShift == 0):
+             # Apply reverse pixel shift to the plane data
+              plane_data = apply_affine_transform_to_all_frames(plane_data, -yxShift[planeID,:])
+
+
+        Ind=np.where(Cellplane == planeID)[0]
+        statCelltemp=statCell[Ind]
+        stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCelltemp, f_reg=plane_data,f_reg_chan2 = plane_data,ops=ops1)
+        dF = F.copy() - ops1['neucoeff'] * Fneu
+        dF = suite2p.extraction.preprocess(
+            F=dF,
+            baseline=ops1['baseline'],
+            win_baseline=ops1['win_baseline'],
+            sig_baseline=ops1['sig_baseline'],
+            fs=ops1['fs'],
+            prctile_baseline=ops1['prctile_baseline']
+        )
+        spksTemp = suite2p.extraction.oasis(F=dF, batch_size=ops1['batch_size'], tau=ops1['tau'], fs=ops1['fs'])
+        Fsig[Ind,:]=np.double(F)
+        DeltaF[Ind,:]=np.double(dF)
+        spks[Ind,:]=np.double(spksTemp)
+
+    return Fsig, DeltaF, spks,yxShift
+   #preStim=range(0,10)
    # print(PSTH.shape)
     
-#baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
-#Response=np.mean(PSTH,axis=1)
-#print(Response.shape)
-#baseLine=np.tile(baseLine.T,(SingL,1)).T
-#print(baseLine.shape)
-#plt.imshow(np.mean(PSTH,axis=1)-baseLine,cmap='seismic')
-#np.shape(Response-baseLine)
-
-
-#fig, ax = plt.subplots(1,3)
-#ax[0].imshow(baseMap[:,:,0],cmap='seismic')
-
-
-
-
-## This is used for getting neural signals from multiple bin file, each bin file associated 1 SLM trial , <<<<<<<-----------------------------------requried correction, plane_idx data is used, but cells in statCell could be from other plane.  
-def NeuroFromMultiBins(matching_files,statCell,plane_idx,SingL,ops0):
-    
-    TrialNum=len(matching_files)
-    Fsig=np.zeros((len(statCell),SingL,TrialNum))
-    DeltaF=np.zeros((len(statCell),SingL,TrialNum))  
-    spks=np.zeros((len(statCell),SingL,TrialNum))
-    nplanes=ops0['nplanes']
-    Invalid=[]
-    maxIneed=np.max(SingL)
-
-    for Ind,Trial in enumerate(matching_files):
-        rawBin = suite2p.io.BinaryFile(Ly=ops0['Ly'],Lx=ops0['Lx'], filename=Trial)
-        if maxIneed*nplanes>rawBin.shape[0]:
-           Invalid.append(Ind)
-           print(Trial+' is too short')
-           continue
-        plane_data = rawBin[range(0+plane_idx,SingL*nplanes,nplanes),:,:]
-        stat_after_extraction, F, Fneu, F_chan2, Fneu_chan2 = suite2p.extraction_wrapper(statCell, f_reg=plane_data,f_reg_chan2 = plane_data,ops=ops0)
-        dF = F.copy() - ops0['neucoeff']*Fneu
-        dF = suite2p.extraction.preprocess(F=dF, baseline=ops0['baseline'],win_baseline=ops0['win_baseline'],sig_baseline=ops0['sig_baseline'],fs=ops0['fs'],prctile_baseline=ops0['prctile_baseline'])
-        spksTemp = suite2p.extraction.oasis(F=dF, batch_size=ops0['batch_size'], tau=ops0['tau'], fs=ops0['fs'])
-        Fsig[:,:,Ind]=np.double(F)
-        DeltaF[:,:,Ind]=np.double(dF)
-        spks[:,:,Ind]=np.double(spksTemp)
-    #print(Ind)
-    Fsig=np.delete(Fsig,Invalid,axis = 2)
-    DeltaF=np.delete(DeltaF,Invalid, axis = 2)
-    spks=np.delete(spks,Invalid, axis = 2)
-    return Fsig, DeltaF, spks
-    #preStim=range(0,10)
-   # print(PSTH.shape)
-    
-#baseLine=np.mean(np.mean(PSTH[preStim,:],axis=1),axis=0)
-#Response=np.mean(PSTH,axis=1)
-#print(Response.shape)
-#baseLine=np.tile(baseLine.T,(SingL,1)).T
-#print(baseLine.shape)
-#plt.imshow(np.mean(PSTH,axis=1)-baseLine,cmap='seismic')
-#np.shape(Response-baseLine)
-
-
-#fig, ax = plt.subplots(1,3)
-#ax[0].imshow(baseMap[:,:,0],cmap='seismic')
-
 def BinList_PSTHHeatMap(MultiBinFileList,BaselineInd,ResponseInd,ops0):
 
 
@@ -194,10 +171,6 @@ def plotCellCenter(ax, Ly, cellCenter, Radius, colorCell, LineWidth):
             ax.add_patch(circle)
             #plt.show()
 
-
-
-
-
 # Example usage:
 # cellCenter = np.array([[x1, y1], [x2, y2], ...])
 # Radius = np.array([r1, r2, ...])
@@ -246,11 +219,6 @@ def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
    # ax.set_ylabel('Y-axis')
     ##ax.set_zlabel('Z-axis')
    # ax.set_title('Cell Centers with Circles (3D)')
-
-
-
-
-
 
 def PointLaser_files(file_names):
     # Regular expression to extract the point and laser level from the file name
@@ -621,8 +589,6 @@ def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=
     return Pixel_ShiftAll,corrValue,fileList
 
 
-
-
 def smooth(data, smooth):
     if not isinstance(data, np.ndarray):
         raise ValueError("Data must be a numpy array.")
@@ -675,3 +641,55 @@ def smooth(data, smooth):
             smoothed = convolve2d(data, np.outer(v_smoother, h_smoother), mode='same')
 
         return smoothed
+
+
+def apply_affine_transform_to_all_frames(frames, yxShift, planeID=None):
+    """
+    Apply the same affine transform to all frames in a 3D stack.
+
+    Parameters:
+    - frames: A 3D numpy array of shape (n_frames, height, width).
+    - yxShift: A 2D array with shape (n_planes, 2), where each row represents the [y_shift, x_shift] for each plane. If planeID is None, yxShift is expected to be a 1x2 vector.
+    - planeID: (optional) The plane ID that determines which shift to apply. If None, yxShift is used as a single shift value.
+
+    Returns:
+    - Transformed frames as a 3D numpy array of the same shape.
+    """
+    # Determine the shift values
+    if planeID is not None:
+        shift_y, shift_x = yxShift[planeID]
+    else:
+        shift_y, shift_x = yxShift  # Assume yxShift is a 1x2 vector if planeID is None
+
+    # Define the transformation matrix for OpenCV's warpAffine
+    correctShift_mat = np.array([
+        [1, 0, shift_x],  # Note the order: OpenCV uses (x, y) not (y, x)
+        [0, 1, shift_y]
+    ], dtype=np.float32)
+
+    # Invert the sign to make sure the direction matches `stat_pixel_shift`
+    correctShift_mat[0, 2] = -correctShift_mat[0, 2]
+    correctShift_mat[1, 2] = -correctShift_mat[1, 2]
+
+    # Get the dimensions of a frame
+    n_frames, height, width = frames.shape
+
+    # Apply warpAffine to all frames using a list comprehension and stack them back into a single array
+    transformed_frames = np.stack(
+        [cv2.warpAffine(frame, correctShift_mat, (width, height), borderMode=cv2.BORDER_CONSTANT, borderValue=0) for frame in frames]
+    )
+
+    return transformed_frames
+
+def Pixel_Shift(rmg1,rmg2,nplanes):
+
+    pixel_shifts = []
+    if nplanes >1:
+        for plane_idx in range(nplanes):
+            shift, junk1, junk2 = phase_cross_correlation(rmg1[plane_idx, :, :], rmg2[plane_idx, :, :])
+            pixel_shifts.append(shift)
+    else:
+        pixel_shifts, junk1, junk2 = phase_cross_correlation(rmg1, rmg2)
+
+    pixel_shifts = np.array(pixel_shifts)
+    return pixel_shifts

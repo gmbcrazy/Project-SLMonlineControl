@@ -99,7 +99,7 @@ def LoadBin(binFile,ops1):
 #Make sure each plane has same number of frames.
     FramePerPlane=np.floor(rawBin.shape[0]/ops1['nplanes'])
     TotalFrameNeed=np.int32(np.floor(FramePerPlane)*ops1['nplanes'])
-    print(f"Total Frames {TotalFrameNeed} is found")
+    #print(f"Total Frames {TotalFrameNeed} is found")
     return rawBin, FramePerPlane, TotalFrameNeed
 
 # Define the process_plane function to process individual imaging planes

@@ -7,7 +7,8 @@ XMLparam.PointList=PointsTest(iPP);
 PSTHparam.TargetPos=Pos3Dneed(XMLparam.Point,:);
 PSTHparam.CellStat=CaData.statCell{SLMIncludedIndFromIscell(XMLparam.Point)};
 
-[SLMTrialInfo(end+1,:) SLMTrialMap(:,:,:,end+1)]=PV_LinkPowerTest_MultiZseries(XMLparam,PVparam);
+
+[SLMTrialInfoTemp SLMPowerFile(end+1)]=PV_LinkPowerTest_MultiZseries(XMLparam,PVparam);
 
 
 

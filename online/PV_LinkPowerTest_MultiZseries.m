@@ -76,7 +76,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      % ExgroupIDs=[];
      % ExlaserPowers=[];
 %     ExXMLList
-    % XMLTable=[groupIDs(:) laserPowers(:)];
+    XMLTable=[roundIDs(:) pointIDs(:) laserPowers(:)];
     % ExGPLPointList=GPLPointList(groupIDs);
 
 
@@ -96,6 +96,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      fileID = fopen(binFile, 'wb');  %Write online collection data to a bin file
      LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
 
+     FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
      FileGenerateInfo.logFile=logFile;
      FileGenerateInfo.gplFile={MarkPointList.gplname};
