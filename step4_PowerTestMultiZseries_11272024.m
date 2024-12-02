@@ -15,36 +15,33 @@ DataLogFolder=[ProcessFolder 'DataLog\'];
 
 
 
-PVparam.nPlane=nPlane;
-XMLparam.ShamPossibility=0.0;
-XMLparam.SwitchXMLPostMPFrame=10;
+XMLparam.SwitchXMLPostMPFrame=10;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
 XMLparam.ProcessFolder=ProcessFolder;
 
-XMLparam.Laser=[repmat(1.5,1,5)] ;
 XMLparam.RoundID=1;
-XMLparam.PointList=[1 2 1 3 2];
-
-
-PVparam.nPlane=nPlane;
-PVparam.ZRepetition=31;
-PVparam.Ziteration=6;
-PVparam.InterMPRepetition=repmat(PVparam.ZRepetition,1,PVparam.Ziteration);
-frameRepetition=PVparam.ZRepetition*PVparam.Ziteration;
-PVparam.maxFrame=nPlane*frameRepetition;
-PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
-% PVparam.InterMPFrame=[40 60 30 20]*nPlane;
-PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
+XMLparam.PointList=[1 2 1 3 2];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
+XMLparam.Laser=[repmat(1.5,1,5)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
 
 
 
+PowerTestPVPar.nPlane=nPlane;            
+PowerTestPVPar.ZRepetition=31;                      %%<-----------NumOfRepeition in each Zseries of Tseries in PV
+PowerTestPVPar.Ziteration=6;                        %%<-----------NumOfZseries in Tseries in PV
+PowerTestPVPar.InterMPRepetition=repmat(PowerTestPVPar.ZRepetition,1,PowerTestPVPar.Ziteration);
+frameRepetition=PowerTestPVPar.ZRepetition*PowerTestPVPar.Ziteration;
+PowerTestPVPar.maxFrame=nPlane*frameRepetition;
+% PowerTestPVPar.BreakPointFrame=PowerTestPVPar.InterMPRepetition(1:end-1)*nPlane;
+% PowerTestPVPar.InterMPFrame=[40 60 30 20]*nPlane;
+% PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;
 
-if sum(abs([length(XMLparam.Laser) length(XMLparam.PointList)]+1-PVparam.Ziteration))~=0
+
+if sum(abs([length(XMLparam.Laser) length(XMLparam.PointList)]+1-PowerTestPVPar.Ziteration))~=0
    disp('Check whether # Point, Laser levels and Zseries match')
 end
 
 
 
-[XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVparam)
+[XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar)
 
 
 
@@ -52,19 +49,19 @@ end
 
 pause(30)
 for iTest=1:15
-    [tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam2);
+    [tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PowerTestPVPar2);
     pause(3);
 end
 
 
-% PVparam.maxFrame=nPlane*frameRepetition;
-% PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
-% % PVparam.InterMPFrame=[40 60 30 20]*nPlane;
-% PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
-% PVparam.nPlane=nPlane;
+% PowerTestPVPar.maxFrame=nPlane*frameRepetition;
+% PowerTestPVPar.BreakPointFrame=PowerTestPVPar.InterMPRepetition(1:end-1)*nPlane;
+% % PowerTestPVPar.InterMPFrame=[40 60 30 20]*nPlane;
+% PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;
+% PowerTestPVPar.nPlane=nPlane;
 % 
 
-% PV_LinkExcuteXML(XMLparam,PVparam,confSet);
+% PV_LinkExcuteXML(XMLparam,PowerTestPVPar,confSet);
 
 %     TestFile='TSeries-11182024-1006-042';
     TestFile=['TSeries-11182024-1006-070'];

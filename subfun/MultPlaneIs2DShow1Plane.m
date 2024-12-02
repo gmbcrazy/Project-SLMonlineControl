@@ -40,15 +40,17 @@ function MultPlaneIs2DShow1Plane(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, P
     elseif length(Dim) == 3
         % Loop through each plane and display it in a subplot            
             % Display the current plane's image
-            imagesc(Img(:,:,PlaneI)');            
+            imagesc(Img(:,:,PlaneI)');      
+            if ~isempty(Pos3D)
             % Find cells that are close to the current Z-depth
-            I = find(abs(Pos3D(:,3) - Zdepth(PlaneI)) < 0.1);
+               I = find(abs(Pos3D(:,3) - Zdepth(PlaneI)) < 0.1);
             % If cell boundaries are provided, plot them for the current plane
-            if ~isempty(cellBoundary)
-                plotCellBoundary3D(cellBoundary(I), [], colorCell(I,:), 0.5);
-            end
-            if ~isempty(Pos3Dlabel)
-                labelCellCenter(Pos3D(I,[2 1]), Pos3Dlabel(I),colorCell(I,:));
+                if ~isempty(cellBoundary)
+                   plotCellBoundary3D(cellBoundary(I), [], colorCell(I,:), 0.5);
+                end
+                if ~isempty(Pos3Dlabel)
+                   labelCellCenter(Pos3D(I,[2 1]), Pos3Dlabel(I),colorCell(I,:));
+                end
             end
             % Set the colormap to grayscale
             colormap(gray);

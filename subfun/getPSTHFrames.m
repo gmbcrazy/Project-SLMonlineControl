@@ -1,4 +1,4 @@
-function [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames(InterMPRepetition, PreSLMCal, PostSLMCal)
+function [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames(InterMPRepetition, PreSLMCal, PostSLMCal,MPFrameJump)
     % GetPSTHFrames - Generates an index vector with PreSLMCal frames before and PostSLMCal frames after each stimulus.
     %
     % Inputs:
@@ -18,15 +18,19 @@ function [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames(I
 
     % Calculate the cumulative frame number for each stimulus
     cumulativeFrames = cumsum(InterMPRepetition);
-
     % Iterate through each stimulus in cumulativeFrames
     for i = 1:length(cumulativeFrames)-1
         % Get the current stimulus frame
         currentStimulus = cumulativeFrames(i);
         
+        if MPFrameJump
+       % Calculate frames from PreSLMCal frames before to PostSLMCal frames after the stimulus
+        frames = [(currentStimulus - PreSLMCal+1):currentStimulus currentStimulus+2:currentStimulus+PostSLMCal+1];
+        else
         % Calculate frames from PreSLMCal frames before to PostSLMCal frames after the stimulus
         frames = (currentStimulus - PreSLMCal):(currentStimulus + PostSLMCal - 1);
-        
+
+        end
         % Add these frames to the index vector
         indexVector = [indexVector, frames];
         

@@ -49,17 +49,18 @@ function MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, colorCe
             % Display the current plane's image
             imagesc(Img(:,:,iplane)');
             
+            if ~isempty(Pos3D)
             % Find cells that are close to the current Z-depth
-            I = find(abs(Pos3D(:,3) - Zdepth(iplane)) < 0.1);
+               I = find(abs(Pos3D(:,3) - Zdepth(iplane)) < 0.1);
             
             % If cell boundaries are provided, plot them for the current plane
-            if ~isempty(cellBoundary)
-                plotCellBoundary3D(cellBoundary(I), [], colorCell(I,:), 0.5);
+                if ~isempty(cellBoundary)
+                   plotCellBoundary3D(cellBoundary(I), [], colorCell(I,:), 0.5);
+                end
+                if ~isempty(Pos3Dlabel)
+                   labelCellCenter(Pos3D(I,[2 1]), Pos3Dlabel(I),colorCell(I,:));
+                end
             end
-            if ~isempty(Pos3Dlabel)
-                labelCellCenter(Pos3D(I,[2 1]), Pos3Dlabel(I),colorCell(I,:));
-            end
-            % Set the colormap to grayscale
             colormap(gray);
             
             % Adjust the image display contrast using ImgClim
