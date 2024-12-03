@@ -40,6 +40,11 @@ if isfield(GroupPoints, 'Name')
 else
     GroupName = ['Group ' num2str(iGroup)];
 end
+if isfield(GroupPoints, 'FileName')
+    GroupFileName = GroupPoints(iGroup).FileName;
+else
+    GroupFileName = ['Group ' num2str(iGroup)];
+end
 IndicesStr='';
 for i=1:length(PointIndex)-1
    IndicesStr=[IndicesStr num2str(PointIndex(i)) ','];
@@ -109,7 +114,7 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 
 
 % SaveName=[SavePath SaveGroupName];
-SaveName=[SavePath GroupName];
+SaveName=[SavePath GroupFileName];
 
 % SaveName=[SavePath 'Laser' num2str(UncagingLaserPower) GroupName];
 

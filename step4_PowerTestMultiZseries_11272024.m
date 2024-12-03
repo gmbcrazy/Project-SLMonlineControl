@@ -1,32 +1,38 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
 
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 SLMsettingFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
 % DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\NoAnimalTest\11272024\';
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
 
+Temp1=load([ProcessFolder 'SLMIncludedIndFromIscell.mat'],'Pos3Dneed');
+AllTestPoints3D=Temp1.Pos3Dneed; clear Temp1
+iCount=1;
+
+%%
 
 
 
-XMLparam.SwitchXMLPostMPFrame=10;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
+XMLparam.SwitchXMLPostMPFrame=6;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
 XMLparam.ProcessFolder=ProcessFolder;
 
-XMLparam.RoundID=1;
-XMLparam.PointList=[1 2 1 3 2];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
-XMLparam.Laser=[repmat(1.5,1,5)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
+XMLparam.RoundID=6;
+XMLparam.PointList=[1:10];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
+XMLparam.Laser=[repmat(1.6,1,10)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
 
 
 
 PowerTestPVPar.nPlane=nPlane;            
 PowerTestPVPar.ZRepetition=31;                      %%<-----------NumOfRepeition in each Zseries of Tseries in PV
-PowerTestPVPar.Ziteration=6;                        %%<-----------NumOfZseries in Tseries in PV
+PowerTestPVPar.Ziteration=11;                        %%<-----------NumOfZseries in Tseries in PV
 PowerTestPVPar.InterMPRepetition=repmat(PowerTestPVPar.ZRepetition,1,PowerTestPVPar.Ziteration);
 frameRepetition=PowerTestPVPar.ZRepetition*PowerTestPVPar.Ziteration;
 PowerTestPVPar.maxFrame=nPlane*frameRepetition;
@@ -41,9 +47,14 @@ end
 
 
 
-[XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar)
+[XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar)
+[checkXMLTable{iCount},UnMatchI{iCount}]=MPxmlExcuteMatchCheck(FileGenerateInfo(iCount),XMLTable{iCount},AllTestPoints3D,confSet);
 
 
+
+
+iCount=iCount+1
+%%
 
 
 

@@ -34,4 +34,5 @@ for iTrial=1:confSet.NumTrial
 end
 
 
-save([NonTargetPath 'NonTarget.mat'],'IndexNonTargetTrial','NonTargets','NonTargetPath');
+save([NonTargetPath 'NonTarget.mat'],'IndexNonTargetTrial','NonTargets','NonTargetPath','NonTargetsPlane');
+save([SavePath 'NonTarget.mat'],'IndexNonTargetTrial','NonTargets','NonTargetPath','NonTargetsPlane');

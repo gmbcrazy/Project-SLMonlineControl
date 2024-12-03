@@ -29,5 +29,4 @@ NonTargetsTable=gpl2Table([NonTargetPath 'SelectedFromRaw.gpl']);
 % NonTargetsTable=gpl2Table([NonTargetPath 'Raw.gpl']);
 
 NonTargetsGPL=[NonTargetsTable.X NonTargetsTable.Y NonTargetsTable.Z];
-
 EditedGPLtoMarkPoint_NT_PairGplXml(ProcessFolder, Pos3DFromGPL, SLMIncludedIndFromIscell, NonTargetsGPL, IndexNonTargetTrial, yaml, confSet,Cellstat,FunScore);

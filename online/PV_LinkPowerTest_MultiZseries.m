@@ -89,7 +89,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
     HavedChecked=0;
 
 
-     filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
+     filePath = [baseDirectory, tSeriesName '-' tSeriesIter];
      completeFileName = filePath;
      binFile=[completeFileName '.bin'];
      logFile=[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'];
@@ -101,6 +101,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
      FileGenerateInfo.logFile=logFile;
+     FileGenerateInfo.tifFolder=[filePath '\'];
      FileGenerateInfo.gplFile={MarkPointList.gplname};
      FileGenerateInfo.xmlFile={MarkPointList.name};
      FileGenerateInfo.checkingTiffBinMatch=0;
@@ -145,7 +146,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                if ixml<=length(CumInterMPFrame)-1
                   %ExroundIDs(ixml)=roundIDs(ixml);
                   %ExlaserPowers(ixml)=laserPowers(ixml);
-                  pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname] );
+                  pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname ' True'] ); %%Clear existing MarkPoints and load MarkPoints from the gpl file.
                   pause(0.05);
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
                   pause(0.01);

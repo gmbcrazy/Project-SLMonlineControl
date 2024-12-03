@@ -54,10 +54,15 @@ Zmicro=Pos3DMix(:,3);
 NumNonTarget=size(NonTargets,1);
 
 SingleTargetName={};
-SingleTargetName{1}=['Point ' num2str(iPoint)];
 
-for i=2:length(Zmicro)
-    SingleTargetName{i}=['NonTarget ' num2str(i-1)];
+% SingleTargetName{1}=['Point ' num2str(iPoint)];
+% for i=2:length(Zmicro)
+%     SingleTargetName{i}=['NonTarget ' num2str(i-1)];
+% end
+% 
+% For multi Zseries, it is good to have standarized naming
+for i=1:length(Zmicro)
+    SingleTargetName{i}=['Point ' num2str(i)];
 end
 
 
@@ -93,13 +98,20 @@ end
 
 NonTIndex=1+[1:NumNonTarget];
 
-% for iTarget=1:size(Pos3D,1)
-%     GroupPoints(iTarget).Indices=[iTarget NonTIndex];
-%     GroupPoints(iTarget).Name=['GPoint ' num2str(iTarget)];
-% end
+
+clear GroupPoints
+
+
+%     GroupPoints(1).Indices=[1 NonTIndex];
+%     GroupPoints(1).Name=['Point' num2str(iPoint)];
+%     GroupPoints(1).FileName=['GPoint' num2str(iPoint)];
+
+% For multi Zseries, it is good to have standarized naming
     clear GroupPoints
     GroupPoints(1).Indices=[1 NonTIndex];
-    GroupPoints(1).Name=['GPoint' num2str(iPoint)];
+    GroupPoints(1).Name=['Group ' num2str(1)];
+    GroupPoints(1).FileName=['GPoint' num2str(iPoint)];
+
 
 GroupList = cell(1, numel(GroupPoints));
 
@@ -111,6 +123,7 @@ if ~isempty(GroupPoints)
         IndicesStr = '';
         PointIndex = GroupPoints(i).Indices;
         GroupName = GroupPoints(i).Name;
+%         GroupName = GroupPoints(i).FileName;
         for j = 1:numel(PointIndex)-1
             IndicesStr = [IndicesStr num2str(PointIndex(j)-1) ','];
         end
@@ -132,7 +145,7 @@ end
 
 % Write to file if SaveName provided
 if ~strcmpi(SaveName, '')
-    fid = fopen([SaveName GroupPoints(1).Name '.gpl'], 'w', 'l');
+    fid = fopen([SaveName GroupPoints(1).FileName '.gpl'], 'w', 'l');
     fwrite(fid, '<?xml version="1.0" encoding="utf-8"?>', 'char');
     fprintf(fid,'\n');
     fwrite(fid, '<PVGalvoPointList>', 'char');
@@ -152,6 +165,5 @@ if ~strcmpi(SaveName, '')
 end
 
 GroupPointsAll(iPoint)=GroupPoints;
-
 
 end

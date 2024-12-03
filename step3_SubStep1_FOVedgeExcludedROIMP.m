@@ -29,4 +29,4 @@ mkdir(SavePathExc)
 XYZtoMarkPoint(SavePathExc,Pos3D,CenterCloseI,yaml,confSet,CaData.statCell);
 
 
-save([SavePath 'Beh.mat'],'fStim','fSpeed','timeStampCa_Plane');
+save([SavePath 'Beh.mat'],'fStim','fSpeed','timeStampCa_Plane','SavePath');

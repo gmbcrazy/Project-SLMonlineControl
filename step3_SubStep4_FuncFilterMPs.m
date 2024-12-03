@@ -5,6 +5,8 @@ MinInterVal = 20;
 maxLag = 10;
 deltaFoF=F2deltaFoF(double(CaData.F),double(CaData.Fneu),double(confSet.fs));
 NeuroData=AmpNormalizeRow(deltaFoF',[0 100])';
+L=min(size(fSpeed,1),size(NeuroData,1))
+NeuroData=NeuroData(1:L,:);
 NeuroDataCell=NeuroData(:,iscell);
 
 for iPlane=1:numPlanes

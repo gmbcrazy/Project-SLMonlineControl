@@ -21,7 +21,7 @@ def configLoad(file_path,ymlName,opsName):
     ymlSet=read_yaml(ymlPath)
     ops=np.load(opsPath,allow_pickle=True).item()
     ops=opsAddyaml(ymlSet,ops)
-    return ops
+    return ops,ymlSet
 
 def read_yaml(file_path):
     # Open the file and read lines
