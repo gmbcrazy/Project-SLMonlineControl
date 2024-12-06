@@ -18,17 +18,9 @@ AllTestPoints3D=Temp1.Pos3Dneed; clear Temp1
 iCount=1;
 
 %%
-
-
-
-XMLparam.SwitchXMLPostMPFrame=6;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
-XMLparam.ProcessFolder=ProcessFolder;
-
-XMLparam.RoundID=6;
-XMLparam.PointList=[1:10];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
-XMLparam.Laser=[repmat(1.6,1,10)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
-
-
+SLMTestParam.TerminalTrialN=4;    %<-------------------------------------------------------------------------------Edit, Trials # to define SLM responsive cells
+SLMTestParam.ExcludeTrialN=2;     %<-------------------------------------------------------------------------------Edit, Trials # to define Non-SLM responsive cells
+SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
 
 PowerTestPVPar.nPlane=nPlane;            
 PowerTestPVPar.ZRepetition=31;                      %%<-----------NumOfRepeition in each Zseries of Tseries in PV
@@ -36,6 +28,34 @@ PowerTestPVPar.Ziteration=11;                        %%<-----------NumOfZseries 
 PowerTestPVPar.InterMPRepetition=repmat(PowerTestPVPar.ZRepetition,1,PowerTestPVPar.Ziteration);
 frameRepetition=PowerTestPVPar.ZRepetition*PowerTestPVPar.Ziteration;
 PowerTestPVPar.maxFrame=nPlane*frameRepetition;
+
+
+%1st List
+
+
+
+XMLparam.SwitchXMLPostMPFrame=6;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
+XMLparam.ProcessFolder=ProcessFolder;
+XMLparam.AllPointList=1:size(AllTestPoints3D,1);
+XMLparam.RoundID=6;
+% XMLparam.PointList=[1:10];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
+XMLparam.Laser=[repmat(1.6,1,10)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
+
+tempAllList=repmat(XMLparam.AllPointList(:),1,SLMTestParam.TerminalTrialN); %Each Point needs to be test for at most SLMTestParam.ExcludeTrialN times
+tempAllVector=tempAllList(:)
+XMLparam.PointList=tempAllVector(1:PowerTestPVPar.Ziteration-1) %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
+
+
+% SLMTestParam.AllLaserPower=[1.4 1.5 1.6 1.7];
+
+
+SLMRes=zeros(length(XMLparam.AllPointList),length(ROIparam.LaserPower));
+sampleN=SLMRes;
+
+[TestPoints, TestLaserLevels] = SelectPointsForTesting(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1)
+[TestPoints, TestLaserLevels] = SelectPointsForTesting_v2(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1)
+
+
 % PowerTestPVPar.BreakPointFrame=PowerTestPVPar.InterMPRepetition(1:end-1)*nPlane;
 % PowerTestPVPar.InterMPFrame=[40 60 30 20]*nPlane;
 % PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;

@@ -1,0 +1,50 @@
+function [TestPoints, TestLaserLevels] = SelectPointsForTesting(SLMRes, sampleN, SLMTestParam, ZTestNum)
+    % Get the size of SLMRes and sampleN
+    [N, L] = size(SLMRes);
+    
+    % Generate a Point x LaserLevels for point list and corresponding laser levels
+    PointsListAll=repmat(1:N,1,SLMTestParam.TerminalTrialN)
+
+    [iPoints, iLasers] = ndgrid(1:N, 1:L);
+    iPoints = iPoints(:);
+    iLasers = iLasers(:);
+    
+    % Vectorized conditions for selecting test points and laser levels
+    % Condition to determine points that are not done
+    maskNotDone = ~(SLMRes(sub2ind([N, L], iPoints, iLasers)) == 1 & sampleN(sub2ind([N, L], iPoints, iLasers)) >= SLMTestParam.TerminalTrialN);
+    % Condition to determine points that should not be excluded
+    maskExclude = ~(SLMRes(sub2ind([N, L], iPoints, iLasers)) == 0 & sampleN(sub2ind([N, L], iPoints, iLasers)) >= SLMTestParam.ExcludeTrialN);
+    % Condition for priority tests
+    maskPriority = (SLMRes(sub2ind([N, L], iPoints, iLasers)) == 1 & sampleN(sub2ind([N, L], iPoints, iLasers)) < SLMTestParam.TerminalTrialN);
+    % Condition for points that still need testing
+    maskNeedsTesting = (SLMRes(sub2ind([N, L], iPoints, iLasers)) == 0 & sampleN(sub2ind([N, L], iPoints, iLasers)) < SLMTestParam.ExcludeTrialN);
+    
+    % Ensure no further testing for points where a lower laser level already succeeded
+    for iPoint = 1:N
+        for iLaser = 2:L
+            if SLMRes(iPoint, iLaser - 1) == 1 && sampleN(iPoint, iLaser - 1) >= SLMTestParam.TerminalTrialN
+                SLMRes(iPoint, iLaser:end) = 1; % Mark subsequent levels as successful
+                sampleN(iPoint, iLaser:end) = SLMTestParam.TerminalTrialN; % Mark trials as complete
+            end
+        end
+    end
+    
+    % Recompute the masks after updating SLMRes and sampleN
+    maskNotDone = ~(SLMRes(sub2ind([N, L], iPoints, iLasers)) == 1 & sampleN(sub2ind([N, L], iPoints, iLasers)) >= SLMTestParam.TerminalTrialN);
+    maskExclude = ~(SLMRes(sub2ind([N, L], iPoints, iLasers)) == 0 & sampleN(sub2ind([N, L], iPoints, iLasers)) >= SLMTestParam.ExcludeTrialN);
+    maskPriority = (SLMRes(sub2ind([N, L], iPoints, iLasers)) == 1 & sampleN(sub2ind([N, L], iPoints, iLasers)) < SLMTestParam.TerminalTrialN);
+    maskNeedsTesting = (SLMRes(sub2ind([N, L], iPoints, iLasers)) == 0 & sampleN(sub2ind([N, L], iPoints, iLasers)) < SLMTestParam.ExcludeTrialN);
+    
+    % Combine the masks to determine which points and laser levels to test
+    maskTest = maskNotDone & (maskPriority | maskNeedsTesting) & maskExclude;
+    
+    % Select the points and laser levels based on the combined mask
+    TestPoints = iPoints(maskTest);
+    TestLaserLevels = iLasers(maskTest);
+    
+    % Select the first ZTestNum points to test, or all if there are fewer than ZTestNum
+    if length(TestPoints) > ZTestNum
+        TestPoints = TestPoints(1:ZTestNum);
+        TestLaserLevels = TestLaserLevels(1:ZTestNum);
+    end
+end

@@ -78,7 +78,6 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      % ExroundIDs=[];
      % ExlaserPowers=[];
 %     ExXMLList
-    XMLTable=[roundIDs(:) pointIDs(:) laserPowers(:)];
     % ExGPLPointList=GPLPointList(roundIDs);
 
 
@@ -90,23 +89,28 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
 
      filePath = [baseDirectory, tSeriesName '-' tSeriesIter];
+     XMLTable=[repmat(tSeriesIterID,length(pointIDs),1) roundIDs(:) pointIDs(:) laserPowers(:)];
+     XMLTable=array2table(XMLTable,'VariableNames',{'FileID','Round','Point','Lasers'});
+
+
      completeFileName = filePath;
      binFile=[completeFileName '.bin'];
      logFile=[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'];
-
-
-     fileID = fopen(binFile, 'wb');  %Write online collection data to a bin file
-     LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
+     matFile=[baseDirectory 'ExpInfo-' tSeriesIter '.mat']; 
 
      FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
      FileGenerateInfo.logFile=logFile;
+     FileGenerateInfo.matFile=matFile;
      FileGenerateInfo.tifFolder=[filePath '\'];
      FileGenerateInfo.gplFile={MarkPointList.gplname};
      FileGenerateInfo.xmlFile={MarkPointList.name};
      FileGenerateInfo.checkingTiffBinMatch=0;
+     
 
-
+     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
+     fileID = fopen(binFile, 'wb');  %Write online collection data to a bin file
+     LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
 
     flushing = 1;
     while flushing
@@ -317,8 +321,6 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
          fclose(fileID);
          fclose(LogfileID);
-
-
 
 
     %% Update file name for next recording trial
