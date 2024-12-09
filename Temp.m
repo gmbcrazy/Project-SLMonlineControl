@@ -161,9 +161,9 @@ PSTHparam.PreSLMCal=PreSLMCal;
 PSTHparam.PostSLMCal=PostSLMCal;
 PSTHparam.PointsTest=ROIparam.PointsTest;
 PSTHparam.LaserPower=ROIparam.LaserPower;
-PSTHparam.YLim=[-50 600];
-PSTHparam.pTh=0.05;
-PSTHparam.TestMethod='ranksum';
+PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
 
 PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
@@ -213,10 +213,19 @@ SLMTable(:,2)=NaN;
 
 
 close all
-FileIDrange=[2;12];
+FileIDrange=[2;14];
 [SLMRes,sampleN]=SLMResponse_ROIMultiZ(ROIall,SLMTrialInfo,ROIparam,minTrialN,SumDataFolder,FileIDrange);
 
-[TestPoints, TestLaserLevels,TestTrials] = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1)
+PointLaserPair = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1);
+if isempty(PointLaserPair)
+   disp('Terminate the power test')
+else
+   
+end
+
+XMLparam.PointList=PointLaserPair(:,1);
+XMLparam.Laser=ROIparam.LaserPower(PointLaserPair(:,2));
+[XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 
 clear SLMTable;

@@ -32,15 +32,6 @@ OutPng=[SumDataFolder 'CheckROI' num2str(FileID) '.png'];
 
 
 
-% CellSize=20;  %%by um;
-% threshold_percentage=0.3;
-% thNum=15;
-% max_distance=ceil(CellSize*1/4/ROIparam.umPerPixel);  %% 1/4 diameter of a cell by pixel as maximal response region-SLM center distance
-% min_region_size=10;
-% PeakTh=200;
-% min_merged_region_size=20;
-% contourMethod='perim';
-
 SLMRes=zeros(length(PointAll),length(ROIparam.LaserPower));
 sampleN=SLMRes;
 
@@ -87,27 +78,6 @@ for iPoint=1:length(PointsTest)
             text(NeighbourHfWidthPixel,0,['P' num2str(Point) ', ' num2str(length(I1))],'color',[0 0 0]);
         end
 
-
-
-
-        % % if length(I1)>=minTrialN         
-        % %    subplotLU(length(PointsAll),length(LaserPower),Point,iLaser,P);
-        % %    % PlaneI=find(abs(ROIparam.TotalSLMPos3D(Point,3)-ROIparam.PlaneZ)<1);
-        % %    roiHeatAve=squeeze(mean(ROIMap(:,:,I1,:),3));  
-        % %    % heatMap=squeeze(PSTHtemp(:,:,PlaneI))';
-        % %    % roiHeat=Center2neighbour(heatMap,ROIparam.TotalSLMPos3D(Point,[2,1]),NeighbourHfWidthPixel);
-        % %    [SLMRes(Point,iLaser), mergedRegion, contourPixels] = check_high_value_center(roiHeatAve, threshold_percentage, max_distance, min_region_size, PeakTh, min_merged_region_size, contourMethod);
-        % % 
-        % %    sampleN(Point,iLaser)=length(I1);
-        % %    imagesc(roiHeatAve);hold on;
-        % %    set(gca,'clim',ROIparam.Clim,'xtick',[],'ytick',[])
-        % %    colormap(ROIparam.Colormap)
-        % % % for iField=1:length(regions)
-        % %    if ~isempty(mergedRegion)
-        % %     plot(contourPixels(:,2),contourPixels(:,1),'g.');
-        % %    end
-        % %  text(NeighbourHfWidthPixel,0,['P' num2str(Point) ', ' num2str(length(I1))],'color',[0 1 0]) 
-        % % end
 
 
     end

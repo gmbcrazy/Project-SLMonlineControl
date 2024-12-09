@@ -100,6 +100,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
      FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
+     FileGenerateInfo.FileID=tSeriesIterID;
      FileGenerateInfo.logFile=logFile;
      FileGenerateInfo.matFile=matFile;
      FileGenerateInfo.tifFolder=[filePath '\'];

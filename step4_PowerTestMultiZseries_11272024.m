@@ -1,8 +1,12 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
 
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3');
+
+% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+
 SLMsettingFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
@@ -12,262 +16,111 @@ ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdg
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
+SumDataFolder=[ProcessFolder 'DataSum\'];
+mkdir(SumDataFolder);
 
-Temp1=load([ProcessFolder 'SLMIncludedIndFromIscell.mat'],'Pos3Dneed');
-AllTestPoints3D=Temp1.Pos3Dneed; clear Temp1
-iCount=1;
+load([ProcessFolder 'SLMIncludedIndFromIscell.mat'],'Pos3Dneed','yaml');
+AllTestPoints3D=Pos3Dneed; clear Pos3Dneed
+PointAll=1:size(AllTestPoints3D,1);
 
 %%
 SLMTestParam.TerminalTrialN=4;    %<-------------------------------------------------------------------------------Edit, Trials # to define SLM responsive cells
 SLMTestParam.ExcludeTrialN=2;     %<-------------------------------------------------------------------------------Edit, Trials # to define Non-SLM responsive cells
-SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;
+SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;% Noted that, laser test levels is dependent on ROIparam.LaserPower, not SLMTestParam.AllLaserPower
 
 PowerTestPVPar.nPlane=nPlane;            
-PowerTestPVPar.ZRepetition=31;                      %%<-----------NumOfRepeition in each Zseries of Tseries in PV
-PowerTestPVPar.Ziteration=11;                        %%<-----------NumOfZseries in Tseries in PV
+PowerTestPVPar.ZRepetition=31;                       %%<----------------------------------------------------- -----NumOfRepeition in each Zseries of Tseries in PV
+PowerTestPVPar.Ziteration=11;                        %%<-----------------------------------------------------------NumOfZseries in Tseries in PV
 PowerTestPVPar.InterMPRepetition=repmat(PowerTestPVPar.ZRepetition,1,PowerTestPVPar.Ziteration);
 frameRepetition=PowerTestPVPar.ZRepetition*PowerTestPVPar.Ziteration;
 PowerTestPVPar.maxFrame=nPlane*frameRepetition;
 
 
-%1st List
+umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
+%param for ROI neighbourhood to determine wether there is SLM response.
+ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)
+ROIparam.PointAll=PointAll;
+% ROIparam.PlaneZ=PlaneZ;
+ROIparam.CellSize=20;                %%normal neuron diameter by um;        
+ROIparam.threshold_percentage=0.3;   %%thereshold to define responsive fields SLM responsive heatmap: percentage*Peak rate
+ROIparam.thNum=10;                   %%Minimal single responsive field by pixels
+ROIparam.max_distance=ceil(ROIparam.CellSize/3/umPerPixel);  %% 1/3 diameter of a cell by pixel as maximal response region-SLM center distance
+ROIparam.min_region_size=5;
+ROIparam.PeakTh=200;
+ROIparam.min_merged_region_size=40;  %%Minimal total size of responsive fields by pixels
+ROIparam.contourMethod='boundaries';      %%Method to detect ROI boader of responsive fields
+ROIparam.NeighbourHfWidthPixel=20;   %%PixFromMedCenter: Number of pixels from the median center of each ROI to get the ROI neighborhood.
+ROIparam.umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);  
+ROIparam.Colormap=colorMapPN1;                  
+ROIparam.LaserPower=confSet.UncagingLaserPower(1:3);   
+ROIparam.Clim=[-400;400];
+
+PSTHparam.PreSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PSTHparam.PostSLMCal=3;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
 
 
-
-XMLparam.SwitchXMLPostMPFrame=6;                   %%<-----------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
+XMLparam.SwitchXMLPostMPFrame=6;                     %%<-----------------------------------------------------------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
 XMLparam.ProcessFolder=ProcessFolder;
 XMLparam.AllPointList=1:size(AllTestPoints3D,1);
-XMLparam.RoundID=6;
-% XMLparam.PointList=[1:10];                     %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
-XMLparam.Laser=[repmat(1.6,1,10)] ;                  %%<-----------laser values, could be 1 value of a vector with length of nP
 
 tempAllList=repmat(XMLparam.AllPointList(:),1,SLMTestParam.TerminalTrialN); %Each Point needs to be test for at most SLMTestParam.ExcludeTrialN times
 tempAllVector=tempAllList(:)
 XMLparam.PointList=tempAllVector(1:PowerTestPVPar.Ziteration-1) %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
 
 
-% SLMTestParam.AllLaserPower=[1.4 1.5 1.6 1.7];
 
-
+%%
 SLMRes=zeros(length(XMLparam.AllPointList),length(ROIparam.LaserPower));
 sampleN=SLMRes;
+OutTBLAll=[];               %%SLM trial information across all testing files;
+PSTHall=[];
+ROIall=[];
+iCount=1;
 
-[TestPoints, TestLaserLevels] = SelectPointsForTesting(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1)
-[TestPoints, TestLaserLevels] = SelectPointsForTesting_v2(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1)
+SLMTrialInfo=[];                  %Inital response information, automatically updated after each single trial test
+SLMTrialMap=[];                   %Inital response map, automatically updated after each single trial test
+clear SLMTable;
+SLMTable(:,1)=round(1:size(Pos3Dneed,1));
+SLMTable(:,2)=NaN;
 
-
-% PowerTestPVPar.BreakPointFrame=PowerTestPVPar.InterMPRepetition(1:end-1)*nPlane;
-% PowerTestPVPar.InterMPFrame=[40 60 30 20]*nPlane;
-% PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;
-
-
-if sum(abs([length(XMLparam.Laser) length(XMLparam.PointList)]+1-PowerTestPVPar.Ziteration))~=0
-   disp('Check whether # Point, Laser levels and Zseries match')
-end
-
-
-
-[XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar)
-[checkXMLTable{iCount},UnMatchI{iCount}]=MPxmlExcuteMatchCheck(FileGenerateInfo(iCount),XMLTable{iCount},AllTestPoints3D,confSet);
+%% 
+step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.
 
 
 
+[XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
-iCount=iCount+1
+
+step4_MultiZ_SubStep2_PostTest  %% generate next points being test and update xml parameters.
+
+
+
+
+
+
 %%
+%% Save results and generate final MarkPoints and Functional groups
+SLMTableOrigin=SLMTable;
+% PostSLMTable;
+FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
+SLMTable(FalsePositiveID,:)=nan;
 
 
 
-pause(30)
-for iTest=1:15
-    [tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PowerTestPVPar2);
-    pause(3);
-end
+SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
+refPVpower=max(SMLTablePowerPV);
 
-
-% PowerTestPVPar.maxFrame=nPlane*frameRepetition;
-% PowerTestPVPar.BreakPointFrame=PowerTestPVPar.InterMPRepetition(1:end-1)*nPlane;
-% % PowerTestPVPar.InterMPFrame=[40 60 30 20]*nPlane;
-% PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;
-% PowerTestPVPar.nPlane=nPlane;
-% 
-
-% PV_LinkExcuteXML(XMLparam,PowerTestPVPar,confSet);
-
-%     TestFile='TSeries-11182024-1006-042';
-    TestFile=['TSeries-11182024-1006-070'];
-
-
-close all
-StartingFrame=210;
-IndNeedTiff=[StartingFrame:StartingFrame+2];
-
-% IndNeedTiff=[StartingFrame StartingFrame+2:StartingFrame+2+2];
-
-IndNeedBin=[StartingFrame:StartingFrame+2]
-FrameTotal=frameRepetition*3;
-% FrameTotal=1650
-for j=1:length(IndNeedTiff)
-    Ind=IndNeedTiff(j);
-    IndBin=IndNeedBin(j);
-
-TiffPath=[DataFolder TestFile '\'];
-BinPath=[DataFolder TestFile '*.bin'];
-BinFile=dir(BinPath);
-fileID=fopen([BinFile(1).folder '\' BinFile(1).name]);
-
-ImageSeq=FrameIndMultiTiffs(TiffPath,nPlane,Ind);
-MeanTif=squeeze(mean(ImageSeq,3));
-
-
-clear Y
-BinData=fread(fileID,'uint16');
-Ly=512;
-Lx=512;
-% BinDataAll=BinData(:);
-BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-% FrameTotal=floor(length(BinData)/Ly/Lx)
-% BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-
-fclose(fileID);
-
-XBin=reshape(BinDataAll,Ly,Lx,FrameTotal);
-
-% clear Y
-Y=zeros(Lx,Ly,floor(FrameTotal/nPlane),nPlane);
-for i=1:nPlane
-    Y(:,:,1:FrameTotal/nPlane,i)=XBin(1:Lx,1:Ly,i:nPlane:size(XBin,3));
-end
-
-MeanBin=squeeze(mean(Y(:,:,IndBin,:),3));
-
-MeanBin=permute(MeanBin,[2,1,3]);
-
-figure
-for iPlane=1:3
-%     subplotLU(2,3,1,iPlane)
-    subplot(2,3,iPlane)
-
-    imagesc(SmoothDec(MeanTif(:,:,iPlane),1))
-    caxis([0 600])
-    colormap("jet");
-  
-end
+CellPerGroup=10;
+[Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
+save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
+XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
 
 
 
 
-for iPlane=1:3
-%     subplotLU(2,3,2,iPlane)
-        subplot(2,3,iPlane+3)
 
-    imagesc(SmoothDec(MeanBin(:,:,iPlane),1))
-    caxis([0 600]);
-    colormap("jet");
-end
-
-
-% sum(sum(sum(abs(MeanTif-MeanBin))))
-end
-
-
-
-
-% DataFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\Data\'
-StartFile=9;
-for iTest=1:10
-
-%     TestFile='TSeries-11182024-1006-042';
-    TestFile=['TSeries-11182024-1006-0' num2str(StartFile+iTest)];
-
-
-close all
-StartingFrame=210;
-IndNeedTiff=[StartingFrame:StartingFrame+2];
-
-% IndNeedTiff=[StartingFrame StartingFrame+2:StartingFrame+2+2];
-
-IndNeedBin=[StartingFrame:StartingFrame+2]
-FrameTotal=frameRepetition*3;
-% FrameTotal=1650
-for j=1:length(IndNeedTiff)
-    Ind=IndNeedTiff(j);
-    IndBin=IndNeedBin(j);
-
-TiffPath=[DataFolder TestFile '\'];
-BinPath=[DataFolder TestFile '*.bin'];
-BinFile=dir(BinPath);
-fileID=fopen([BinFile(1).folder '\' BinFile(1).name]);
-
-ImageSeq=FrameIndMultiTiffs(TiffPath,nPlane,Ind);
-MeanTif=squeeze(mean(ImageSeq,3));
-
-
-clear Y
-BinData=fread(fileID,'uint16');
-Ly=512;
-Lx=512;
-% BinDataAll=BinData(:);
-BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-% FrameTotal=floor(length(BinData)/Ly/Lx)
-% BinDataAll=BinData(1:Ly*Lx*FrameTotal);
-
-fclose(fileID);
-
-XBin=reshape(BinDataAll,Ly,Lx,FrameTotal);
-
-% clear Y
-Y=zeros(Lx,Ly,floor(FrameTotal/nPlane),nPlane);
-for i=1:nPlane
-    Y(:,:,1:FrameTotal/nPlane,i)=XBin(1:Lx,1:Ly,i:nPlane:size(XBin,3));
-end
-
-MeanBin=squeeze(mean(Y(:,:,IndBin,:),3));
-
-MeanBin=permute(MeanBin,[2,1,3]);
-
-figure
-for iPlane=1:3
-%     subplotLU(2,3,1,iPlane)
-    subplot(2,3,iPlane)
-
-    imagesc(SmoothDec(MeanTif(:,:,iPlane),1))
-    caxis([0 600])
-    colormap("jet");
-  
-end
-
-
-
-
-for iPlane=1:3
-%     subplotLU(2,3,2,iPlane)
-        subplot(2,3,iPlane+3)
-
-    imagesc(SmoothDec(MeanBin(:,:,iPlane),1))
-    caxis([0 600]);
-    colormap("jet");
-end
-
-
-% sum(sum(sum(abs(MeanTif-MeanBin))))
-end
-figure(2)
-
-saveas(gcf,[DataLogFolder  TestFile '.png'],'png');
-saveas(gcf,[DataLogFolder  TestFile],'fig');
-
-
-end
-% sum(sum(sum(abs(MeanTif(:,:,3)-MeanBin(:,:,1)))))
-
-% 
-% 40
-% 
-% 59
-% 
-% 62
-% 
-% 
 
 

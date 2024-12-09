@@ -1,4 +1,4 @@
-function PointLaserPair = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestParam, ZTestNum)
+function [PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestParam, ZTestNum)
     % Get the size of SLMRes and sampleN
     [N, L] = size(SLMRes);    %%N is the total PossibleTest Points, L is number of laser level for testing
     
@@ -28,24 +28,14 @@ function PointLaserPair = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestPara
     for iLaser=1:size(sampleN,2)
         NonResPoint=find(SLMRes(:,iLaser)==0&sampleN(:,iLaser)>=SLMTestParam.ExcludeTrialN);  %%No responsive cell with enough trials tested
         DelI1=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser;
-        % PointsListAll(DelI1)=[];
-        % LaserListAll(DelI1)=[];
-        % TrialListAll(DelI1)=[];
 
         NonResPoint=find(SLMRes(:,iLaser)==0&sampleN(:,iLaser)<SLMTestParam.ExcludeTrialN);  %%No responsive cell needs be further tested
         DelI2=ismember(PointsListAll,NonResPoint)&LaserListAll>iLaser;                        %%Test current laser, not the higher         
-        % PointsListAll(DelI2)=[];
-        % LaserListAll(DelI2)=[];
-        % TrialListAll(DelI2)=[];
 
         NonResPoint=find(SLMRes(:,iLaser)==0&sampleN(:,iLaser)<SLMTestParam.ExcludeTrialN);  %%No responsive cell needs be further tested        
         % DelI3=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser&TrialListAll>SLMTestParam.ExcludeTrialN;    %%Test current laser, but not too many trials within a Tseries         
         DelI3=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser&TrialListAll>=SLMTestParam.TerminalTrialN;    %%Test current laser, but not too many trials within a Tseries         
-
-        % PointsListAll(DelI3)=[];
-        % LaserListAll(DelI3)=[];
-        % TrialListAll(DelI3)=[]; 
-     
+   
         ResPoint=find(SLMRes(:,iLaser)==1&sampleN(:,iLaser)<SLMTestParam.TerminalTrialN);  %%Responsive cell needs be further tested        
         DelI4=[];
         for iP=1:length(ResPoint)
@@ -56,10 +46,6 @@ function PointLaserPair = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestPara
 
         DelTemp1=union(find(DelI1+DelI2+DelI3>=1),DelI4);
         DelI=union(DelI,DelTemp1);
-        % DelI4=DelI4>=1;
-        % PointsListAll(DelI4)=[];
-        % LaserListAll(DelI4)=[];
-        % TrialListAll(DelI4)=[];
         
     end
  
@@ -67,83 +53,61 @@ function PointLaserPair = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestPara
     LaserListAll(DelI)=[];
     TrialListAll(DelI)=[];
 
-
-
-
-    % [LaserListAll,sortI]=sort(LaserListAll);
-    % PointsListAll=PointsListAll(sortI);
-    % TrialListAll=TrialListAll(sortI);
+    if isempty(PointsListAll)
+       PointLaserPair=[];
+       return
+    end
 
     [TrialListAll,sortI]=sort(TrialListAll);
     PointsListAll=PointsListAll(sortI);
     LaserListAll=LaserListAll(sortI);
 
 
- 
+    %%There are still many points and power levels to test;
     if ZTestNum<=length(PointsListAll)
-       Ind=0;
-       TestPoints=PointsListAll(Ind+[1:ZTestNum]);
-       TestLaserLevels=LaserListAll(Ind+[1:ZTestNum]);
-       TestTrial=TrialListAll(Ind+[1:ZTestNum]);
-
+       TestPoints=PointsListAll(1:ZTestNum);
+       TestLaserLevels=LaserListAll(1:ZTestNum);
+       TestTrial=TrialListAll(1:ZTestNum);
        PointLaserPair=[TestPoints TestLaserLevels];
-       % while ~isempty(find(diff(TestPoints)==0))
-       %     Ind=Ind+1;
-       %     TestPoints=PointsListAll(Ind+[1:ZTestNum]);
-       %     TestLaserLevels=LaserListAll(Ind+[1:ZTestNum]);
-       % end
-    else              %%Need more Points to fullfil the ZTestNum trials in Tseries, using the Points and laser level of responsive cell proved.
-       PointLaserPair=unique([PointsListAll LaserListAll],'rows');
-       if ~isempty(ResPointLaser)      
-          AddPair=ResPointLaser;
-       else
-          AddP=setdiff([1:N]',PointLaserPair(:,1));
-          AddPair=[AddP ones(length(AddP),1)];
-       end
-       N0=size(PointLaserPair,1);
-       N1=size(AddPair,1);
-
-
-       %%<--------------------------------------------------------------Not
-       %%finished yet for adding addtional points while the num of testing
-       %%points is not enough
-       while size(PointLaserPair,1)<ZTestNum
-             if N0>1
-                PointLaserPair=[PointLaserPair;AddPair()]
-             end
-
-       end
-       randperm(N1,min(N1,2));
-       %%<--------------------------------------------------------------Not
-       %%finished yet for adding addtional points while the num of testing
-       %%points is not enough
-        if ~isempty(ResPointLaser)      
-           
-           PointLaserPair=unique([PointsListAll LaserListAll],'rows');
-           
-           TestPoints=[PointsListAll;ResPointLaser(:,1)];
-           TestLaserLevels=[LaserListAll;ResPointLaser(:,2)];
-           TestTrial=[TrialListAll;ones(size(ResPointLaser,1),1)];
-
-           TestPoints=repmat(TestPoints,ZTestNum,1);
-           TestLaserLevels=repmat(TestLaserLevels,ZTestNum,1);
-           TestTrial=repmat(TestTrial,ZTestNum,1);
-          
-           Ind=0;
-           TestPoints=TestPoints(Ind+[1:ZTestNum]);
-           TestLaserLevels=TestLaserLevels(Ind+[1:ZTestNum]);
-           TestTrial=TestTrial(Ind+[1:ZTestNum]);
-     
-
-        end
-
+       return
     end
+ 
+    %%There are more than enough points to test, add some points;
+    PointLaserPair=unique([PointsListAll LaserListAll],'rows');
+    if ~isempty(ResPointLaser)      
+       AddPair=ResPointLaser;  %%existing point works, add them simply increase their samples
+    else
+       AddP=setdiff([1:N]',PointLaserPair(:,1));  %%no existing point works, add them with lowest power level which do not work anyway
+       AddPair=[AddP ones(length(AddP),1)];
+    end
+    N0=size(PointLaserPair,1);
+    N1=size(AddPair,1);
 
-    figure;hold on;
-    plot(TestPoints,'r.-');
-    plot(TestLaserLevels,'g^');
-    plot(TestTrial,'bo');
-    legend({'Point','laser','Trial'})
+
+       FinalPairtemp=[];
+       if N0<=2
+          while size(FinalPairtemp,1)<ZTestNum
+                 addI1=randperm(N1,min(N1,2));    %%add at most 2 points from addpair to ensure most test are done for non tested points and power pair.
+                 FinalPairtemp=[FinalPairtemp;PointLaserPair;AddPair(addI1,:)];
+          end
+       else
+          while size(FinalPairtemp,1)<ZTestNum
+                 % addI1=randperm(N1,min(N1,2));    
+                 FinalPairtemp=[FinalPairtemp;PointLaserPair]; %%simply repeated test the exising points and laser level needs to be tested.
+          end
+ 
+       end
+       PointLaserPair=FinalPairtemp(1:ZTestNum,:);
+
+
+
+
+
+    % figure;hold on;
+    % plot(PointLaserPair(:,1),'r.-');
+    % plot(PointLaserPair(:,2),'g^');
+    % % plot(TestTrial,'bo');
+    % legend({'Point','laser'})
     % 
 
 end
