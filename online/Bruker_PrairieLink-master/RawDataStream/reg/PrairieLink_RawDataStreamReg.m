@@ -18,10 +18,12 @@
 
 % make figure
 handles = [];
+% handles.fig = figure('Name','PrairieLink RawDataStream',...
+%     'Position',[50 100 320 130], 'MenuBar','none', 'NumberTitle','off',...
+%     'Color','w');
 handles.fig = figure('Name','PrairieLink RawDataStream',...
-    'Position',[50 100 320 130], 'MenuBar','none', 'NumberTitle','off',...
-    'Color','w');
-
+    'Position',[50 100 320 180],... % Adjust height for added space
+    'MenuBar','none', 'NumberTitle','off', 'Color','w');
 % add button
 handles.GREEN = [0.05 0.85 0.35];
 handles.StartButton = uicontrol('Style','Pushbutton',...
@@ -31,18 +33,22 @@ handles.StartButton = uicontrol('Style','Pushbutton',...
 
 % add text
 handles.DoRegistration = uicontrol('Style','Checkbox',...
-    'Position',[10 105 300 15],'BackgroundColor','w', 'String','Do registration');
+    'Position',[10 140 300 15],'BackgroundColor','w', 'String','Do registration');
 
 handles.LoadRefImgButton = uicontrol('Style','Pushbutton',...
-    'Position',[190 105 120 15],'BackgroundColor','w', 'String','Load reference image',...
+    'Position',[190 140 120 15],'BackgroundColor','w', 'String','Load reference image',...
     'Callback',@LoadReferenceImage);
 
+% handles.RefImgText = uicontrol('Style','Text',...
+%     'Position',[10 90 300 15],'BackgroundColor','w', 'String','(Reference image)',...
+%     'FontAngle','Italic');
 handles.RefImgText = uicontrol('Style','Text',...
-    'Position',[10 90 300 15],'BackgroundColor','w', 'String','(Reference image)',...
-    'FontAngle','Italic');
+    'Position',[10 90 300 50],... % Adjust height for multiline text
+    'BackgroundColor','w', 'String',' ',...
+    'FontAngle','Italic', 'HorizontalAlignment','left');
 
 handles.FileNameText = uicontrol('Style','Text',...
-    'Position',[10 75 300 15],'BackgroundColor','w', 'String','(Filename)',...
+    'Position',[10 75 300 15],'BackgroundColor','w', 'String','(Filename=)',...
     'FontWeight','Bold', 'Enable','Inactive', 'ButtonDownFcn',@ClickFilename);
 
 handles.ProgressText = uicontrol('Style','Text',...
@@ -75,8 +81,9 @@ if DoRegistration
     refImg = handles.refImg;
     
     % initialise gpu. (is this needed?)
-    for i = 100
-        gframe = single(gpuArray(refImg(:,:,1)));
+    for i = size(refImg,3)
+%         gframe = single(gpuArray(refImg(:,:,1)));
+        gframe = single(refImg(:,:,1));
     end
     % clear gframe?
 else
@@ -97,7 +104,8 @@ pixelsPerLine        = pl.PixelsPerLine();
 linesPerFrame        = pl.LinesPerFrame();
 totalSamplesPerFrame = samplesPerPixel*pixelsPerLine*linesPerFrame;
 yaml                 = ReadYaml('settings.yml');
-flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd; Bruker2=1, Bruker1=0;
+% flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd; Bruker2=1, Bruker1=0;
+flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;   Added by Lu Zhang 2/23/2024
 
 % get file name
 baseDirectory = pl.GetState('directory', 1);
@@ -121,8 +129,8 @@ else
 end
 
 % write file header
-fwrite(fileID, pixelsPerLine, 'uint16');
-fwrite(fileID, linesPerFrame, 'uint16');
+% fwrite(fileID, pixelsPerLine, 'uint16');
+% fwrite(fileID, linesPerFrame, 'uint16');
 
 % flush buffer
 flushing = 1;
@@ -191,8 +199,9 @@ while running
             
             % register frame HD 20180702
             if DoRegistration
-                [regFrame,dv,cv] = return_offsets_phasecorr(single(gpuArray(frame)),ops{plane});
-                
+%                 [regFrame,dv,cv] = return_offsets_phasecorr(single(gpuArray(frame)),ops{plane});
+                [regFrame,dv,cv] = return_offsets_phasecorr(single((frame)),ops{plane});
+               
                 % save processed frame and correlation values to file
                 fwrite(fileID, gather(uint16(regFrame)), 'uint16');
                 fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
@@ -281,7 +290,12 @@ for i = 1:numel(fileName)
 end
 
 % set the gui label
-handles.RefImgText.String = fileName{1};
+fileNameList=[];
+for i = 1:numel(fileName)
+    fileNameList=[fileNameList fileName{i}];
+end
+
+handles.RefImgText.String = fileNameList;
 
 % load image(s)
 refImg = [];
@@ -289,7 +303,7 @@ ops = cell(numel(fullPath));
 for i = 1:numel(fullPath)
     temp = imread(fullPath{i});
     refImg(:,:,i) = permute(temp,[2 1]);  % because PL data is different index order, but permuted for matlab when reading in.
-    [ops{i}] = setup_registration_phasecorr(refImg(:,:,i));
+    [ops{i,1}] = setup_registration_phasecorr(refImg(:,:,i));
 end
 
 % save to handles

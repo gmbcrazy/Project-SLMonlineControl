@@ -5,6 +5,8 @@ function output = ReadShiftsAndCorrFile(varargin)
 if nargin == 0
     [filename, folderpath] = uigetfile('.bin', 'Select the shifts and correlation value file');
     filePath = [folderpath filename];
+else
+    filePath=varargin{1};
 end
 
 fileID = fopen(filePath);

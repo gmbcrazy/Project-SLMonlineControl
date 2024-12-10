@@ -1,18 +1,16 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
 
-% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3');
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 
-% ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 SLMsettingFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
 % DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\';
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12092024\SingleP\Top8SpeedStimEdgeExc\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
@@ -20,7 +18,7 @@ SumDataFolder=[ProcessFolder 'DataSum\'];
 mkdir(SumDataFolder);
 
 load([ProcessFolder 'SLMIncludedIndFromIscell.mat'],'Pos3Dneed','yaml');
-AllTestPoints3D=Pos3Dneed; clear Pos3Dneed
+AllTestPoints3D=Pos3Dneed;
 PointAll=1:size(AllTestPoints3D,1);
 
 %%
@@ -69,7 +67,7 @@ XMLparam.AllPointList=1:size(AllTestPoints3D,1);
 tempAllList=repmat(XMLparam.AllPointList(:),1,SLMTestParam.TerminalTrialN); %Each Point needs to be test for at most SLMTestParam.ExcludeTrialN times
 tempAllVector=tempAllList(:)
 XMLparam.PointList=tempAllVector(1:PowerTestPVPar.Ziteration-1) %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
-
+XMLparam.TotalRounds= confSet.Repetition;
 
 
 %%
@@ -79,7 +77,7 @@ OutTBLAll=[];               %%SLM trial information across all testing files;
 PSTHall=[];
 ROIall=[];
 iCount=1;
-
+minTrialN=4;
 SLMTrialInfo=[];                  %Inital response information, automatically updated after each single trial test
 SLMTrialMap=[];                   %Inital response map, automatically updated after each single trial test
 clear SLMTable;
