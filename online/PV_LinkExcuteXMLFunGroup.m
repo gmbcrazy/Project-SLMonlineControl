@@ -15,6 +15,17 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
 
      ProcessFolder=XMLparam.ProcessFolder;
+     DoRegistration=XMLparam.DoRegistration;
+     numPlanes=PVparam.nPlane;
+
+     if DoRegistration    
+        if ~isempty(XMLparam.RegRefOps)
+           ops=XMLparam.RegRefOps;
+           refImg=XMLparam.RegRefImg;  
+
+        end
+
+     end
 
      SaveDataFolder=[ProcessFolder 'Data\'];
      LogDataFolder=[ProcessFolder '\DataLog\'];
@@ -88,12 +99,21 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
      FileGenerateInfo.gplFile={ExGPLPointList.name};
      FileGenerateInfo.xmlFile=ExXMLList;
      FileGenerateInfo.checkingTiffBinMatch=0;
+     FileGenerateInfo.motionFile=[];
+     FileGenerateInfo.motionMed=[];
+
+
+
+     if DoRegistration
+        fileID = fopen(binFile, 'wb'); %Write online motion collection data to a bin file
+        shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
+        FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
+    else
+        fileID = fopen(binFile, 'wb');
+    end
      save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
 
-
-     fileID = fopen(binFile, 'wb');  %Write online collection data to a bin file
      LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
-
 
     flushing = 1;
     while flushing
@@ -114,6 +134,8 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
     buffer         = [];
     allSamplesRead = [];
     msg            = [];
+    motionMed = [];
+
 %          loopTimes      = [];
     droppedData    = [];
 
@@ -193,6 +215,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
                       if started == 0
                         started = 1;
                       end
+                      plane = mod(frameNum,numPlanes)+1;
 
                 % get single frame
                       frame = toProcess(((i-1)*totalSamplesPerFrame)+1:(i*totalSamplesPerFrame));
@@ -217,7 +240,20 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
                       end
 
-                      fwrite(fileID, frame, 'uint16');
+                      if DoRegistration
+%                       [regFrame,dv,cv] = return_offsets_phasecorr(single(gpuArray(frame)),ops{plane});
+                        [regFrame,dv,cv] = return_offsets_phasecorr(single((frame)),ops{plane});
+                        motionTemp=sum(abs(dv));
+                        motionMed=[motionMed;motionTemp];
+                       % save processed frame and correlation values to file
+                          fwrite(fileID, gather(uint16(regFrame)), 'uint16');
+                          fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
+                      else
+                          fwrite(fileID, frame, 'uint16');
+                      end
+
+
+
                       if preview
                          Image.CData = frame';
                          FrameCounter.String = msg;
@@ -236,7 +272,8 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
                end
           end
-
+          %%Check if there is continous iteras with no sample data right
+          %%after SLM; if it is, clean buffer;
           if BreakPointFrame<=CumInterMPFrame(end)&&SLMChecking==1
             while SLMChecking==1
                  pause(0.04);
@@ -255,6 +292,9 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
                 end
             end
           end 
+          %%Check if there is continous iteras with no sample data right
+          %%after SLM; if it is, clean buffer;
+
 
              msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
              loopCounter = loopCounter + 1;
@@ -303,10 +343,17 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
             end
     end
 
+
          fclose(fileID);
+          if DoRegistration
+             fclose(shiftsAndCorrFileID);
+              motionMed=median(motionMed);
+              LogMessage(LogfileID,['Median motion of ' num2str(motionMed) ' pixels (MotionX + MotionY) detected']);
+              FileGenerateInfo.motionMed=motionMed;
+          end
          fclose(LogfileID);
 
-
+     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
 
 
     %% Update file name for next recording trial
@@ -358,15 +405,13 @@ function [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, fl
          pl.SendScriptCommands(['-SetSavePath ' SaveDataFolder]);
          pl.SendScriptCommands('-DoNotWaitForScans');
          pl.SendScriptCommands('-LimitGSDMABufferSize true 100');
-         pl.SendScriptCommands('-StreamRawData true 50');
+         pl.SendScriptCommands('-StreamRawData true 120');
          pl.SendScriptCommands('-fa 1');  % set frame averaging to 1
 
          samplesPerPixel      = pl.SamplesPerPixel();
          pixelsPerLine        = pl.PixelsPerLine();
          linesPerFrame        = pl.LinesPerFrame();
          totalSamplesPerFrame = samplesPerPixel*pixelsPerLine*linesPerFrame;
-    % yaml = ReadYaml('settings.yml');
-    % flipEvenRows         = yaml.FlipEvenLines;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
         flipEvenRows         = 1;  % toggle whether to flip even or odd lines; 1=even, 0=odd;
     % get file name
         baseDirectory = pl.GetState('directory', 1);

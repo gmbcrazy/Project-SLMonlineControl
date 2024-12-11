@@ -85,6 +85,25 @@ SLMTable(:,1)=round(1:size(Pos3Dneed,1));
 SLMTable(:,2)=NaN;
 
 %% 
+FileType=2;   %Choose a specific bin file as reference for motion correction
+RefFile=[ProcessFolder '\TSeries-11142024-0927-003.bin'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, [512,512,3,PowerTestPVPar.maxFrame]);
+
+FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+RefFile=[];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+
+FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
+RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\11142024\Data\suite2p\';
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+
+
+%%
+XMLparam.DoRegistration=1;
+XMLparam.RegRefOps=RegOps;
+XMLparam.RegRefImg=RegImg;  
+
+
 step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.
 
 
@@ -99,7 +118,6 @@ step4_MultiZ_SubStep2_PostTest  %% generate next points being test and update xm
 
 
 
-%%
 %% Save results and generate final MarkPoints and Functional groups
 SLMTableOrigin=SLMTable;
 % PostSLMTable;

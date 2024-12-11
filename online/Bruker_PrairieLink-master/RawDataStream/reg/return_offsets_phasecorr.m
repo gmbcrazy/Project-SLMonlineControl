@@ -1,7 +1,14 @@
 function [regFrame,dv0,cx] = return_offsets_phasecorr(frame,ops)
 % Do phase correlation registration (sub-pixel with kriging) on a single
 % frame using pre-calculated registration variables (ops)
-
+% Inputs:
+%   frame: Single input image frame to be registered.
+%   ops: Pre-calculated registration variables from setup_registration_phasecorr.
+%
+% Outputs:
+%   regFrame: Registered frame after applying offsets.
+%   dv0: Estimated offsets in [y, x] directions (sub-pixel accuracy).
+%   cx: Maximum correlation value from the registration process.
 % use with setup_registration_phasecorr.m
 % e.g:
 % [ops] = setup_registration_phasecorr(refImg)

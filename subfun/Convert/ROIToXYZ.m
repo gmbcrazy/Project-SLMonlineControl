@@ -34,14 +34,14 @@ yaml=xml2yaml(xmlFile);
 Suite2Temp=[Suite2PPath '\combined\Fall.mat'];
 CaData=load(Suite2Temp);
 PlaneN=double(CaData.ops.nplanes);
-planFolder=dir([Suite2PPath 'plane*']);
+planeFolder=dir([Suite2PPath 'plane*']);
 clear CaDataPlane;
-if length(planFolder)~=PlaneN
+if length(planeFolder)~=PlaneN
    disp('Plane folder number does Not match plane #');
 
 else
     for i=1:PlaneN
-    tempFolder=[planFolder(i).folder '\' planFolder(i).name '\Fall.mat'];
+    tempFolder=[planeFolder(i).folder '\' planeFolder(i).name '\Fall.mat'];
     if i==1
        CaDataPlane(i)=load(tempFolder);
     else

@@ -243,7 +243,7 @@ function ClickStart(h, e)
                
                 % save processed frame and correlation values to file
                   fwrite(fileID, gather(uint16(regFrame)), 'uint16');
-                 fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
+                  fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
                else
                  fwrite(fileID, frame, 'uint16');
                end
@@ -330,7 +330,7 @@ handles = guidata(h);
 
 % select the image
 [fileName,dirName] = uigetfile('*.tif','Select reference image/stack for registration','MultiSelect','on');
-cd(dirName)
+% cd(dirName)
 if ~iscell(fileName)
     fileName = {fileName};
 end
