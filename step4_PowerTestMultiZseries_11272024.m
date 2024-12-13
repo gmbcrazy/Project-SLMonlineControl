@@ -10,7 +10,7 @@ confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
 % DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12092024\SingleP\Top8SpeedStimEdgeExc\';
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12132024\SingleP\Top13SpeedStimEdgeExc\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
@@ -52,6 +52,7 @@ ROIparam.umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 ROIparam.Colormap=colorMapPN1;                  
 ROIparam.LaserPower=confSet.UncagingLaserPower(1:3);   
 ROIparam.Clim=[-400;400];
+ROIparam.PointsTest=ROIparam.PointAll;
 
 PSTHparam.PreSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PSTHparam.PostSLMCal=3;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
@@ -86,15 +87,19 @@ SLMTable(:,2)=NaN;
 
 %% 
 FileType=2;   %Choose a specific bin file as reference for motion correction
-RefFile=[ProcessFolder '\TSeries-11142024-0927-003.bin'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, [512,512,3,PowerTestPVPar.maxFrame]);
-
-FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
-RefFile=[];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+RefFile=['E:\LuSLMOnlineTest\SL0777-Ai203\12132024\SingleP\Top13SpeedStimEdgeExc\Data\TSeries-12132024-1247-023.bin'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, [512,512,3,30]);
+% 
+% FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+% RefFile=[];
+% RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\TSeries-12122024-0938-000\';
+% 
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% MultiMatrix3DHeatmap(RegImg)
 
 FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
-RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\11142024\Data\suite2p\';
+RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12132024\suite2p\';
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
 
 
@@ -103,13 +108,17 @@ XMLparam.DoRegistration=1;
 XMLparam.RegRefOps=RegOps;
 XMLparam.RegRefImg=RegImg;  
 
+%%
+
 
 step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.
 
 
-
+XMLparam.PointList=[11:20];
+XMLparam.Laser(1:10)=1.5;
+XMLparam.RoundID=6;
 [XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
-
+iCount=iCount+1
 
 step4_MultiZ_SubStep2_PostTest  %% generate next points being test and update xml parameters.
 

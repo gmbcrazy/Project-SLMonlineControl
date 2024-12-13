@@ -140,6 +140,7 @@ function ClickStart(h, e)
     % open binary file for writing
     if DoRegistration
         fileID = fopen([filePath '.bin'], 'wb');
+        fileIDraw = fopen([filePath 'Raw.bin'], 'wb');
         shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb');
     else
         fileID = fopen([filePath '.bin'], 'wb');
@@ -171,12 +172,20 @@ function ClickStart(h, e)
 
     % preview image window (only use for debugging!)
     preview = 0;
-%     if preview
-%         figure(2);
-%         Image = imagesc(zeros(linesPerFrame, pixelsPerLine));
-%         FrameCounter = title('');
-%         axis off; axis square; axis tight;
-%     end
+    if preview
+        figure(2);
+        subplot(1,2,1);
+        Image1 = imagesc(zeros(linesPerFrame, pixelsPerLine));
+
+        FrameCounter = title('');
+        axis off; axis square; axis tight;
+        subplot(1,2,2);
+        Image2 = imagesc(zeros(linesPerFrame, pixelsPerLine));
+
+        FrameCounter = title('');
+        axis off; axis square; axis tight;
+
+    end
 
     % get data, do conversion, save to file
     icount=1;
@@ -242,7 +251,9 @@ function ClickStart(h, e)
                   [regFrame,dv,cv] = return_offsets_phasecorr(single((frame)),ops{plane});
                
                 % save processed frame and correlation values to file
-                  fwrite(fileID, gather(uint16(regFrame)), 'uint16');
+                  fwrite(fileID, uint16(regFrame), 'uint16');
+                  fwrite(fileIDraw, uint16(frame), 'uint16');
+
                   fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
                else
                  fwrite(fileID, frame, 'uint16');
@@ -254,7 +265,9 @@ function ClickStart(h, e)
 
                 % debugging: preview plot
                 if preview
-                    Image.CData = frame';
+                    Image1.CData = [frame'];
+                    Image2.CData = [ regFrame'];
+
                     FrameCounter.String = msg;
                     pause(0.00001);
                 end
@@ -302,6 +315,7 @@ function ClickStart(h, e)
     if DoRegistration
        fclose(shiftsAndCorrFileID);
     end
+    fclose(fileIDraw);
 
 %     fprintf(['\n' 'Finished!' '\n'])
     handles.StartButton.BackgroundColor = handles.GREEN;
