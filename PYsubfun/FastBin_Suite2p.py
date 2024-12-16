@@ -74,9 +74,24 @@ def opsAddyaml(yaml,ops):
     return ops
 
 
-def suite2pInitiate(ops0):
+def suite2pInitiate(ops0,ConfigFolder):
     SaveFolder=os.path.join(ops0['save_path0'], 'suite2p')
     print('Processed data would be saved in'+ SaveFolder)
+    SLMSettingPath = Path(ConfigFolder) / 'SLMsetting.yml'
+    # Check if SLMsetting.yml exists
+    if SLMSettingPath.exists():
+        print(f"File found: {SLMSettingPath}")
+    
+    # Define destination folder and path
+        CopySLMSettingPath = Path(ops0['save_path0']) / 'CurrentSLMsetting.yml'
+        print(f"Copying to: {CopySLMSettingPath}")
+    
+    # Copy file
+        CopySLMSettingPath.write_bytes(SLMSettingPath.read_bytes())
+        print("Current SLMsetting copied successfully!")
+    else:
+        print("Error: SLMsetting.yml does not exist in the ConfigFolder.")
+    
     if not os.path.exists(SaveFolder):
        os.makedirs(SaveFolder)
     else:

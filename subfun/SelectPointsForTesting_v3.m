@@ -53,6 +53,19 @@ function [PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, samp
     LaserListAll(DelI)=[];
     TrialListAll(DelI)=[];
 
+    DelI=[];
+    for iLaser=1:size(sampleN,2)
+        for iPoint=1:N
+            tempI=find(PointsListAll==iPoint&TrialListAll<=sampleN(iPoint,iLaser));
+            DelI=union(DelI,tempI(:));
+        end
+    end
+
+    PointsListAll(DelI)=[];
+    LaserListAll(DelI)=[];
+    TrialListAll(DelI)=[];
+
+
     if isempty(PointsListAll)
        PointLaserPair=[];
        return

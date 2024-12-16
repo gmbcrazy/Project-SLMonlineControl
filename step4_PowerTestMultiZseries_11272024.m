@@ -1,23 +1,26 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12132024\'
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+ProcessFolder=[WorkingFolder 'SingleP\' 'Top13SpeedStimEdgeExc\'];
 
-ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-
-SLMsettingFile='SLMsetting.yml';
-confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
+% % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+% % 
+% % SLMsettingFile='SLMsetting.yml';
+% % confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
 
 nPlane=length(confSet.ETL)
 % DataFolder='F:\LuSLMOnlineTest\04222024\Data\'
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12092024\SingleP\Top8SpeedStimEdgeExc\';
 DataFolder=[ProcessFolder 'Data\'];
 mkdir(DataFolder);
 DataLogFolder=[ProcessFolder 'DataLog\'];
 SumDataFolder=[ProcessFolder 'DataSum\'];
 mkdir(SumDataFolder);
 
-load([ProcessFolder 'SLMIncludedIndFromIscell.mat'],'Pos3Dneed','yaml');
+load([ProcessFolder 'SLMIncludedIndFromIscell.mat']);
 AllTestPoints3D=Pos3Dneed;
 PointAll=1:size(AllTestPoints3D,1);
 
@@ -42,7 +45,7 @@ ROIparam.PointAll=PointAll;
 ROIparam.CellSize=20;                %%normal neuron diameter by um;        
 ROIparam.threshold_percentage=0.3;   %%thereshold to define responsive fields SLM responsive heatmap: percentage*Peak rate
 ROIparam.thNum=10;                   %%Minimal single responsive field by pixels
-ROIparam.max_distance=ceil(ROIparam.CellSize/3/umPerPixel);  %% 1/3 diameter of a cell by pixel as maximal response region-SLM center distance
+ROIparam.max_distance=ceil(ROIparam.CellSize/2/umPerPixel);  %% 1/3 diameter of a cell by pixel as maximal response region-SLM center distance
 ROIparam.min_region_size=5;
 ROIparam.PeakTh=200;
 ROIparam.min_merged_region_size=40;  %%Minimal total size of responsive fields by pixels
@@ -52,6 +55,7 @@ ROIparam.umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 ROIparam.Colormap=colorMapPN1;                  
 ROIparam.LaserPower=confSet.UncagingLaserPower(1:3);   
 ROIparam.Clim=[-400;400];
+ROIparam.PointsTest=ROIparam.PointAll;
 
 PSTHparam.PreSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PSTHparam.PostSLMCal=3;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
@@ -85,36 +89,52 @@ SLMTable(:,1)=round(1:size(Pos3Dneed,1));
 SLMTable(:,2)=NaN;
 
 %% 
+numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
 FileType=2;   %Choose a specific bin file as reference for motion correction
-RefFile=[ProcessFolder '\TSeries-11142024-0927-003.bin'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, [512,512,3,PowerTestPVPar.maxFrame]);
-
-FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
-RefFile=[];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% 
+% FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+% RefFile=[];
+% RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\TSeries-12122024-0938-000\';
+% 
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% MultiMatrix3DHeatmap(RegImg)
 
 FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
-RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\11142024\Data\suite2p\';
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+RefFile=[WorkingFolder 'suite2p\'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
-
-%%
 XMLparam.DoRegistration=1;
 XMLparam.RegRefOps=RegOps;
 XMLparam.RegRefImg=RegImg;  
+XMLparam.RegRefSource=RefFile;  
+
+disp('Referrence Img for Motion correction updated')
 
 
+ROIall=[];
+TBLall=[];
 step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.
 
 
+%%
+%% Mannual control when necessary
+% XMLparam.PointList=[18:20];
+% XMLparam.Laser(1:10)=1.5;
+% XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
 
-[XMLTable{iCount},FileGenerateInfo(iCount)]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
+
+[XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 
-step4_MultiZ_SubStep2_PostTest  %% generate next points being test and update xml parameters.
+% idRanges=[2;2];
+% idRanges=[31;37];
+idRanges=[FileGenerateInfo.FileID;FileGenerateInfo.FileID];   %Automatic update the new File ID to calculate ROIs
 
 
-
+step4_MultiZ_SubStep2_UpdatingROIandXML
 
 
 
@@ -128,11 +148,10 @@ SLMTable(FalsePositiveID,:)=nan;
 
 SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
 refPVpower=max(SMLTablePowerPV);
-
 CellPerGroup=10;
 [Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
-XYZtoMarkPointFunGroup(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
+XYZtoMarkPointFunGroup_MultiZ(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
 
 
 

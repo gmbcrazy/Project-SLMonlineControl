@@ -4,7 +4,7 @@ PointAll=ROIparam.PointAll;
 PointsTest=ROIparam.PointsTest;
 LaserPower=ROIparam.LaserPower;
 if isempty(FileIDrange)
-   FileIDrange=[min(SLMTrialInfo(:,1));max(SLMTrialInfo(:,1))];
+   FileIDrange=[min(SLMTrialInfo.FileID);max(SLMTrialInfo.FileID)];
 end
 CellSize=ROIparam.CellSize;  %%by um;
 threshold_percentage=ROIparam.threshold_percentage;

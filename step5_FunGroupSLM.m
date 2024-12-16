@@ -78,7 +78,30 @@ XMLparam.ProcessFolder=ProcessFolder;
 % PreMarkPointRepetition=[40 60 50];
 % PostMarkPointRepetition=20;
 
+%% 
+numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
+FileType=2;   %Choose a specific bin file as reference for motion correction
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% 
+% FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+% RefFile=[];
+% RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\TSeries-12122024-0938-000\';
+% 
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% MultiMatrix3DHeatmap(RegImg)
 
+FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
+RefFile=[WorkingFolder 'suite2p\'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+
+XMLparam.DoRegistration=1;
+XMLparam.RegRefOps=RegOps;
+XMLparam.RegRefImg=RegImg;  
+XMLparam.RegRefSource=RefFile;  
+
+disp('Referrence Img for Motion correction updated')
 
 
 %%

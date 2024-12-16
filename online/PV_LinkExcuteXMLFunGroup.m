@@ -53,7 +53,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
      GPLgroupIDs = FunGPLPatterExtract({GPLPointList.name}, GPLpattern);
 
 
-     MarkPointList=dir([ProcessFolder 'Laser*Group*.xml']);
+     MarkPointList=dir([ProcessFolder 'Laser*FunGroup*.xml']);
      InterMPFrame=PVparam.InterMPRepetition*PVparam.nPlane;
      CumInterMPFrame=cumsum(InterMPFrame);
      StartMPFrame=[0 CumInterMPFrame(1:end-1)];
@@ -101,6 +101,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
      FileGenerateInfo.checkingTiffBinMatch=0;
      FileGenerateInfo.motionFile=[];
      FileGenerateInfo.motionMed=[];
+     FileGenerateInfo.binFileRaw=[];
 
 
 
@@ -108,6 +109,9 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
         fileID = fopen(binFile, 'wb'); %Write online motion collection data to a bin file
         shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
         FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
+
+        fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
+        FileGenerateInfo.binFileRaw=[filePath 'Raw.bin'];
     else
         fileID = fopen(binFile, 'wb');
     end
@@ -347,6 +351,8 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
          fclose(fileID);
           if DoRegistration
              fclose(shiftsAndCorrFileID);
+             fclose(fileIDraw);
+
               motionMed=median(motionMed);
               LogMessage(LogfileID,['Median motion of ' num2str(motionMed) ' pixels (MotionX + MotionY) detected']);
               FileGenerateInfo.motionMed=motionMed;

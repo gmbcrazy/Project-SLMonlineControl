@@ -1,4 +1,4 @@
-function [ops, refImg] = LoadRegRefFile(RefFile, FileType, varargin)
+function [ops, refImg] = LoadRegRefFile(RefFile, FileType,numGPUs,varargin)
 % LoadRegRefFile - Load and process reference images for registration.
 %
 % Inputs:
@@ -11,7 +11,7 @@ function [ops, refImg] = LoadRegRefFile(RefFile, FileType, varargin)
 %   refImg: 3D matrix of reference images.
 
 % If additional arguments are provided (for binary files)
-if nargin == 3
+if nargin == 4
     % Extract binary file parameters
     FileInfo = varargin{1};
     Ly = FileInfo(1);       % Pixel height
@@ -69,6 +69,6 @@ end
 
 % Set up registration for each reference image
 for i = 1:size(refImg, 3)
-    [ops{i, 1}] = setup_registration_phasecorr(refImg(:, :, i));
+    [ops{i, 1}] = setup_registration_phasecorr(refImg(:, :, i),numGPUs);
 end
 end

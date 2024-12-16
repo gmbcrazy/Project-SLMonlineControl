@@ -1,11 +1,10 @@
-function [ops] = setup_registration_phasecorr(refImg)
+function [ops] = setup_registration_phasecorr(refImg,numGPUs)
 % Setup variables necessary for phase correlation registration
 % Marius Pachitariu/Carsen Stringer Suite2P (2017)
 % Modified by Henry Dalgleish for online image registration (2018)
 % Modified by Lu Zhang, when there is no GPU device (2024)
 
-numGPUs = gpuDeviceCount;  
-numGPUs=0
+% numGPUs = gpuDeviceCount;  
 
 [ops.ly,ops.lx] = size(refImg);
 ops.yx_px       = [1:ops.ly ; 1:ops.lx]';
