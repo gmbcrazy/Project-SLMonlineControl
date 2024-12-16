@@ -5,7 +5,7 @@ function [ops] = setup_registration_phasecorr(refImg)
 % Modified by Lu Zhang, when there is no GPU device (2024)
 
 numGPUs = gpuDeviceCount;  
-
+numGPUs=0
 
 [ops.ly,ops.lx] = size(refImg);
 ops.yx_px       = [1:ops.ly ; 1:ops.lx]';

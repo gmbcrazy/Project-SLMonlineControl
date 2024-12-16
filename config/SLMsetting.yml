@@ -1,6 +1,6 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\SL0777-Ai203\12092024\
+save_path0: F:\LuSLMOnlineTest\SL0242-Ai203\09042024\
 
 # SLM
 SLM_Pixels_X: 512
