@@ -369,7 +369,7 @@ ops = cell(numel(fullPath),1);
 for i = 1:numel(fullPath)
     temp = imread(fullPath{i});
     refImg(:,:,i) = permute(temp,[2 1]);  % because PL data is different index order, but permuted for matlab when reading in.
-    [ops{i,1}] = setup_registration_phasecorr(refImg(:,:,i));
+    [ops{i,1}] = setup_registration_phasecorr(refImg(:,:,i),0);
 end
 
 % save to handles

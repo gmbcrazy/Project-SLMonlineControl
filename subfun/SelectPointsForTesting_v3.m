@@ -34,17 +34,19 @@ function [PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, samp
 
         NonResPoint=find(SLMRes(:,iLaser)==0&sampleN(:,iLaser)<SLMTestParam.ExcludeTrialN);  %%No responsive cell needs be further tested        
         % DelI3=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser&TrialListAll>SLMTestParam.ExcludeTrialN;    %%Test current laser, but not too many trials within a Tseries         
-        DelI3=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser&TrialListAll>=SLMTestParam.TerminalTrialN;    %%Test current laser, but not too many trials within a Tseries         
+%         DelI3=ismember(PointsListAll,NonResPoint)&LaserListAll==iLaser&TrialListAll>=SLMTestParam.TerminalTrialN;    %%Test current laser, but not too many trials within a Tseries         
    
         ResPoint=find(SLMRes(:,iLaser)==1&sampleN(:,iLaser)<SLMTestParam.TerminalTrialN);  %%Responsive cell needs be further tested        
         DelI4=[];
         for iP=1:length(ResPoint)
             DelItemp1=PointsListAll==ResPoint(iP)&LaserListAll>iLaser;    %%Test current laser
-            DelItemp2=PointsListAll==ResPoint(iP)&LaserListAll==iLaser&TrialListAll>SLMTestParam.TerminalTrialN-sampleN(ResPoint(iP),iLaser)+2;    %%but not too many trials within a Tseries                 
-            DelI4=union(DelI4,find(DelItemp1+DelItemp2>=1));
+%             DelItemp2=PointsListAll==ResPoint(iP)&LaserListAll==iLaser&TrialListAll>SLMTestParam.TerminalTrialN-sampleN(ResPoint(iP),iLaser)+2;    %%but not too many trials within a Tseries                 
+%             DelI4=union(DelI4,find(DelItemp1+DelItemp2>=1));
+            DelI4=union(DelI4,find(DelItemp1>=1));
+          
         end
 
-        DelTemp1=union(find(DelI1+DelI2+DelI3>=1),DelI4);
+        DelTemp1=union(find(DelI1+DelI2>=1),DelI4);
         DelI=union(DelI,DelTemp1);
         
     end
@@ -56,7 +58,7 @@ function [PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, samp
     DelI=[];
     for iLaser=1:size(sampleN,2)
         for iPoint=1:N
-            tempI=find(PointsListAll==iPoint&TrialListAll<=sampleN(iPoint,iLaser));
+            tempI=find(PointsListAll==iPoint&TrialListAll<=sampleN(iPoint,iLaser)&LaserListAll==iLaser);
             DelI=union(DelI,tempI(:));
         end
     end
@@ -71,9 +73,9 @@ function [PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, samp
        return
     end
 
-    [TrialListAll,sortI]=sort(TrialListAll);
-    PointsListAll=PointsListAll(sortI);
-    LaserListAll=LaserListAll(sortI);
+%     [TrialListAll,sortI]=sort(TrialListAll);
+%     PointsListAll=PointsListAll(sortI);
+%     LaserListAll=LaserListAll(sortI);
 
 
     %%There are still many points and power levels to test;

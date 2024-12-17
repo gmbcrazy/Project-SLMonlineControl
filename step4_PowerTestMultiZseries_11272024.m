@@ -1,11 +1,11 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12132024\'
-% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12172023\'
+load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+% load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-ProcessFolder=[WorkingFolder 'SingleP\' 'Top13SpeedStimEdgeExc\'];
+ProcessFolder=[WorkingFolder 'SingleP\' 'Top7SpeedStimEdgeExc\'];
 
 % % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % % 
@@ -92,19 +92,19 @@ SLMTable(:,2)=NaN;
 numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
 FileType=2;   %Choose a specific bin file as reference for motion correction
 % ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
-RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
 % 
-% FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
-% RefFile=[];
-% RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\TSeries-12122024-0938-000\';
+FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+RefFile=[];
+RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12172023\RegRef1\';
 % 
-% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 % MultiMatrix3DHeatmap(RegImg)
 
-FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
-RefFile=[WorkingFolder 'suite2p\'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+% FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
+% RefFile=[WorkingFolder 'suite2p\'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
 XMLparam.DoRegistration=1;
 XMLparam.RegRefOps=RegOps;
@@ -121,17 +121,17 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 
 %%
 %% Mannual control when necessary
-% XMLparam.PointList=[18:20];
-% XMLparam.Laser(1:10)=1.5;
+XMLparam.PointList=[1 3 10 6 7 8 1 3 4 10];
+XMLparam.Laser(1:10)=[1.45 1.45 1.55 1.45 1.55 1.45 1.45 1.45 1.45 1.55];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
 
 
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 
-% idRanges=[2;2];
+idRanges=[3;3];
 % idRanges=[31;37];
-idRanges=[FileGenerateInfo.FileID;FileGenerateInfo.FileID];   %Automatic update the new File ID to calculate ROIs
+idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 
 
 step4_MultiZ_SubStep2_UpdatingROIandXML
