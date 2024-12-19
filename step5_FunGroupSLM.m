@@ -6,11 +6,16 @@ clear all
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
+
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\'
+
 ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\SingleP\Top12SpeedStimEdgeExc\';%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
+DataLogFolder=[ProcessFolder 'DataLog\'];
+SumDataFolder=[ProcessFolder 'DataSum\'];
 
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
@@ -21,7 +26,7 @@ PostSLMCal=3;                 %<------------------------------------------------
 
 nPlane=length(confSet.ETL);
 
-PVparam.InterMPRepetition=[40 80 80 30 50 40 60 90 50 30];
+PVparam.InterMPRepetition=[40 40 80 80 30 50 40 60 90 50 30];
 frameRepetition=sum(PVparam.InterMPRepetition); %%Total repepitions of Z series in T series setting;
 
 
@@ -82,8 +87,8 @@ XMLparam.ProcessFolder=ProcessFolder;
 numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
 FileType=2;   %Choose a specific bin file as reference for motion correction
 % ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
-RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
 % 
 % FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 % RefFile=[];
@@ -91,10 +96,21 @@ RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
 % 
 % [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
 % MultiMatrix3DHeatmap(RegImg)
-
-FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
-RefFile=[WorkingFolder 'suite2p\'];
+numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
+FileType=2;   %Choose a specific bin file as reference for motion correction
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+% RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% 
+FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+RefFile=[];
+RefFile=[WorkingFolder 'RegRef2\'];
+% 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+
+% FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
+% RefFile=[WorkingFolder 'suite2p\'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
 XMLparam.DoRegistration=1;
 XMLparam.RegRefOps=RegOps;
@@ -110,7 +126,9 @@ PSTHmap=[];
 CountExp=1;
 TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
-[tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
+XMLparam.LoadGPL=1
+
+[~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
 
 
 

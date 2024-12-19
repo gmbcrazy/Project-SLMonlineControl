@@ -366,7 +366,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 %                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
 %             end
 
-            if started && loopCounter > 250 && sum(allSamplesRead(end-219:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
+            if started && loopCounter > 300 && sum(allSamplesRead(end-259:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
             end
     end
