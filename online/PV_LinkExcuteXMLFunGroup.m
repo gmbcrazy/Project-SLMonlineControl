@@ -91,7 +91,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
 
 
-     FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
+     FileGenerateInfo.FileKey=[tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
      FileGenerateInfo.logFile=logFile;
      FileGenerateInfo.matFile=matFile;

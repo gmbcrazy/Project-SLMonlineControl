@@ -13,13 +13,14 @@ for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
     [rSpeed(I1),pSpeed(I1)]=corr(NeuroData(:,iscell(I1)),fSpeed(:,iPlane),'type','Spearman','rows','pairwise');
 end
-clear rStim
+clear rStim c
 for iCell = 1:size(iscell, 1)
+    iCell;
     iPlane=CaData.CellPlaneID(iCell);
     [c(:,iCell), lags] = xcorr(NeuroData(:,iscell(iCell)), fStim(:,iPlane), maxLag, 'coeff');
     PostI = find(lags >= 0);
-    [~, i1] = max(abs(c(PostI)));
-    rStim(iCell, 1) = c(PostI(i1));
+    [~, i1] = max(abs(c(PostI,iCell)));
+    rStim(iCell, 1) = c(PostI(i1),iCell);
 end
 
 rSpeed=rSpeed(:);

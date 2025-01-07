@@ -111,7 +111,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
      logFile=[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'];
      matFile=[baseDirectory 'ExpInfo-' tSeriesIter '.mat']; 
 
-     FileGenerateInfo.FileKey=[filesep tSeriesName '-' tSeriesIter];
+     FileGenerateInfo.FileKey=[tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
      FileGenerateInfo.FileID=tSeriesIterID;
      FileGenerateInfo.logFile=logFile;

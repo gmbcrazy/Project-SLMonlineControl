@@ -5,24 +5,24 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\';%<--------------------     --Edit, Data folder
 
 
-WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\'
 
-ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
+
+ConfigFile='SLMsetting.yml';%<---------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\SingleP\Top12SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder=[WorkingFolder 'SingleP\Top12SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
 DataLogFolder=[ProcessFolder 'DataLog\'];
-SumDataFolder=[ProcessFolder 'DataSum\'];
 
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
 % PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 % PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
-PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
-PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
+PreSLMCal=15;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PostSLMCal=3;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
 
 nPlane=length(confSet.ETL);
 
@@ -126,7 +126,7 @@ PSTHmap=[];
 CountExp=1;
 TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
-XMLparam.LoadGPL=1
+XMLparam.LoadGPL=1;
 
 [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
 

@@ -1,12 +1,12 @@
+clear all
 
 load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3');
 % Folder='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\Data\TSeries-12032024-1335-010\';
-load('E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\SLMIncludedIndFromIscell.mat');
+load('E:\LuSLMOnlineTest\SL0777-Ai203\12182024\SingleP\Top12SpeedStimEdgeExc\SLMIncludedIndFromIscell.mat');
 % BinFile='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\Data\TSeries-12032024-1335-010.bin';
 
 
-
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12032024\SingleP\Top5SpeedStimEdgeExc\';
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\SingleP\Top12SpeedStimEdgeExc\';
 load([ProcessFolder 'SLMIncludedIndFromIscell.mat'])
 
 DataFolder=[ProcessFolder 'Data\'];
@@ -23,7 +23,25 @@ planeDepth=round(confSet.scan_Z(1)+confSet.ETL);
 
 
 temp=dir([DataFolder 'TSeries*.bin'])
-binName={temp.name}
+% Get all .bin files matching the pattern
+
+% Convert filenames to lowercase for consistent comparison
+file_names = lower({temp.name});  % Convert to cell array of lowercase filenames
+
+% Filter files that do not end with 'raw.bin' or 'corr.bin'
+matching_files = file_names(~(endsWith(file_names, 'raw.bin') | endsWith(file_names, 'corr.bin')));
+
+% Convert to full paths if needed
+%matching_files = fullfile({matching_files.folder}, {matching_files.name});
+
+%%
+binName=matching_files;
+binName(25)=[];
+
+
+
+
+
 tifFolder=binName;
 matName=binName;
 for i=1:length(tifFolder)
@@ -48,10 +66,10 @@ for i = 1:length(tifFolder)
 
 
 
-
-
+%%
+clear Temp
 Ziteration = 11;
-ZseriesL = [51, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 36, 36, 31, 31];
+ZseriesL = repmat(31, 1, length(fileIDList));
 
 OutTBLAll=[];
 PSTHtraceAll=[];
@@ -97,7 +115,7 @@ PSTHTraceN=PSTHtraceAll;
 PSTHtraceBase=repmat(mean(PSTHtraceAll(:,1:PreSLMCal),2),1,size(PSTHtraceAll,2));
 PSTHTraceN=PSTHtraceAll-PSTHtraceBase;
 
-
+%%
 
 OutTBLAll=[];
 PSTHall=[];
@@ -130,12 +148,12 @@ for iFile=1:length(binName)
    % toc
 end
 
-
+%%
 
 
 SLMTrialInfo=OutTBLAll;
 SLMTrialInfo.Laser=PVpower2xmlPower(SLMTrialInfo.UncagingLaserPower);
-PointAll=1:10;
+PointAll=unique(OutTBLAll.Point);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 %param for ROI neighbourhood to determine wether there is SLM response.
 ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)
@@ -152,8 +170,10 @@ ROIparam.contourMethod='boundaries';      %%Method to detect ROI boader of respo
 ROIparam.NeighbourHfWidthPixel=20;   %%PixFromMedCenter: Number of pixels from the median center of each ROI to get the ROI neighborhood.
 ROIparam.umPerPixel=umPerPixel;
 ROIparam.Colormap=colorMapPN1;                  
-ROIparam.LaserPower=confSet.UncagingLaserPower(1:3);   
-ROIparam.PointsTest=1:10;
+ROIparam.LaserPower=confSet.UncagingLaserPower;  
+ROIparam.LaserPower=SLMTrialInfo.Laser;  
+
+ROIparam.PointsTest=PointAll;
 ROIparam.Clim=[-400;400];
 
 PSTHparam.PointAll=ROIparam.PointAll;
@@ -191,12 +211,13 @@ PowerTestPVPar.maxFrame=nPlane*frameRepetition;
 % PowerTestPVPar.TrialMPSwitch=length(PowerTestPVPar.InterMPRepetition)-1;
 
 
-
+%%
 
 minTrialN=4;
 
 for IEnd=2:18
 FileIDrange=[2;IEnd];
+FileIDrange=[3;36]
 [SLMRes,sampleN]=SLMResponse_ROIMultiZ(ROIall,SLMTrialInfo,ROIparam,minTrialN,SumDataFolder,FileIDrange);
 [SLMResTrace,sampleNTrace]=SLMResponse_PSTHTraceMultiZ(PSTHTraceN,SLMTrialInfo,PSTHparam,minTrialN,SumDataFolder,FileIDrange);
 close all

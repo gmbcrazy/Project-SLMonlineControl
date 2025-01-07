@@ -57,7 +57,9 @@ figure;
 for iPoint=1:length(PointsTest)
     for iLaser=1:length(LaserPower)
         Point=PointsTest(iPoint);
-        I1=find((SLMTrialInfo.Point==Point&ismember(SLMTrialInfo.Laser,LaserPower(iLaser)))==1);
+        % I1=find((SLMTrialInfo.Point==Point&ismember(SLMTrialInfo.Laser,LaserPower(iLaser)))==1);
+        I1=find((SLMTrialInfo.Point==Point&abs(SLMTrialInfo.Laser-LaserPower(iLaser))<0.01)==1);
+
         % limit range FileID in binFile 
         I2=[];
         for jFile=1:size(FileIDrange,2)

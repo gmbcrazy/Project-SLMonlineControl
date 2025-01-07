@@ -20,8 +20,8 @@ else
       P.xRight=PP(2);
       P.yTop=PP(3);
       P.yBottom=PP(4);
-      P.xInt=0.001;
-      P.yInt=0.001;
+      P.xInt=PP(5);
+      P.yInt=PP(6);
 
    end
    
