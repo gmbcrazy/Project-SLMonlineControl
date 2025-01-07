@@ -6,7 +6,7 @@ ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\01072025\SingleP\Top12SpeedStimEdgeExc\';%<----------------------Edit, Data folder
 
 step4_SubStep1_LoadData;
 
