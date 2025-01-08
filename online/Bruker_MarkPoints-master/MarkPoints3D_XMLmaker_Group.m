@@ -1,4 +1,4 @@
-function MarkPoints3D_XMLmaker_Group(GroupPoints,Repetition, UncagingLaserPower, SavePath)
+function MarkPoints3D_XMLmaker_Group(GroupPoints,ConfSet, SavePath)
 % Lu Zhang, 02/2024, 
 % modifed from MarkPoints_XMLMaker3D.m originally developed by Lloyd Russell 20151119
 % Produces XML file of custom galvo positions to be loaded into Prairie View Mark Points
@@ -30,6 +30,26 @@ function MarkPoints3D_XMLmaker_Group(GroupPoints,Repetition, UncagingLaserPower,
 % Note pixel coordinates start at 0,0 (0:511 for a 512 image)
 
 % get values from settings file
+UncagingLaserPower=ConfSet.UncagingLaserPower;
+if length(UncagingLaserPower)>1
+   ConfSetTemp=ConfSet;
+   for iLaser=1:length(UncagingLaserPower)
+       ConfSetTemp.UncagingLaserPower=ConfSet.UncagingLaserPower(iLaser);
+       MarkPoints3D_XMLmaker_Group(GroupPoints,ConfSetTemp, SavePath);
+   end
+   return
+end
+
+
+SpiralRevolutions=ConfSet.SpiralRevolution;
+Duration=ConfSet.Duration;
+InterPointDelay=ConfSet.InterPointDelay;
+Repetition=ConfSet.Repetition;
+InitialDelay=ConfSet.InitialDelay;
+
+
+
+
 
 
 for iGroup=1:length(GroupPoints)
@@ -99,10 +119,10 @@ IndicesStr=[IndicesStr num2str(PointIndex(end))];
 
 
   StimGroup=['    <PVGalvoPointElement '...
-        'InitialDelay="10" '...
-        'InterPointDelay="28.3" '...
-        'Duration="5" '...
-        'SpiralRevolutions="3" '... 
+        'InitialDelay="' num2str(InitialDelay) '" '...
+        'InterPointDelay="' num2str(InterPointDelay) '" '...
+        'Duration="' num2str(Duration) '" '...
+        'SpiralRevolutions="' num2str(SpiralRevolutions) '" '... 
         'Points="' GroupName '" '...
         'Indices="' IndicesStr '" '...
         '/>'...

@@ -1,4 +1,4 @@
-function GroupPointsAll = MarkPoints3D_GPLMerge_1TAndMultiNonT(Pos3D, NonTargets, yaml, IsSpiral, SpiralSizeUM, SpiralRevolutions, SaveName)
+function GroupPointsAll = MarkPoints3D_GPLMerge_1TAndMultiNonT(Pos3D, NonTargets, yaml, ConfSet, SaveName)
 
 % Lu Zhang, 02/2024, 
 % modifed from MarkPoints_GPLMaker3D.m originally developed by Lloyd Russell 20151119
@@ -26,7 +26,12 @@ function GroupPointsAll = MarkPoints3D_GPLMerge_1TAndMultiNonT(Pos3D, NonTargets
 %                 GroupPoints(2).Name = 'Group 2';
 
 
-
+SpiralRevolutions=ConfSet.SpiralRevolution;
+Duration=ConfSet.Duration;
+InterPointDelay=ConfSet.InterPointDelay;
+Repetition=ConfSet.Repetition;
+IsSpiral=ConfSet.IsSpiral;
+SpiralSizeUM=ConfSet.SpiralSizeUM;
 
 % Extract X, Y, and Z coordinates from Pos3D
 % Xpx=Pos3D(:,1);

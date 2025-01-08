@@ -21,5 +21,5 @@ save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell
 
 clear Group
 Group(1).Indices=[1:length(IndexNeed)];
-MarkPoints3D_GPLmaker(Pos3Dneed, yaml, true, SpiralSizeUM, SpiralRevolution, SaveName,Group);
-MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolution,UncagingLaserPower, SavePathAllPoint);
+MarkPoints3D_GPLmaker(Pos3Dneed, yaml, confSet, SaveName,Group);
+MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,confSet, SavePathAllPoint);

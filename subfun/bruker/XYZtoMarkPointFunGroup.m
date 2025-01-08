@@ -18,8 +18,10 @@ SaveName=[SavePathAllPoint 'GPLFunGroup'];
 
 MarkPoints3D_GPLmaker(Pos3D, yaml, true, SpiralSizeUM, SpiralRevolution, SaveName,Group);
 % MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolution,UncagingLaserPower, SavePathAllPoint);
-MarkPoints3D_XMLmaker_FunGroup(Group,Repetition,UncagingLaserPower, SavePathAllPoint);
+MarkPoints3D_XMLmaker_FunGroup(Group,confSet, SavePathAllPoint);
 
 %% Make sham stim xml file
 UncagingLaserPower=0.5;
-MarkPoints3D_XMLmaker_FunGroup(Group,Repetition,UncagingLaserPower, SavePathAllPoint);
+confSetZero=confSet;
+confSetZero.UncagingLaserPower=0.5;
+MarkPoints3D_XMLmaker_FunGroup(Group,confSetZero, SavePathAllPoint);

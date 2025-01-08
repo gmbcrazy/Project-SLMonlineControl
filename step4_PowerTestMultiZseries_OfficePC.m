@@ -1,7 +1,7 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\01072025\'
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\'
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
@@ -13,7 +13,7 @@ ProcessFolder=[WorkingFolder 'SingleP\' 'Top12SpeedStimEdgeExc\'];
 
 step4_MultiZ_SubStep0_LoadData
 %%
-SLMTestParam.TerminalTrialN=3;    %<-------------------------------------------------------------------------------Edit, Trials # to define SLM responsive cells
+SLMTestParam.TerminalTrialN=4;    %<-------------------------------------------------------------------------------Edit, Trials # to define SLM responsive cells
 SLMTestParam.ExcludeTrialN=2;     %<-------------------------------------------------------------------------------Edit, Trials # to define Non-SLM responsive cells
 SLMTestParam.AllLaserPower=confSet.UncagingLaserPower;% Noted that, laser test levels is dependent on ROIparam.LaserPower, not SLMTestParam.AllLaserPower
 PowerTestPVPar.nPlane=nPlane;            
@@ -59,8 +59,7 @@ tempAllList=repmat(XMLparam.AllPointList(:),1,SLMTestParam.TerminalTrialN); %Eac
 tempAllVector=tempAllList(:)
 XMLparam.PointList=tempAllVector(1:PowerTestPVPar.Ziteration-1) %%<-----------nP, NumOfTestedPoints, nP + 1 = NumOfZseries 
 XMLparam.TotalRounds= confSet.Repetition;
-XMLparam.Laser= ROIparam.LaserPower(1);
-
+XMLparam.Laser=confSet.UncagingLaserPower(1);
 
 %%
 SLMRes=zeros(length(XMLparam.AllPointList),length(ROIparam.LaserPower));
@@ -69,7 +68,7 @@ OutTBLAll=[];               %%SLM trial information across all testing files;
 PSTHall=[];
 ROIall=[];
 iCount=1;
-minTrialN=3;
+minTrialN=SLMTestParam.TerminalTrialN;
 SLMTrialInfo=[];                  %Inital response information, automatically updated after each single trial test
 SLMTrialMap=[];                   %Inital response map, automatically updated after each single trial test
 clear SLMTable;
@@ -85,7 +84,7 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 % 
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
-RefFile=[WorkingFolder 'RegRef4\'];
+RefFile=[WorkingFolder 'RegRef2\'];
 % 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 % MultiMatrix3DHeatmap(RegImg)
@@ -118,7 +117,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 
 
 % idRanges=[3;3];
-% idRanges=[31;37];
+idRanges=[3 29;27 35];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 
 

@@ -26,6 +26,6 @@ NonTargets=NonTargets(I1,:);
 % NonTargetPath=[SavePath  'NonTargets\'];
 % mkdir(NonTargetPath)
 % SaveNonTargets=[SavePath 'NonTargets\All']
-MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SavePath,[], 'NonTarget');
+MarkPoints3D_GPLmaker(NonTargets, yaml, confSet,SavePath,[], 'NonTarget');
 
 save([SavePath '.mat'],'NonTargets','NonTargetsPlane');

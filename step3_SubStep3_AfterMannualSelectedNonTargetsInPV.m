@@ -13,7 +13,7 @@ NonTargets=NonTargets(NonTargetNeedInd,:);
 NonTargetsPlane=NonTargetsPlane(NonTargetNeedInd,:);
 SaveNonTargets=[NonTargetPath 'SelectedNonTargets'];
 % [NonTargets,NonTargetsPlane]=NonTargetGeneration(SaveNonTargets,NonTargets,NonTargetsPlane,yaml,confSet);
-MarkPoints3D_GPLmaker(NonTargets, yaml, true, confSet.SpiralSizeUM, confSet.SpiralRevolution,SaveNonTargets,[], 'NonTarget');    %%<< This file is not used in this script, just saved for note, or visulization in PV.
+MarkPoints3D_GPLmaker(NonTargets, yaml, confSet,SaveNonTargets,[], 'NonTarget');    %%<< This file is not used in this script, just saved for note, or visulization in PV.
 
 % load([SavePath 'NonTargets\SelectedNonTargets']);
 

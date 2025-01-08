@@ -1,4 +1,4 @@
-function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, IsSpiral, SpiralSizeUM, SpiralRevolutions, SaveName, GroupPoints, varargin)
+function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, ConfSet, SaveName, GroupPoints, varargin)
 
 % Lu Zhang, 02/2024, 
 % modifed from MarkPoints_GPLMaker3D.m originally developed by Lloyd Russell 20151119
@@ -24,14 +24,20 @@ function GPL = MarkPoints3D_GPLmaker(Pos3D, yaml, IsSpiral, SpiralSizeUM, Spiral
 % 
 %                 GroupPoints(2).Indices = [4, 5, 6, 7];
 %                 GroupPoints(2).Name = 'Group 2';
-if nargin==7
+if nargin==5
    PointsKey='Point';
-elseif nargin==8
+elseif nargin==6
    PointsKey=varargin{1};
 else
 
 end
 
+SpiralRevolutions=ConfSet.SpiralRevolution;
+Duration=ConfSet.Duration;
+InterPointDelay=ConfSet.InterPointDelay;
+Repetition=ConfSet.Repetition;
+IsSpiral=ConfSet.IsSpiral;
+SpiralSizeUM=ConfSet.SpiralSizeUM;
 
 
 % Extract X, Y, and Z coordinates from Pos3D

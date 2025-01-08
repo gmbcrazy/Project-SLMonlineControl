@@ -1,6 +1,6 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\SL0777-Ai203\01072025\
+save_path0: E:\LuSLMOnlineTest\SL0777-Ai203\12182024\
 
 # SLM
 SLM_Pixels_X: 512
@@ -11,9 +11,9 @@ IsSpiral: True #whether using spiral stimulation
 SpiralSizeUM: 15
 SpiralRevolution: 3
 Repetition: 5 #SLM pulse numbers
-Duration: 5 #Duration of SLM pulse
-InterPointDelay: 28.3 #Interval between SLM pulses
-UncagingLaserPower: 1.3 1.45 1.6 #SLM power LevelTest
+Duration: 10 #Duration of SLM pulse
+InterPointDelay: 23.3 #Interval between SLM pulses
+UncagingLaserPower: 1.25 1.45 1.55 1.65 #SLM power LevelTest
 InitialDelay: 10 #SLM Initial Delay
 
 

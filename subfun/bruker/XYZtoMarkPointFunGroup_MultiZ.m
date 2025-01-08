@@ -23,15 +23,15 @@ for iGroup=1:length(Group)
 % TargetCellstat=Cellstat(SLMIncludedIndFromIscell);
 
     UncagingLaserPower=confSet.UncagingLaserPower;
-    MarkPoints3D_GPLmaker(Pos3D(Group(iGroup).Indices,:), yaml, true, SpiralSizeUM, SpiralRevolution, SaveName,tempGroup);
+    MarkPoints3D_GPLmaker(Pos3D(Group(iGroup).Indices,:), yaml, confSet, SaveName,tempGroup);
 % MarkPoints3D_XMLmaker_Points(Pos3Dneed,yaml,true, Repetition, SpiralSizeUM, SpiralRevolution,UncagingLaserPower, SavePathAllPoint);
     % MarkPoints3D_XMLmaker_FunGroup(tempGroup,Repetition,UncagingLaserPower, SavePathAllPoint);
 
     tempGroup.FileName=['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];
-    MarkPoints3D_XMLmaker_Group(tempGroup,Repetition,UncagingLaserPower, SavePathAllPoint);
+    MarkPoints3D_XMLmaker_Group(tempGroup,confSet, SavePathAllPoint);
 %% Make sham stim xml file
     UncagingLaserPower=0.5;
     tempGroup.FileName=['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];
-    MarkPoints3D_XMLmaker_Group(tempGroup,Repetition,UncagingLaserPower, SavePathAllPoint);
+    MarkPoints3D_XMLmaker_Group(tempGroup,confSet, SavePathAllPoint);
 
 end
