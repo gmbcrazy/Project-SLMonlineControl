@@ -1,6 +1,8 @@
 clear all
 SampleFre=6.9;  %Sampling rate in Bruker
 SaveFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
+SaveFolder='C:\Users\User\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
+
 ZIntBySecond=[6;10]; %Interval for a Zseries in Tsereis by seconds
 ZIntByFrame=round(ZIntBySecond*SampleFre);%%Interval for a Zseries in Tsereis by frames
 FrameStep=5; %Multiple intervals would be generated between ZIntByFrame(1) and ZIntByFrame(1), with step of 5 frames
@@ -17,7 +19,7 @@ FunGroupID=1:FunGroupN;
 
 clear SequenceTemp TSeries MarkTWhiskStim MarkTZeroPower
 
-PreSLMframeMin=20; %At least 20 frames before SLM;
+PreSLMframeMin=40; %At least 40 frames before SLM;
 SLMWithWhiskStimPro=0.5;
 SLMZeroStimPro=0.109;
 
@@ -33,9 +35,11 @@ WhiskN=round(SLMWithWhiskStimPro*TotalStimN);
 SeqZero=GenerateZeroSeq(TotalSequence,FunGroupID,ZeroN);
 SeqWhisk=GenerateWiskFromSeqAndZero(TotalSequence,SeqZero,SLMWithWhiskStimPro);
 
-TSeriesFunTemp=reshape(TotalSequence,SLMnum,SequenceN);
-SeqZeroTemp=reshape(SeqZero,SLMnum,SequenceN);
-SeqWhiskTemp=reshape(SeqWhisk,SLMnum,SequenceN);
+
+
+TSeriesFunMat=reshape(TotalSequence,SLMnum,SequenceN);
+SeqZeroMat=reshape(SeqZero,SLMnum,SequenceN);
+SeqWhiskMat=reshape(SeqWhisk,SLMnum,SequenceN);
 
 imagesc([TotalSequence SeqZero SeqWhisk])
 
@@ -44,24 +48,23 @@ FrameN=550;
 TotalFrame=FrameN+SLMnum;  %%Ensure the total frame has FrameN+SLMnum frames for each plane, noted that SLMnum frames will be deleted
 TSeriesCount=1;
 while TSeriesCount <= SequenceN
-    SequenceTemp=ZIntCandidate(randi(length(ZIntCandidate),SLMnum,1));
-    SequenceFunIDTemp=FunGroupID(randi(FunGroupN,SLMnum,1));
+    FrameSequenceTemp=ZIntCandidate(randi(length(ZIntCandidate),SLMnum,1));
+    SequenceFunIDTemp=TSeriesFunMat(:,TSeriesCount);
+    SequenceZeroTemp=SeqZeroMat(:,TSeriesCount);
+    SequenceWhiskTemp=SeqWhiskMat(:,TSeriesCount);
 
-    Pre1stZ=TotalFrame-sum(SequenceTemp);
+    Pre1stZ=TotalFrame-sum(FrameSequenceTemp);
     
-    TempWhisk=1;
-    while TempWhisk==1 
-          SequenceTempWhiskStim=random('Bino',1,0.05,1,SLMnum);
-          if sum(SequenceTempWhiskStim)==0
-             TempWhisk=0;
-          else
-             TempWhisk=0;
-          end
-    end
     if Pre1stZ>=PreSLMframeMin
-       TSeries(:,TSeriesCount)=[Pre1stZ;SequenceTemp(:)];
-       TSeriesWithStim(:,TSeriesCount)=[0;SequenceTempWhiskStim(:)];    %1st Z is not combined with whiskerStim for sure
+       TSeries(:,TSeriesCount)=[Pre1stZ;FrameSequenceTemp(:)];
+       TSeriesXMLFileID(:,TSeriesCount)=[0;SequenceFunIDTemp(:)];
+       TSeriesZeroXMLFile(:,TSeriesCount)=[0;SequenceZeroTemp(:)];    %1st Z is not combined with whiskerStim for sure
+       TSeriesVolOutSyn(:,TSeriesCount)=[0;SequenceWhiskTemp(:)]; 
+
+       TSeriesBrukerTBL{TSeriesCount}=[TSeries(:,TSeriesCount) TSeriesXMLFileID(:,TSeriesCount) TSeriesVolOutSyn(:,TSeriesCount)];
+
        TSeriesCount=TSeriesCount+1;
+
     end
 end
 
