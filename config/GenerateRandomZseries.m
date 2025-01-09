@@ -11,25 +11,42 @@ ZIntCandidate=ZIntByFrame(1):FrameStep:ZIntByFrame(2); %Candidate ZInt
 SLMnum=10;  %%number of SLM in a Tseries
 ZNum=SLMnum+1;%%1st Z is without MP stimuli; The rest were synchronized with MarkPoints.
  
-SequenceN=10;
+SequenceN=5;
 FunGroupN=3;
+FunGroupID=1:FunGroupN;
 
-
-clear SequenceTemp TSeries TSeriesWithStim
+clear SequenceTemp TSeries MarkTWhiskStim MarkTZeroPower
 
 PreSLMframeMin=20; %At least 20 frames before SLM;
-SLMWithWhiskStimPro=0.1;
+SLMWithWhiskStimPro=0.5;
+SLMZeroStimPro=0.109;
+
+RepStimNumTh=3;
+
+% sequence = generate_stimulus_sequence(SLMnum, FunGroupID, RepStimNumTh)
+TotalStimN=SLMnum*SequenceN;
+ZeroN=round(SLMZeroStimPro*TotalStimN);
+WhiskN=round(SLMWithWhiskStimPro*TotalStimN);
 
 
+[TotalSequence,CountID] = generate_stimulus_sequence(SLMnum*SequenceN, FunGroupID, RepStimNumTh,2);
+SeqZero=GenerateZeroSeq(TotalSequence,FunGroupID,ZeroN);
+SeqWhisk=GenerateWiskFromSeqAndZero(TotalSequence,SeqZero,SLMWithWhiskStimPro);
 
+TSeriesFunTemp=reshape(TotalSequence,SLMnum,SequenceN);
+SeqZeroTemp=reshape(SeqZero,SLMnum,SequenceN);
+SeqWhiskTemp=reshape(SeqWhisk,SLMnum,SequenceN);
+
+imagesc([TotalSequence SeqZero SeqWhisk])
 
 
 FrameN=550;
-TotalFrame=FrameN+SLMnum;  %%Ensure the total frame has 1050+SLMnum frames, noted that SLMnum frames will be deleted
-
+TotalFrame=FrameN+SLMnum;  %%Ensure the total frame has FrameN+SLMnum frames for each plane, noted that SLMnum frames will be deleted
 TSeriesCount=1;
 while TSeriesCount <= SequenceN
     SequenceTemp=ZIntCandidate(randi(length(ZIntCandidate),SLMnum,1));
+    SequenceFunIDTemp=FunGroupID(randi(FunGroupN,SLMnum,1));
+
     Pre1stZ=TotalFrame-sum(SequenceTemp);
     
     TempWhisk=1;
