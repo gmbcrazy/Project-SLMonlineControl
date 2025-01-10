@@ -28,6 +28,7 @@ function SeqZero = GenerateZeroSeq(TotalSequence, StimID, ZeroN)
 
         % Mark the selected index as zero in SeqZero
         SeqZero(ZeroInd) = 1;
+        TotalSequence(ZeroInd)=0;
         % Decrement the count of zeros to insert
         ZeroN = ZeroN - 1;
     end

@@ -11,17 +11,21 @@ function [sequence,CountStim] = generate_stimulus_sequence(StimNum, StimID, RepS
         CountStim=zeros(1,length(StimID));
 
         % Calculate differences between consecutive elements
-        DiffSeq = diff(SequenceTemp);
+%         DiffSeq = diff(SequenceTemp);
+        DiffSeq = diff([0 SequenceTemp]);
 
         % Mark where the same stimulus occurs consecutively
         MarkSameSeq = (DiffSeq == 0);
 
         % Find periods of consecutive same stimuli
         SameSeqPeriod = MarkToPeriod(MarkSameSeq);
-        SameSeqL = SameSeqPeriod(2, :) - SameSeqPeriod(1, :) + 2;
-
+        if ~isempty(SameSeqPeriod)
+           SameSeqL = SameSeqPeriod(2, :) - SameSeqPeriod(1, :) + 2;
+        else
+           SameSeqL = 0;
+        end
         % Check if the length of any same-stimulus period exceeds the threshold
-        if max(SameSeqL) < RepStimNumTh
+        if max(SameSeqL) <= RepStimNumTh
             if ~isempty(MaxDiffNum)
                 for j=1:length(StimID)
                     CountStim(j)=sum(SequenceTemp==StimID(j));
