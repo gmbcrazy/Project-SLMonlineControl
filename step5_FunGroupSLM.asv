@@ -5,23 +5,32 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\';%<--------------------     --Edit, Data folder
 
-ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
+
+
+
+ConfigFile='SLMsetting.yml';%<---------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\10302014\SingleP\Top13SpeedStimEdgeExc\';%<----------------------Edit, Data folder
+ProcessFolder=[WorkingFolder 'SingleP\Top12SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
+DataLogFolder=[ProcessFolder 'DataLog\'];
 
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
+load([ConfigFolder 'SpontBeh5T_Z11Frame550.mat'])
+
+
+
 
 % PreMarkPointRepetition=25;    %<----------------------------------------------------------------------------------Edit,Frame # before SLM in PV
 % PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
-PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
-PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
+PreSLMCal=15;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PostSLMCal=3;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
 
 nPlane=length(confSet.ETL);
 
-PVparam.InterMPRepetition=[40 80 80 30 50 40 60 90 50 30];
+PVparam.InterMPRepetition=[40 40 80 80 30 50 40 60 90 50 30];
 frameRepetition=sum(PVparam.InterMPRepetition); %%Total repepitions of Z series in T series setting;
 
 
@@ -39,9 +48,9 @@ PVparam.nPlane=nPlane;
 % PSTHparam.PreInd=PreMarkPointRepetition-PreSLMCal:PreMarkPointRepetition;
 % PSTHparam.PostInd=PreMarkPointRepetition+1:PreMarkPointRepetition+PostSLMCal;
 % PSTHparam.Plot=1;
-% PSTHparam.SmoothSD=1;
-% PSTHparam.ColorMap=colorMapPN1;
-% PSTHparam.Clim=[-400 400];
+PSTHparam.SmoothSD=1;
+PSTHparam.ColorMap=colorMapPN1;
+PSTHparam.Clim=[-400 400];
 
 %param for xml files
 % XMLparam.Laser=1.5;               %<-------------------------------------------------------------------------------Edit, starting laser power to test    
@@ -78,7 +87,41 @@ XMLparam.ProcessFolder=ProcessFolder;
 % PreMarkPointRepetition=[40 60 50];
 % PostMarkPointRepetition=20;
 
+%% 
+numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
+FileType=2;   %Choose a specific bin file as reference for motion correction
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+% RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% 
+% FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+% RefFile=[];
+% RefFile='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\TSeries-12122024-0938-000\';
+% 
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType);
+% MultiMatrix3DHeatmap(RegImg)
+numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
+FileType=2;   %Choose a specific bin file as reference for motion correction
+% ProcessFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12122024\'
+% RefFile=[DataFolder 'TSeries-12132024-1247-023.bin'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType, numGPUs, [512,512,3,30]);
+% 
+FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
+RefFile=[];
+RefFile=[WorkingFolder 'RegRef2\'];
+% 
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
+% FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
+% RefFile=[WorkingFolder 'suite2p\'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+
+XMLparam.DoRegistration=1;
+XMLparam.RegRefOps=RegOps;
+XMLparam.RegRefImg=RegImg;  
+XMLparam.RegRefSource=RefFile;  
+
+disp('Referrence Img for Motion correction updated')
 
 
 %%
@@ -87,15 +130,17 @@ PSTHmap=[];
 CountExp=1;
 TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
-[tempXMLTable{CountExp},ExpFileInfo(CountExp)]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
+XMLparam.LoadGPL=1;
+
+[~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
 
 
 
 
-for CountExp=1:length()
-XMLTable=[XMLTable;tempXMLTable];
+for iExp=1:length(ExpFileInfo)
+XMLTable=[XMLTable;tempXMLTable{iExp}];
 [indexVector, stimulusIDVector, PrePostStimuliVector] = getPSTHFrames(PVparam.InterMPRepetition, PreSLMCal, PostSLMCal);
-tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(CountExp).binFile, confSet, indexVector, stimulusIDVector, PrePostStimuliVector);
+tempPSTHmap = CalMultiPSTHBin(ExpFileInfo(iExp).binFile, confSet, indexVector, stimulusIDVector, PrePostStimuliVector);
 PSTHmap=cat(3,PSTHmap,tempPSTHmap);
 end
 
@@ -105,17 +150,17 @@ OutPng=[SumDataFolder 'CheckFunExp' num2str(CountExp) '.png'];
 
 
 [averagedPSTHmap,nSample] = AveragePSTHByGroupLaser(XMLTable, PSTHmap,TotalGroupIDs);
-Zdepth=confSet.ETL;
+Zdepth=confSet.scan_Z+confSet.ETL;
 
 
 
 figure;
 for iFun = 1:length(nSample)
     if iFun<length(nSample)
-       FinalFunScore(Group(iGroup).Indices, 1) = iGroup;
+       FinalFunScore(Group(iFun).Indices, 1) = iFun;
        Pos3D=FinalPos3D(Group(iFun).Indices,:);
-       RealMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==0);
-       AddMPInd=find((isnan(FinalFunScore(Group(iGroup).Indices,2)))==1);
+       RealMPInd=find((isnan(FinalFunScore(Group(iFun).Indices,2)))==0);
+       AddMPInd=find((isnan(FinalFunScore(Group(iFun).Indices,2)))==1);
 
      for iplane = 1:nPlane
         if nSample(iFun)>0

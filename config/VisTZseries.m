@@ -1,9 +1,16 @@
 % Load or define your table (TBL)
 % Assuming TBL is already loaded in MATLAB workspace
-TseriesMultiZFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
-Datalabel='Z11Frame550-10-Jan-2025';
+TseriesMultiZFolder='C:\Users\User\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
 
-DataFile=[TseriesMultiZFolder Datalabel '.mat'];
+
+TListAll=dir([TseriesMultiZFolder '*.mat']);
+
+for iTlist=1:length(TListAll)
+
+DataFile=[TseriesMultiZFolder TListAll(iTlist).name];
+Datalabel=TListAll(iTlist).name(1:end-4);
+
+
 load(DataFile);
 
 SaveFolder=[TseriesMultiZFolder Datalabel '\'];
@@ -42,7 +49,7 @@ saveas(gcf,[SaveFolder 'T' num2str(iT)],'png');
 close all
 end
 
-
+end
 
 
 % xlabel('Frames')

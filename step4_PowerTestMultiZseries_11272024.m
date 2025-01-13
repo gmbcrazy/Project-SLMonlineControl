@@ -49,7 +49,7 @@ PSTHparam.PostSLMCal=3;        %<-----------------------------------------------
 PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
-
+PSTHparam.MPFrameJump=2;        % %<-----------------------------------------Jump 2 frame repetitions for PMT shutter close during SLM stimuli
 
 XMLparam.SwitchXMLPostMPFrame=6;                     %%<-----------------------------------------------------------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
 XMLparam.ProcessFolder=ProcessFolder;

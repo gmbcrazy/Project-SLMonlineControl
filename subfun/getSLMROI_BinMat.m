@@ -18,7 +18,7 @@ function [ROIall, OutTBLAll] = getSLMROI_BinMat(folderPath, confSet, PSTHparam, 
 if nargin < 6
     idRanges = [];  % If no idRanges is provided, consider all files.
 end
-
+MPFrameJump = PSTHparam.MPFrameJump; 
 % ---------------------------
 % STEP 2: Get the list of files based on ID ranges
 % ---------------------------

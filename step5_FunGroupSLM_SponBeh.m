@@ -5,20 +5,28 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\';%<--------------------     --Edit, Data folder
-PreDefTseriesFolder=[CConfigFolder 'PreGenerateTseriesMultiZ\'];
-
+WorkingFolder='E:\LuSLMOnlineTest\NoAnimalTest\01132025\';%<---------------------------Edit, Data folder
+PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
+PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
+PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
 
 
 ConfigFile='SLMsetting.yml';%<---------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
+
+confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
+
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
 ProcessFolder=[WorkingFolder 'SingleP\Top12SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
+mkdir(SumDataFolder)
 DataLogFolder=[ProcessFolder 'DataLog\'];
+mkdir(DataLogFolder)
 
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
-load([ConfigFolder 'SpontBeh5T_Z11Frame550.mat'])
+load([PreDefTseriesFolder PreDefTmat],'TSeriesBrukerTBL');              
+
+TSeriesENVFile=dir([PreDefFolder '*.env']);
 
 
 
@@ -27,23 +35,16 @@ load([ConfigFolder 'SpontBeh5T_Z11Frame550.mat'])
 % PostMarkPointRepetition=10;   %<----------------------------------------------------------------------------------Edit,Frame # after SLM in PV
 PreSLMCal=15;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PostSLMCal=3;                   %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
-
 nPlane=length(confSet.ETL);
 
-PVparam.InterMPRepetition=[40 40 80 80 30 50 40 60 90 50 30];
-frameRepetition=sum(PVparam.InterMPRepetition); %%Total repepitions of Z series in T series setting;
 
 
 
-PVparam.maxFrame=nPlane*frameRepetition;
-PVparam.BreakPointFrame=PVparam.InterMPRepetition(1:end-1)*nPlane;
-% PVparam.InterMPFrame=[40 60 30 20]*nPlane;
-PVparam.TrialMPSwitch=length(PVparam.InterMPRepetition)-1;
-PVparam.nPlane=nPlane;
-
-
-
-
+XMLparam.ProcessFolder=ProcessFolder;
+XMLparam.TotalRounds=confSet.NumTrial;
+% PointAll=1:size(Pos3Dneed,1);
+XMLparam.SwitchXMLPostMPFrame=10;
+XMLparam.ProcessFolder=ProcessFolder;
 %param for calculate the PSTH heatmap for online analysis
 % PSTHparam.PreInd=PreMarkPointRepetition-PreSLMCal:PreMarkPointRepetition;
 % PSTHparam.PostInd=PreMarkPointRepetition+1:PreMarkPointRepetition+PostSLMCal;
@@ -52,40 +53,10 @@ PSTHparam.SmoothSD=1;
 PSTHparam.ColorMap=colorMapPN1;
 PSTHparam.Clim=[-400 400];
 
-%param for xml files
-% XMLparam.Laser=1.5;               %<-------------------------------------------------------------------------------Edit, starting laser power to test    
-% XMLparam.RoundID=1;               %starting round
-
-XMLparam.ProcessFolder=ProcessFolder;
-XMLparam.TotalRounds=confSet.NumTrial;
-% PointAll=1:size(Pos3Dneed,1);
-
-
-%param for ROI neighbourhood to determine wether there is SLM response.
-% ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dneed,1)
-% ROIparam.PointAll=PointAll;
-% ROIparam.PlaneZ=PlaneZ;
-% ROIparam.CellSize=20;                %%normal neuron diameter by um;        
-% ROIparam.threshold_percentage=0.3;   %%thereshold to define responsive fields SLM responsive heatmap: percentage*Peak rate
-% ROIparam.thNum=15;                   %%Minimal single responsive field by pixels
-% ROIparam.max_distance=ceil(ROIparam.CellSize*2/3/umPerPixel);  %% 2/3 diameter of a cell by pixel as maximal response region-SLM center distance
-% ROIparam.min_region_size=10;
-% ROIparam.PeakTh=200;
-% ROIparam.min_merged_region_size=20;  %%Minimal total size of responsive fields by pixels
-% ROIparam.contourMethod='perim';      %%Method to detect ROI boader of responsive fields
-% ROIparam.NeighbourHfWidthPixel=20;   %%PixFromMedCenter: Number of pixels from the median center of each ROI to get the ROI neighborhood.
-% ROIparam.umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-% ROIparam.Colormap=colorMapPN1;                  
-% ROIparam.LaserPower=confSet.UncagingLaserPower;   
-
-XMLparam.ShamPossibility=0.2;
-XMLparam.SwitchXMLPostMPFrame=10;
-XMLparam.ProcessFolder=ProcessFolder;
 
 
 
-% PreMarkPointRepetition=[40 60 50];
-% PostMarkPointRepetition=20;
+
 
 %% 
 numGPUs=0;      %%Do not use GPU, assume in general the aquisition PC has no GPU. 
@@ -108,7 +79,7 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 % 
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
-RefFile=[WorkingFolder 'RegRef2\'];
+RefFile=[WorkingFolder 'RegRef1\'];
 % 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
@@ -132,8 +103,16 @@ TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
 XMLparam.LoadGPL=1;
 
-[~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
 
+TseriesID=2;
+PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
+LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
+% [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
+pause(4)
+'Ready'
+
+
+[~,~]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLparam,PVparam)
 
 
 

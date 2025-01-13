@@ -29,7 +29,7 @@ function [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames_M
         
         if MPFrameJump
        % Calculate frames from PreSLMCal frames before to PostSLMCal frames after the stimulus
-        frames = [(currentStimulus - PreSLMCal):currentStimulus-1 currentStimulus+1:currentStimulus+PostSLMCal];      %<<------------------------Zseries -> Zseries (Syn. with MP).
+        frames = [(currentStimulus - PreSLMCal):currentStimulus-1 currentStimulus+MPFrameJump:currentStimulus+PostSLMCal+MPFrameJump-1];      %<<------------------------Zseries -> Zseries (Syn. with MP).
         else
         % Calculate frames from PreSLMCal frames before to PostSLMCal frames after the stimulus
         frames = [(currentStimulus - PreSLMCal):currentStimulus-1 currentStimulus:currentStimulus+PostSLMCal-1];      %<<------------------------Not tested yet with real data: Zseries ->MP -> Zseries
