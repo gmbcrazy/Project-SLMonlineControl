@@ -103,16 +103,17 @@ TotalGroupIDs=[1 2 3];   %% All possible Functional Group IDs.
 
 XMLparam.LoadGPL=1;
 
-pause(10)
-for TseriesID=1:5
+
+TseriesID=2;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
 % [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
-pause(4.5);
+pause(4)
 'Ready'
+
+
 [~,~]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLparam,PVparam)
-pause(10)
-end
+
 
 
 for iExp=1:length(ExpFileInfo)

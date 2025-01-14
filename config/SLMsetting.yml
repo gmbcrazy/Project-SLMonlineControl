@@ -1,11 +1,11 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\NoAnimalTest\01132025\
+save_path0: E:\LuSLMOnlineTest\SL0838-Ai203\01142025\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 179.95 #Z device depth
+scan_Z: 170.33 #Z device depth
 ETL: -45 0 45 #Depth of Z planes reference to scan_Z
 IsSpiral: True #whether using spiral stimulation
 SpiralSizeUM: 15
@@ -13,14 +13,14 @@ SpiralRevolution: 3
 Repetition: 5 #SLM pulse numbers
 Duration: 20 #Duration of SLM pulse
 InterPointDelay: 30 #Interval between SLM pulses
-UncagingLaserPower: 0.575 #SLM power LevelTest
+UncagingLaserPower: 1.3 1.45 1.6 #SLM power LevelTest
 InitialDelay: 22.1 #SLM Initial Delay
 
 
 # SLM Nontargets
 NumNonTarget: 20 #Total Num. of NonCell-targets
 NumNTperTrial: 9 #X NonCell Targets per trial
-NumTrial: 8      #Total trials repeated in Single Target SLM, noted that single Target inlcuding 1 Cells and X NonCell Targets
+NumTrial: 5      #Total trials repeated in Single Target SLM, noted that single Target inlcuding 1 Cells and X NonCell Targets
 RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
 # RawDataStream
 # FlipEvenLines: 0
