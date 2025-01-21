@@ -91,11 +91,20 @@ caTrials(iic).MPFileInfo=MPFileInfo;
 caTrials(iic).MPrecord=MPrecord;
 
 if exist('VolFileInfo')
+% caTrials(iic).VolFileInfo=VolFileInfo;
+
+Invalid=[];
+for i=1:length(VolFileInfo)
+    if isempty(VolFileInfo(i).dataFile)
+       Invalid=[Invalid;i];
+    end
+end
+VolFileInfo(Invalid)=[];
 caTrials(iic).VolFileInfo=VolFileInfo;
 
 
-
 clear vRec
+iCount=1;
 % figure;
 for i=1:length(VolFileInfo)
     % if isempty(VolFileInfo(i).dataFile)
@@ -103,13 +112,14 @@ for i=1:length(VolFileInfo)
     % end
 
     if isempty(VolFileInfo(i).dataFile)
-       break;
+       continue;
    
     end
 
 
-    vRec{i} = csvread([caTrials(iic).folder '\' caTrials(iic).name '\' VolFileInfo(i).dataFile],1,0);
-    numP=size(vRec{i},2)-1;
+    vRec{iCount} = csvread([caTrials(iic).folder '\' caTrials(iic).name '\' VolFileInfo(i).dataFile],1,0);
+    numP=size(vRec{iCount},2)-1;
+    iCount=iCount+1;
     % subplot(1,length(SeqFile),i)
     % hold on;
     % for ip=1:numP
@@ -121,6 +131,8 @@ caTrials(iic).vRec=vRec;
 end
 
 clear vConfig
+iCount=1;
+
 for i=1:length(VolFileInfo)
      if isempty(VolFileInfo(i).configurationFile)
        break
@@ -128,7 +140,9 @@ for i=1:length(VolFileInfo)
     temp = xml2struct([caTrials(iic).folder '\' caTrials(iic).name '\' VolFileInfo(i).configurationFile]);
     temp1=temp.VRecSessionEntry.Experiment;
     temp2=rmfield(temp.VRecSessionEntry,'Experiment');
-    vConfig(i)= MapFields1to2(temp2,temp1);
+    vConfig(iCount)= MapFields1to2(temp2,temp1);
+    iCount=iCount+1;
+
 end
 caTrials(iic).vConfig=vConfig;
 end
@@ -142,7 +156,7 @@ PointsInfo=struct([]);
 % GenInfo=struct();
 for i=1:length(MPFileInfo)
     if isempty(MPFileInfo(i).filename)
-       break
+       continue;
     end
     pRec(i) = xml2struct([caTrials(iic).folder '\' caTrials(iic).name '\' MPFileInfo(i).filename]);
 

@@ -130,7 +130,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
         fileID = fopen(binFile, 'wb'); %Write online motion collection data to a bin file
         shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
         FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
-        fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
+        % fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
         FileGenerateInfo.binFileRaw=[filePath 'Raw.bin'];
     else
         fileID = fopen(binFile, 'wb');
@@ -174,11 +174,12 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 %               tic;
 %           pause(0.02);
 
-            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)+0.1   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
-               if ixml<=length(CumInterMPFrame)-1
+               if ixml<=length(CumInterMPFrame)-0.9
                   %ExroundIDs(ixml)=roundIDs(ixml);
                   %ExlaserPowers(ixml)=laserPowers(ixml);
+                  ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname ' True'] ); %%Clear existing MarkPoints and load MarkPoints from the gpl file.
                   pause(0.05);
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
@@ -187,15 +188,17 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 %                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExroundIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
                   LogMessage(LogfileID,['Load' [MarkPointList(ixml).gplname ' ' MarkPointList(ixml).name] ' at ' num2str(frameNum)]);   
 
+
                end
-               BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
-               loadxml=0;
-               BreakYet=0;
-               SLMChecking=0;
-               framesCounter=frameNum;
-               ZeroSampleSMLCount=0;
-               SampleSML=zeros(4,1);
-               ixml=ixml+1;
+                  BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
+                  LogMessage(LogfileID,['BreakPoint Updated Frame ' num2str(BreakPointFrame)]);   
+                  loadxml=0;
+                  BreakYet=0;
+                  SLMChecking=0;
+                  framesCounter=frameNum;
+                  ZeroSampleSMLCount=0;
+                  SampleSML=zeros(4,1);
+                  ixml=ixml+1;
             end
 
 
@@ -270,7 +273,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                        % save processed frame and correlation values to file
                           fwrite(fileID, uint16(regFrame), 'uint16');
                           fwrite(shiftsAndCorrFileID, [dv cv], 'single');
-                          fwrite(fileIDraw, uint16(frame), 'uint16');
+                          % fwrite(fileIDraw, uint16(frame), 'uint16');
 
                       else
                           fwrite(fileID, frame, 'uint16');
@@ -375,8 +378,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
          fclose(fileID);
           if DoRegistration
              fclose(shiftsAndCorrFileID);
-             fclose(fileIDraw);
-
+             % fclose(fileIDraw);
               motionMed=median(motionMed);
               LogMessage(LogfileID,['Median motion of ' num2str(motionMed) ' pixels (MotionX + MotionY) detected']);
               FileGenerateInfo.motionMed=motionMed;

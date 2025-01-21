@@ -1,4 +1,4 @@
-function PSTHmap = CalMultiPSTHBin(BinFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector)
+function [PSTHmap,InvalidStimID] = CalMultiPSTHBin(BinFile, confSet, indexVector, stimulusIDVector, prePostStimuliVector)
     % CalMultiPSTHBin - Calculates the mean imaging difference (post - pre) for each stimulus.
     %
     % Inputs:
@@ -12,7 +12,22 @@ function PSTHmap = CalMultiPSTHBin(BinFile, confSet, indexVector, stimulusIDVect
     %   PSTHmap - A map containing the mean imaging difference (post - pre) for each stimulus.
 
     % Load imaging data using Suite2pSingleChBin2Frame
-    ImagingFrame = Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), indexVector);
+    InvalidStimID=[];
+    [ImagingFrame,ValidFrame] = Suite2pSingleChBin2Frame(BinFile, confSet.SLM_Pixels_Y, confSet.SLM_Pixels_X, length(confSet.ETL), indexVector);
+
+    InvalidStimID=unique(stimulusIDVector(ValidFrame==0));
+    if ~isempty(InvalidStimID)
+       DelI=ismember(stimulusIDVector,InvalidStimID);
+       indexVector(DelI)=[];
+       stimulusIDVector(DelI)=[];
+       prePostStimuliVector(DelI)=[];
+       if length(size(ImagingFrame))==3      %%1 plane
+          ImagingFrame(:,:,DelI)=[];
+       elseif length(size(ImagingFrame))==4  %%Multi planes
+          ImagingFrame(:,:,DelI,:)=[];
+       else
+       end
+    end
 
     % Get unique stimulus IDs and count
     uniqueStimuli = unique(stimulusIDVector);
@@ -31,7 +46,7 @@ function PSTHmap = CalMultiPSTHBin(BinFile, confSet, indexVector, stimulusIDVect
     % Pre-calculate logical masks for pre and post frames
     preMask = (prePostStimuliVector == -1);
     postMask = (prePostStimuliVector == 1);
-
+ 
     % Use logical indexing instead of find
     for i = 1:nStimuli
         stimulusID = uniqueStimuli(i);

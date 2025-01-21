@@ -31,35 +31,53 @@
 
 % make figure
 handles = [];
+
 handles.fig = figure('Name','PrairieLink RawDataStream',...
-    'Position',[50 100 320 180],... % Adjust height for added space
+    'Position',[50 100 400 240],... % Adjust height for added space
     'MenuBar','none', 'NumberTitle','off', 'Color','w');
 % add button
 handles.GREEN = [0.05 0.85 0.35];
 handles.StartButton = uicontrol('Style','Pushbutton',...
-    'Position',[10 10 300 40], 'String','Start', 'FontSize',20,...
+    'Position',[50 20 300 40], 'String','Start', 'FontSize',20,...
     'BackgroundColor',handles.GREEN, 'ForegroundColor','w',...
     'Callback',@ClickStart);
 
 % add text
 handles.DoRegistration = uicontrol('Style','Checkbox',...
-    'Position',[10 140 300 15],'BackgroundColor','w', 'String','Do registration');
+    'Position',[20 190 150 20],'BackgroundColor','w', 'String','Do registration');
 
 handles.LoadRefImgButton = uicontrol('Style','Pushbutton',...
-    'Position',[190 140 120 15],'BackgroundColor','w', 'String','Load reference image',...
+    'Position',[200 190 180 20],'BackgroundColor','w', 'String','Load reference image',...
     'Callback',@LoadReferenceImage);
 
 handles.RefImgText = uicontrol('Style','Text',...
-    'Position',[10 90 300 50],... % Adjust height for multiline text
+    'Position',[20 140 360 40],... % Adjust height for multiline text
     'BackgroundColor','w', 'String',' ',...
     'FontAngle','Italic', 'HorizontalAlignment','left');
 
 handles.FileNameText = uicontrol('Style','Text',...
-    'Position',[10 75 300 15],'BackgroundColor','w', 'String','(Filename=)',...
+    'Position',[20 120 360 40],'BackgroundColor','w', 'String','(Filename=)',...
     'FontWeight','Bold', 'Enable','Inactive', 'ButtonDownFcn',@ClickFilename);
 
 handles.ProgressText = uicontrol('Style','Text',...
-    'Position',[10 60 300 15],'BackgroundColor','w', 'String','(Progress)');
+    'Position',[20 100 360 20],'BackgroundColor','w', 'String','(Progress)');
+
+
+% Input: Max Frame
+handles.MaxFrameText = uicontrol('Style', 'Text', ...
+    'Position', [20 80 150 20], 'BackgroundColor', 'w', ...
+    'String', 'Max Frame:', 'HorizontalAlignment', 'left');
+handles.MaxFrameEdit = uicontrol('Style', 'Edit', ...
+    'Position', [180 80 200 20], 'BackgroundColor', 'w', ...
+    'String', '8200'); % Default value for maxFrame
+
+% Input: Add File Path
+handles.AddFileText = uicontrol('Style', 'Text', ...
+    'Position', [20 60 150 20], 'BackgroundColor', 'w', ...
+    'String', 'Add File Path:', 'HorizontalAlignment', 'left');
+handles.AddFileEdit = uicontrol('Style', 'Edit', ...
+    'Position', [180 60 200 20], 'BackgroundColor', 'w', ...
+    'String', ''); % Default value for AddFile
 
 handles.RefImgLoaded = false;
 handles.numPlanes = 1;  % default
@@ -74,6 +92,20 @@ function ClickStart(h, e)
     
     % retrieve guidata
     handles = guidata(h);
+    % maxFrame=8200;
+    % AddFile='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\TSeries-01142025-1221-001';
+    % Get maxFrame and AddFile from the GUI
+    maxFrame = str2double(handles.MaxFrameEdit.String); % Convert to numeric
+    AddFile = handles.AddFileEdit.String; % Get string input
+
+    % Check if maxFrame is valid
+    if isnan(maxFrame) || maxFrame <= 0
+        error('Invalid value for Max Frame. Please enter a positive number.');
+    end
+
+    % Display inputs for debugging
+    disp(['Max Frame: ', num2str(maxFrame)]);
+    disp(['Add File: ', AddFile]);
 
 % get ready for online registration
     DoRegistration = handles.DoRegistration.Value;  % get value, don't want to ever turn on or off mid acquisition.
@@ -138,13 +170,28 @@ function ClickStart(h, e)
     % fwrite(fileID, linesPerFrame, 'uint16');
 
     % open binary file for writing
-    if DoRegistration
-        fileID = fopen([filePath '.bin'], 'wb');
-        fileIDraw = fopen([filePath 'Raw.bin'], 'wb');
-        shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb');
+    if isempty(AddFile)
+         if DoRegistration
+            fileID = fopen([filePath '.bin'], 'wb');
+            fileIDraw = fopen([filePath 'Raw.bin'], 'wb');
+            shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb');
+        else
+            fileID = fopen([filePath '.bin'], 'wb');
+        end
     else
-        fileID = fopen([filePath '.bin'], 'wb');
+         if DoRegistration
+            fileID = fopen([AddFile '.bin'], 'ab');
+            fileIDraw = fopen([AddFile 'Raw.bin'], 'ab');
+            shiftsAndCorrFileID = fopen([AddFile '_ShiftsAndCorr.bin'],'ab');
+        else
+            fileID = fopen([AddFile '.bin'], 'ab');
+        end
+
+
     end
+
+
+
     % flush buffer
     flushing = 1;
     while flushing
@@ -263,6 +310,7 @@ function ClickStart(h, e)
                 % increment frame counter
                 frameNum = frameNum + 1;
 
+
                 % debugging: preview plot
                 if preview
                     Image1.CData = [frame'];
@@ -270,6 +318,10 @@ function ClickStart(h, e)
 
                     FrameCounter.String = msg;
                     pause(0.00001);
+                end
+
+                if frameNum==maxFrame
+                   break
                 end
             end
         end
@@ -297,6 +349,10 @@ function ClickStart(h, e)
             fprintf(msg)
         end
 
+        if started && frameNum >= maxFrame
+           running = 0;
+        end
+
         % exit loop if finished (if no data collected for previous X loops)
         if started && loopCounter > 100 && sum(allSamplesRead(end-99:end)) == 0
             running = 0;
@@ -314,8 +370,9 @@ function ClickStart(h, e)
     fclose(fileID);
     if DoRegistration
        fclose(shiftsAndCorrFileID);
+       fclose(fileIDraw);
+
     end
-    fclose(fileIDraw);
 
 %     fprintf(['\n' 'Finished!' '\n'])
     handles.StartButton.BackgroundColor = handles.GREEN;

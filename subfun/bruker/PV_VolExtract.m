@@ -1,4 +1,4 @@
-function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet)
+function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet,fileID)
 
 
 % PV_SpeedExtract extracts Voltage signals including speed, Stim, and timestamps from photovoltaic speed recording systems.
@@ -19,9 +19,9 @@ function [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet)
 % Read XML configuration and trial data.
 tic
 if ischar(confSet)
-   caTrials=XMLread_SLM(confSet,1);
+   caTrials=XMLread_SLM(confSet,fileID);
 else
-   caTrials=XMLread_SLM(confSet.save_path0,1);
+   caTrials=XMLread_SLM(confSet.save_path0,fileID);
 end
 toc
 numPlanes=length(confSet.ETL);

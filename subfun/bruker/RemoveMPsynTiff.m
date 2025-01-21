@@ -1,4 +1,4 @@
-function RemoveFiles = RemoveMPsynTiff(folderPath)
+function RemoveFiles = RemoveMPsynTiff(folderPath,varargin)
     % AnalyzeImagingSeries - Analyzes 3D imaging time series and outputs
     %                        total repetitions and frame IDs after stimuli.
     %
@@ -10,7 +10,14 @@ function RemoveFiles = RemoveMPsynTiff(folderPath)
     % Outputs:
     %    totalRepetitions - The total number of repetitions (#Tiff / #Planes).
     %    framesAfterStimuli - A cell array of file names for the frames immediately after each MarkPoints.xml.
-    
+    if nargin==1
+       RemoveRepetition=1;
+    else
+       RemoveRepetition=varargin{1};
+       
+    end
+
+
     % Get a list of all files in the folder
     files = dir(fullfile(folderPath, '*.ome.tif'));
     MPxmlFiles = dir(fullfile(folderPath, '*MarkPoints.xml'));
@@ -99,8 +106,12 @@ function RemoveFiles = RemoveMPsynTiff(folderPath)
         end
         
     end
+    SynFileInd=[];
+    for jRepMove=1:RemoveRepetition
+        SynFileIndTemp=find(ismember(cycleID,markCycle+jRepMove-1)==1);
+        SynFileInd=[SynFileInd;SynFileIndTemp(:)];
+    end
 
-    SynFileInd=find(ismember(cycleID,markCycle)==1);
     RemoveFiles=files(SynFileInd);
     if isempty(SynFileInd)
        disp('No Imaging is found synchronized with MarkPoints')

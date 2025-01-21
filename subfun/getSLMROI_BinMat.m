@@ -53,8 +53,6 @@ for iCount = 1:length(FileGenerateInfo)
     % Assign FileID to the output table for current processing
     OutTBL.FileID = FileGenerateInfo(iCount).FileID * ones(size(OutTBL, 1), 1);
     
-    % Append the current table to the aggregated table
-    OutTBLAll = [OutTBLAll; OutTBL];
     
     % ---------------------------
     % STEP 6: Calculate plane depth and match positions
@@ -69,14 +67,17 @@ for iCount = 1:length(FileGenerateInfo)
     % ---------------------------
     % STEP 7: Generate PSTH (Peri-Stimulus Time Histogram)
     % ---------------------------
-    MPFrameJump = 1;  % Frame jump parameter
     [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames_MPxmlInfo(...
-        OutTBL, PSTHparam.PreSLMCal, PSTHparam.PostSLMCal, MPFrameJump);
+        OutTBL, PSTHparam.PreSLMCal, PSTHparam.PostSLMCal, PSTHparam.MPFrameJump);
     
     % Calculate PSTH map from the binary file
-    PSTHmap = CalMultiPSTHBin(FileGenerateInfo(iCount).binFile, confSet, ...
+    [PSTHmap,InvalidID] = CalMultiPSTHBin(FileGenerateInfo(iCount).binFile, confSet, ...
                               indexVector, stimulusIDVector, prePostStimuliVector);
-    
+    OutTBL(InvalidID,:)=[];
+
+    % Append the current table to the aggregated table
+    OutTBLAll = [OutTBLAll; OutTBL];
+
     % Aggregate PSTH maps across files
     PSTHall = cat(3, PSTHall, PSTHmap);
     

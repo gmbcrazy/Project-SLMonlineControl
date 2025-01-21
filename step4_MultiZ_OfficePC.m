@@ -1,11 +1,11 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0777-Ai203\12182024\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\'
 load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-ProcessFolder=[WorkingFolder 'SingleP\' 'Top12SpeedStimEdgeExc\'];
+ProcessFolder=[WorkingFolder 'SingleP\' 'Top14SpeedStimEdgeExc\'];
 % % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % % 
 % % SLMsettingFile='SLMsetting.yml';
@@ -49,6 +49,7 @@ PSTHparam.PostSLMCal=3;        %<-----------------------------------------------
 PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.MPFrameJump=2; % %<-----------------------------------------For Suite2p based ROI signal only method
 
 
 XMLparam.SwitchXMLPostMPFrame=6;                     %%<-----------------------------------------------------------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
@@ -117,8 +118,8 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 
 
 % idRanges=[3;3];
-idRanges=[3 29;27 35];
-idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
+idRanges=[3;37];
+% idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 
 
 step4_MultiZ_SubStep2_UpdatingROIandXML

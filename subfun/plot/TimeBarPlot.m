@@ -19,7 +19,7 @@ end
 
 if size(Color,1)==1
    Color=repmat(Color,length(Xwidth),1);
-   ZeroColor=Color(1,:);
+   ZeroColor=[0.9 0.9 0.9];
 else
    ZeroColor=[0.9 0.9 0.9];
 end

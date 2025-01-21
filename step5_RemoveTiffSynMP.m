@@ -7,7 +7,8 @@
 % RemoveFiles = RemoveMPsynTiff(folderPath)
 % 
 clear all
-ProcessedFolder='E:\LuSLMOnlineTest\SL0777-Ai203\11142024\Data\';
+ProcessedFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\SingleP\Top14SpeedStimEdgeExc\Data\DataGroup\';
 % TiffTable = RemoveMPsynTiffFolder(DataFolder)
 
-[TiffTable, RemoveList] = RemoveMPsynTiffFolder(ProcessedFolder);
+RemoveFrame=2; %%2 repetitions right together with MarkPoint would be removed.
+[TiffTable, RemoveList] = RemoveMPsynTiffFolder(ProcessedFolder,RemoveFrame);

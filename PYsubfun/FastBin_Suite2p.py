@@ -114,6 +114,7 @@ def LoadBin(binFile,ops1):
 #Make sure each plane has same number of frames.
     FramePerPlane=np.floor(rawBin.shape[0]/ops1['nplanes'])
     TotalFrameNeed=np.int32(np.floor(FramePerPlane)*ops1['nplanes'])
+    rawBin=rawBin[range(0,TotalFrameNeed),:,:]
     #print(f"Total Frames {TotalFrameNeed} is found")
     return rawBin, FramePerPlane, TotalFrameNeed
 
@@ -234,4 +235,26 @@ def PostMannual(SaveFolder, ops0):
 
 
 
+
+def copy_and_merge_files(output_file, input_files):
+    """
+    Merges multiple binary files into a single binary file.
+
+    Parameters
+    ----------
+    output_file: str
+        Path to the output binary file.
+    input_files: list of str
+        Paths to the input binary files to merge.
+    """
+    with open(output_file, 'wb') as fout:
+        for input_file in input_files:
+            with open(input_file, 'rb') as fin:
+                while True:
+                    data = fin.read()  # Read in chunks of 64KB
+                    if not data:
+                        break
+                    fout.write(data)
+
+    print(f"Merged binary file saved to {output_file}")
 

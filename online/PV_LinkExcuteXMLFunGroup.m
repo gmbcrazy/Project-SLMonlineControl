@@ -154,7 +154,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 %               tic;
 %           pause(0.02);
 
-            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)+0.1   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
                if ixml<=length(CumInterMPFrame)-1
                   ExgroupIDs(ixml)=groupIDs(ixml);
@@ -170,6 +170,8 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam)
 
                end
                BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
+               LogMessage(LogfileID,['BreakPoint Updated Frame ' num2str(BreakPointFrame)]);   
+
                loadxml=0;
                BreakYet=0;
                SLMChecking=0;

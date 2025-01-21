@@ -6,7 +6,8 @@ confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 % This part cost 3 minutes.
 if ~exist('fSpeed')
-    [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet);
+    [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract_MultiFolder(confSet,fileID);
+    % [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet);
     fSpeed=AmpNormalizeRow(double(fSpeed)',[0 100])';
     fStim=AmpNormalizeRow(double(fStim)',[0 100])';
 end
