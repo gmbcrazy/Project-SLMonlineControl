@@ -3,11 +3,16 @@
 XTimesStdTh = 3;
 MinInterVal = 20;
 maxLag = 10;
+Continueloop=1;
+
+
 deltaFoF=F2deltaFoF(double(CaData.F),double(CaData.Fneu),double(confSet.fs));
 NeuroData=AmpNormalizeRow(deltaFoF',[0 100])';
 L=min(size(fSpeed,1),size(NeuroData,1))
 NeuroData=NeuroData(1:L,:);
 NeuroDataCell=NeuroData(:,iscell);
+
+TopCellNRaw=TopCellN;
 
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
@@ -34,18 +39,28 @@ rStim=rStim(:);
 [~,~,rankSpeed]=intersect(1:numPoint,rISpeed);
 
 %%Cell locates close to edge of the view, were not considered as SML targets.
-rCenterIStim=intersect(CenterCloseI,rIStim(1:TopCellN));
-rCenterISpeed=intersect(CenterCloseI,rISpeed(1:TopCellN));
 
-AllFunctionI=union(rCenterIStim,rCenterISpeed);
-ColFunctionI=intersect(rCenterIStim,rCenterISpeed);
-randperm(5,3)
-NonFunctionI=setdiff(CenterCloseI,AllFunctionI);
+while Continueloop
+    rCenterIStim=intersect(CenterCloseI,rIStim(1:TopCellN));
+    rCenterISpeed=intersect(CenterCloseI,rISpeed(1:TopCellN));
 
-rCenterIStim=setdiff(rCenterIStim,ColFunctionI);
-rCenterISpeed=setdiff(rCenterISpeed,ColFunctionI);
-if length(NonFunctionI)<=TopCellN
-   NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
+    AllFunctionI=union(rCenterIStim,rCenterISpeed);
+    ColFunctionI=intersect(rCenterIStim,rCenterISpeed);
+    NonFunctionI=setdiff(CenterCloseI,AllFunctionI);
+
+    rCenterIStim=setdiff(rCenterIStim,ColFunctionI);
+    rCenterISpeed=setdiff(rCenterISpeed,ColFunctionI);
+
+    if length(rCenterIStim)<TopCellNRaw||length(rCenterISpeed)<TopCellNRaw
+        TopCellN=TopCellN+1;
+        Continueloop=1;
+    else
+        Continueloop=0;
+    end
+end
+
+if length(NonFunctionI)<TopCellN
+   NonFunctionI=NonFunctionI;
 else
    NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
 end

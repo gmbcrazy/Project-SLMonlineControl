@@ -52,7 +52,7 @@ PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For
 PSTHparam.MPFrameJump=2; % %<-----------------------------------------For Suite2p based ROI signal only method
 
 
-XMLparam.SwitchXMLPostMPFrame=6;                     %%<-----------------------------------------------------------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
+XMLparam.SwitchXMLPostMPFrame=10;                     %%<-----------------------------------------------------------MarkPoint switching occurs after 10 Repetitions of nplanes of Zseries.
 XMLparam.ProcessFolder=ProcessFolder;
 XMLparam.AllPointList=1:size(AllTestPoints3D,1);
 
