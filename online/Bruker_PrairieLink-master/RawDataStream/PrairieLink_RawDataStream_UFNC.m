@@ -33,30 +33,30 @@
 handles = [];
 
 handles.fig = figure('Name','PrairieLink RawDataStream',...
-    'Position',[50 100 400 240],... % Adjust height for added space
+    'Position',[50 100 400 300],... % Adjust height for added space
     'MenuBar','none', 'NumberTitle','off', 'Color','w');
 % add button
 handles.GREEN = [0.05 0.85 0.35];
 handles.StartButton = uicontrol('Style','Pushbutton',...
-    'Position',[50 20 300 40], 'String','Start', 'FontSize',20,...
+    'Position',[50 40 300 40], 'String','Start', 'FontSize',20,...
     'BackgroundColor',handles.GREEN, 'ForegroundColor','w',...
     'Callback',@ClickStart);
 
 % add text
 handles.DoRegistration = uicontrol('Style','Checkbox',...
-    'Position',[20 190 150 20],'BackgroundColor','w', 'String','Do registration');
+    'Position',[30 250 150 20],'BackgroundColor','w', 'String','Do registration');
 
 handles.LoadRefImgButton = uicontrol('Style','Pushbutton',...
-    'Position',[200 190 180 20],'BackgroundColor','w', 'String','Load reference image',...
+    'Position',[200 250 180 20],'BackgroundColor','w', 'String','Load reference image',...
     'Callback',@LoadReferenceImage);
 
 handles.RefImgText = uicontrol('Style','Text',...
-    'Position',[20 140 360 40],... % Adjust height for multiline text
+    'Position',[20 200 360 40],... % Adjust height for multiline text
     'BackgroundColor','w', 'String',' ',...
     'FontAngle','Italic', 'HorizontalAlignment','left');
 
 handles.FileNameText = uicontrol('Style','Text',...
-    'Position',[20 120 360 40],'BackgroundColor','w', 'String','(Filename=)',...
+    'Position',[20 5 360 30],'BackgroundColor','w', 'String','(Filename=)',...
     'FontWeight','Bold', 'Enable','Inactive', 'ButtonDownFcn',@ClickFilename);
 
 handles.ProgressText = uicontrol('Style','Text',...
@@ -65,19 +65,19 @@ handles.ProgressText = uicontrol('Style','Text',...
 
 % Input: Max Frame
 handles.MaxFrameText = uicontrol('Style', 'Text', ...
-    'Position', [20 80 150 20], 'BackgroundColor', 'w', ...
-    'String', 'Max Frame:', 'HorizontalAlignment', 'left');
+    'Position', [20 150 150 20], 'BackgroundColor', 'w', ...
+    'String', 'Max Frame (Reps. x Planes):', 'HorizontalAlignment', 'right');
 handles.MaxFrameEdit = uicontrol('Style', 'Edit', ...
-    'Position', [180 80 200 20], 'BackgroundColor', 'w', ...
-    'String', '8200'); % Default value for maxFrame
+    'Position', [175 150 50 20], 'BackgroundColor', 'w', ...
+    'String', ''); % Default value for maxFrame
 
 % Input: Add File Path
-handles.AddFileText = uicontrol('Style', 'Text', ...
-    'Position', [20 60 150 20], 'BackgroundColor', 'w', ...
-    'String', 'Add File Path:', 'HorizontalAlignment', 'left');
-handles.AddFileEdit = uicontrol('Style', 'Edit', ...
-    'Position', [180 60 200 20], 'BackgroundColor', 'w', ...
-    'String', ''); % Default value for AddFile
+handles.AddToFileIDText = uicontrol('Style', 'Text', ...
+    'Position', [20 125 150 20], 'BackgroundColor', 'w', ...
+    'String', 'Add To File Iteration:', 'HorizontalAlignment', 'right');
+handles.AddToFileIDEdit = uicontrol('Style', 'Edit', ...
+    'Position', [175 125 50 20], 'BackgroundColor', 'w', ...
+    'String', ''); % Default value for AddToFileID
 
 handles.RefImgLoaded = false;
 handles.numPlanes = 1;  % default
@@ -93,10 +93,10 @@ function ClickStart(h, e)
     % retrieve guidata
     handles = guidata(h);
     % maxFrame=8200;
-    % AddFile='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\TSeries-01142025-1221-001';
-    % Get maxFrame and AddFile from the GUI
+    % AddToFileID='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\TSeries-01142025-1221-001';
+    % Get maxFrame and AddToFileID from the GUI
     maxFrame = str2double(handles.MaxFrameEdit.String); % Convert to numeric
-    AddFile = handles.AddFileEdit.String; % Get string input
+    AddToFileID = handles.AddToFileIDEdit.String; % Get string input
 
     % Check if maxFrame is valid
     if isnan(maxFrame) || maxFrame <= 0
@@ -104,8 +104,8 @@ function ClickStart(h, e)
     end
 
     % Display inputs for debugging
-    disp(['Max Frame: ', num2str(maxFrame)]);
-    disp(['Add File: ', AddFile]);
+    disp(['Max Frame (Reps. x Planes): ', num2str(maxFrame)]);
+    disp(['New Bin Data continued with File: ', AddToFileID]);
 
 % get ready for online registration
     DoRegistration = handles.DoRegistration.Value;  % get value, don't want to ever turn on or off mid acquisition.
@@ -158,10 +158,10 @@ function ClickStart(h, e)
     filePath      = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
 
     % display file name
-    completeFileName = [filePath '.bin'];
-    decoration = repmat('*', 1, length(completeFileName));
+%     completeFileName = [filePath '.bin'];
+%     decoration = repmat('*', 1, length(completeFileName));
 %     disp([decoration; completeFileName; decoration])
-    handles.FileNameText.String = completeFileName;
+%     handles.FileNameText.String = completeFileName;
     handles.StartButton.BackgroundColor = [.8 .8 .8];
     
 
@@ -170,7 +170,7 @@ function ClickStart(h, e)
     % fwrite(fileID, linesPerFrame, 'uint16');
 
     % open binary file for writing
-    if isempty(AddFile)
+    if isempty(AddToFileID)
          if DoRegistration
             fileID = fopen([filePath '.bin'], 'wb');
             fileIDraw = fopen([filePath 'Raw.bin'], 'wb');
@@ -179,17 +179,20 @@ function ClickStart(h, e)
             fileID = fopen([filePath '.bin'], 'wb');
         end
     else
+        filePath=[baseDirectory, filesep, tSeriesName '-' sprintf('%0.3d', str2double(AddToFileID))];
          if DoRegistration
-            fileID = fopen([AddFile '.bin'], 'ab');
-            fileIDraw = fopen([AddFile 'Raw.bin'], 'ab');
-            shiftsAndCorrFileID = fopen([AddFile '_ShiftsAndCorr.bin'],'ab');
+            fileID = fopen([filePath '.bin'], 'ab');
+            fileIDraw = fopen([filePath 'Raw.bin'], 'ab');
+            shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'ab');
         else
-            fileID = fopen([AddFile '.bin'], 'ab');
+            fileID = fopen([filePath '.bin'], 'ab');
         end
 
 
     end
 
+    completeFileName = [filePath '.bin'];
+    handles.FileNameText.String = completeFileName;
 
 
     % flush buffer

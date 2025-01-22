@@ -5,6 +5,7 @@ ConfigFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 % This part cost 3 minutes.
+fileID=[1 2];
 if ~exist('fSpeed')
     [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract_MultiFolder(confSet,fileID);
     % [fSpeed,fStim,timeStampCa_Plane]=PV_VolExtract(confSet);
@@ -43,7 +44,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=14;  
+TopCellN=16;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 

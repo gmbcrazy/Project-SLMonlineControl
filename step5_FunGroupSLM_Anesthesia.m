@@ -7,7 +7,7 @@ load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\11212025\';%<---------------------------Edit, Data folder
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
-PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
+PreDefTmat='Anesthesia5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
 
 
@@ -105,7 +105,18 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:2
+for TseriesID=3:5
+PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
+LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
+% [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
+pause(4.5);
+'Ready'
+[~,~]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLparam,PVparam)
+pause(6)
+end
+
+
+for TseriesID=1:5
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
 % [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
