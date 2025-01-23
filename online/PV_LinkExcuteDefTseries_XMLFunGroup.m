@@ -153,22 +153,24 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLpara
 %               tic;
 %           pause(0.02);
 
-            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
+            if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)+0.1   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
-               if ixml<=length(CumInterMPFrame)-1
+               if ixml<=length(CumInterMPFrame)-0.9
                   ExgroupIDs(ixml)=groupIDs(ixml);
                   ExlaserPowers(ixml)=laserPowers(ixml);
                   ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExGPLPointList(ixml).name] );  %Load the gpl file including all MP as well as all Functional Groups.
-                  pause(0.1);
+                  pause(0.05);
                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExXMLList{ixml}]);
-                  pause(0.1);
+                  pause(0.01);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
 %                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
-                  LogMessage(LogfileID,['Load' [ExGPLPointList(ixml).name ' ' ExXMLList{ixml}] ' at ' num2str(frameNum)]);   
+                  LogMessage(LogfileID,[num2str(ixml) 'Load' [ExGPLPointList(ixml).name ' ' ExXMLList{ixml}] ' at ' num2str(frameNum)]);   
 
                end
                BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
+               LogMessage(LogfileID,['BreakPoint Updated Frame ' num2str(BreakPointFrame)]);   
+
                loadxml=0;
                BreakYet=0;
                SLMChecking=0;
