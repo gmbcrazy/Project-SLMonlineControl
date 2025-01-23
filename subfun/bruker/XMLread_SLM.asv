@@ -105,7 +105,7 @@ caTrials(iic).FrameNum=numFrames;
 caTrials(iic).LastFame=LastFame;
 caTrials(iic).MPFileInfo=MPFileInfo;
 caTrials(iic).MPrecord=MPrecord;
-caTrials(iic).LastFrameSeqFile=LastFrameSeqFile;
+caTrials(iic).LastFame=LastFame;
 
 if exist('VolFileInfo')
 % caTrials(iic).VolFileInfo=VolFileInfo;

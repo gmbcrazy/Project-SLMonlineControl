@@ -118,6 +118,6 @@ end
 confSetTemp=confSet;
 confSetTemp.save_path0=DataFolder;
 MatTBLvol = XMLmatch_VoltageOutput(DataFolder, confSetTemp, PSTHparam, idRanges);
-disp([num2str(sum(abs(MatTBLvol.VolOut-MatTBLvol.VolOutExc)))  ' errors in WhiskerPulse excution']);
+disp([sum(abs(MatTBLvol.VolOut-MatTBLvol.VolOutExc)) ' WhiskerPulse excuted mistakely'];
 
 

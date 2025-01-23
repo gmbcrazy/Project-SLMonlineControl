@@ -128,8 +128,8 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
      if DoRegistration
         fileID = fopen(binFile, 'wb'); %Write online motion collection data to a bin file
-        shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
-        FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
+        % shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
+        % FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
         % fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
         FileGenerateInfo.binFileRaw=[filePath 'Raw.bin'];
     else
@@ -160,6 +160,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
     allSamplesRead = [];
     msg            = [];
     motionMed = [];
+    motionMat=[];
 %          loopTimes      = [];
     droppedData    = [];
 
@@ -270,9 +271,11 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                         [regFrame,dv,cv] = return_offsets_phasecorr(single((frame)),ops{plane});
                         motionTemp=sum(abs(dv));
                         motionMed=[motionMed;motionTemp];
+                        motionMat=[motionMat;dv(:)'];
+
                        % save processed frame and correlation values to file
                           fwrite(fileID, uint16(regFrame), 'uint16');
-                          fwrite(shiftsAndCorrFileID, [dv cv], 'single');
+                          % fwrite(shiftsAndCorrFileID, [dv cv], 'single');
                           % fwrite(fileIDraw, uint16(frame), 'uint16');
 
                       else
@@ -377,14 +380,14 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
          fclose(fileID);
           if DoRegistration
-             fclose(shiftsAndCorrFileID);
+             % fclose(shiftsAndCorrFileID);
              % fclose(fileIDraw);
               motionMed=median(motionMed);
               LogMessage(LogfileID,['Median motion of ' num2str(motionMed) ' pixels (MotionX + MotionY) detected']);
               FileGenerateInfo.motionMed=motionMed;
           end
          fclose(LogfileID);
-     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
+     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam','motionMat');
 
     %% Update file name for next recording trial
 

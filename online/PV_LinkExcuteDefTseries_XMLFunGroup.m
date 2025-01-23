@@ -160,9 +160,9 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLpara
                   ExlaserPowers(ixml)=laserPowers(ixml);
                   ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExGPLPointList(ixml).name] );  %Load the gpl file including all MP as well as all Functional Groups.
-                  pause(0.05);
+                  pause(0.1);
                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExXMLList{ixml}]);
-                  pause(0.01);
+                  pause(0.1);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
 %                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
                   LogMessage(LogfileID,['Load' [ExGPLPointList(ixml).name ' ' ExXMLList{ixml}] ' at ' num2str(frameNum)]);   

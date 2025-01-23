@@ -25,6 +25,9 @@ else
 end
 toc
 numPlanes=length(confSet.ETL);
+
+
+
 TSall=caTrials.FrameTS.relativeTime;
 TSplane=caTrials.FrameTS.index;
 for iPlane=1:numPlanes
@@ -66,7 +69,7 @@ for iPlane=1:numPlanes
 
     % Calculate sampling frequency from voltage recording and verify against expected rate.
     sampFreq = 1/diff(vRecTemp(1:2,1))*1000;   %%voltage recording sampling time is micro-seconds
-    if sampFreq==str2num(caTrials.vConfig.Rate.Text)
+    if sampFreq==str2num(caTrials.vConfig(1).Rate.Text)
 
     else
        disp('sampleRate of Voltage Recording does not match;');

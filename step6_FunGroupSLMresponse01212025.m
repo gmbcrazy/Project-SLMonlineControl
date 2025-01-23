@@ -1,0 +1,221 @@
+clear all
+WorkFolder='E:\LuSLMOnlineTest\SL0838-Ai203\11212025\SingleP\Top16SpeedStimEdgeExc\';
+SLMPosInfo=load([WorkFolder 'SLMFunGroup.mat']);
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat')
+ProcessFolder=[WorkFolder 'Data\'];
+
+SaveFolder=WorkFolder;
+
+Pos3DAll=SLMPosInfo.FinalPos3D;
+FunScore=SLMPosInfo.FinalFunScore;
+Group=SLMPosInfo.Group;
+confSet=SLMPosInfo.confSetFinal;
+Zdepth=confSet.scan_Z+confSet.ETL
+
+for iGroup=1:length(Group)
+    Pos3DGroup{iGroup}=Pos3DAll(Group(iGroup).Indices,:);
+end
+
+PSTHparam.PreSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PSTHparam.PostSLMCal=3;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.FrameStep=3;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
+PSTHparam.MPFrameJump=2;
+
+
+idRanges=[37;58]
+
+idRanges=[59;65]
+
+[PSTHall, OutTBLAll] = getSLMGroup_BinNonMat(ProcessFolder, confSet, PSTHparam, Pos3DGroup, idRanges);
+
+
+PSTHparam.PostSLMCal=12;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparam.FrameStep=3;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
+[PSTHallDyn, OutTBLAllDyn] = getSLMGroup_Dyn_BinNonMat(ProcessFolder, confSet, PSTHparam, Pos3DGroup, idRanges);
+
+
+% [FileGenerateInfo,fileList, fileIDs] = getExpInfoFiles_NonMat(ProcessFolder, idRanges)
+Index0=OutTBLAll.UncagingLaserPower==0;
+PSTHZero=squeeze(nanmean(PSTHall(:,:,Index0,:),3));
+
+clear PSTHGroupDyn PSTHGroup
+
+for iGroup=1:length(Group)
+    Index=OutTBLAll.UncagingLaserPower>0&OutTBLAll.Group==iGroup;
+    SampleSize(iGroup) = sum(Index);
+    PSTHGroup{iGroup}=squeeze(nanmean(PSTHall(:,:,Index,:),3));
+
+    % for iWin=1:size(PSTHallDyn,4)
+    %     PSTHGroupDyn{iGroup,iWin}=squeeze(nanmean(PSTHallDyn(:,:,Index,iWin,:),3));
+    % end
+end
+
+
+
+
+
+PSTHPlot={PSTHZero};
+TargetPlot={Pos3DAll};
+PSTHPlot=[PSTHGroup PSTHPlot];
+TargetPlot=[Pos3DGroup TargetPlot];
+TargetN=[SampleSize sum(Index0)];
+TargetName = {'Locomotion C.', 'Sensory C.', 'Non C.','Zero power'};
+
+
+ImgClim=[-200;200];
+colorGroup=[0 1 0;1 1 0;1 0 1];
+colorGroup=[0 1 0;0 1 0;0 1 0;0 1 0];
+
+FakeColor=[0 0 0];
+close all
+
+   P.xLeft=0.06;        %%%%%%Left Margin
+   P.xRight=0.1;       %%%%%%Right Margin
+   P.yTop=0.02;         %%%%%%Top Margin
+   P.yBottom=0.06;      %%%%%%Bottom Margin
+   P.xInt=0.02;         %%%%%%Width-interval between subplots
+   P.yInt=0.02;         %%%
+
+  PlotParam.RowPlot=0;
+  PlotParam.RowColNum=length(PSTHPlot);
+  PlotParam.RowColID=1;
+  PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.01 0.01];
+  PlotParam.CellCenterWith=1;
+  PlotParam.CellBoundaryWidth=0.5;
+
+
+figure;
+
+for iGroup=1:length(PSTHPlot)
+ 
+    PlotParam.RowColID=iGroup;
+
+    TempColor=repmat(colorGroup(iGroup,:),size(TargetPlot{iGroup},1),1);
+    if iGroup<4
+    NonCell=find(isnan(FunScore(FunScore(:,1)==iGroup,2))==1);
+    TempColor(NonCell,:)=repmat(FakeColor,length(NonCell),1);
+    end
+    H{iGroup}=MultiPlanes2DShow(SmoothDecDim3(PSTHPlot{iGroup},1), [], TargetPlot{iGroup}, [], Zdepth, TempColor, ImgClim, PlotParam);
+
+end
+    colormap(colorMapPN1)
+
+    b=colorbar;
+    set(b,'position',[0.93 0.3 0.02 0.5],'Ticks',[ImgClim(1) 0 ImgClim(2)])
+    b.Label.String='DeltaF (PostSLM-PreSLM)'
+
+for iplane=1:length(Zdepth)
+    H{1}(iplane).YLabel.String = ['Plane ' num2str(iplane)] ;
+end
+for icol = 1:length(PSTHPlot)
+    % Get the handle of the axes in the first row for each column
+    ax = H{icol}(1);  
+    % Add the title to the corresponding axes
+    title(ax, TargetName{icol}, 'FontSize', 10, 'FontWeight', 'bold');
+
+     H{icol}(3).XLabel.String = ['n = ' num2str(TargetN(icol))] ;
+
+end
+
+papersizePX=[0 0 8*length(PSTHPlot)+2 8*length(Zdepth)+1];
+      set(gcf, 'PaperUnits', 'centimeters');
+      set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+      saveas(gcf,[SaveFolder num2str(PSTHparam.PostSLMCal) 'FramePostSLMresponseAna'],'png'); 
+      saveas(gcf,[SaveFolder num2str(PSTHparam.PostSLMCal) 'FramePostSLMresponseAna'],'fig'); 
+
+     close all
+
+
+
+
+
+% Custom titles for each column
+
+% Add titles at the top of each column
+
+FunName = {'Locomotion C', 'Sensory C', 'Non C'}
+ImgClim=[-500 500]
+
+  PlotParam.RowPlot=0;
+  PlotParam.RowColNum=size(PSTHallDyn,4);
+  PlotParam.RowColID=1;
+  PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.01 0.01];
+  PlotParam.CellCenterWith=1;
+  PlotParam.CellBoundaryWidth=0.5;
+
+close all
+for iGroup=1:length(Group)
+    figure;
+ 
+    TempColor=repmat(colorGroup(iGroup,:),size(Pos3DGroup{iGroup},1),1);
+    
+    NonCell=find(isnan(FunScore(FunScore(:,1)==iGroup,2))==1);
+    for iWin=1:size(PSTHGroupDyn,2)
+    PlotParam.RowColID=iWin;
+
+    TempColor(NonCell,:)=repmat(FakeColor,length(NonCell),1);
+       HH{iWin}=MultiPlanes2DShow(SmoothDecDim3(PSTHGroupDyn{iGroup,iWin},1), [], Pos3DGroup{iGroup}, [], Zdepth, TempColor, ImgClim,PlotParam);
+    end
+
+    for iplane=1:length(Zdepth)
+         HH{1}(iplane).YLabel.String = ['Plane ' num2str(iplane)] ;
+    end
+    for iWin = 1:size(PSTHGroupDyn,2)
+    % Get the handle of the axes in the first row for each column
+         ax = HH{iWin}(1);  
+    % Add the title to the corresponding axes
+         if iWin == 1
+         title(ax, ['Win' num2str(iWin) ' (Frame #' num2str(PSTHparam.FrameStep) ')'], 'FontSize', 10, 'FontWeight', 'bold');
+         else
+         title(ax, ['Win' num2str(iWin) ], 'FontSize', 10,'FontWeight', 'normal');
+             
+         end
+         % HH{icol}(3).XLabel.String = ['n = ' num2str(TargetN(icol))] ;
+    
+    end
+
+
+    colormap(colorMapPN1);
+    b=colorbar;
+    set(b,'position',[0.93 0.3 0.02 0.5],'Ticks',[ImgClim(1) 0 ImgClim(2)]);
+    b.Label.String='DeltaF (PostSLM-PreSLM)';
+
+    papersizePX=[0 0 8*size(PSTHGroupDyn,2)+2 8*size(PSTHGroupDyn,1)+1];
+      set(gcf, 'PaperUnits', 'centimeters');
+      set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+      saveas(gcf,[SaveFolder FunName{iGroup} 'DynPostSLM'],'png'); 
+      % saveas(gcf,[SaveFolder FunName{iGroup} 'DynPostSLM'],'fig'); 
+end
+
+
+
+
+
+
+
+
+
+
+for iGroup=1:length(Group)
+    figure;
+ 
+    TempColor=repmat(colorGroup(iGroup,:),size(Pos3DGroup{iGroup},1),1);
+    
+    NonCell=find(isnan(FunScore(FunScore(:,1)==iGroup,2))==1);
+
+    TempColor(NonCell,:)=repmat(FakeColor,length(NonCell),1);
+    MultiPlanes2DShow(SmoothDecDim3(PSTHGroup{iGroup},1), [], Pos3DGroup{iGroup}, [], Zdepth, TempColor, ImgClim,P)
+    colormap(colorMapPN1)
+    b=colorbar;
+    set(b,'position',[0.95 0.])
+end
+
+
+    figure;
+    MultiPlanes2DShow(SmoothDecDim3(PSTHZero,1), [], Pos3DAll, [], Zdepth, colorCell, ImgClim)
+    colormap(colorMapPN1)
+
+
