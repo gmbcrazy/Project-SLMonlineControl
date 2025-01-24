@@ -81,7 +81,7 @@ end
 
 
 DataFolder=[ProcessFolder 'Data\'];
-idRanges=[59;65];   %Automatic update the new File ID to calculate ROIs
+idRanges=[37;37];   %Automatic update the new File ID to calculate ROIs
 XMLpattern = 'Laser([\d.]+)FunGroup\s?(\d+)';
 [ExcuteTBL,MatTBL] = XMLmatch_BinMat(DataFolder, confSet, PSTHparam, Pos3DGroup, idRanges, XMLpattern);
 
@@ -117,7 +117,57 @@ end
 
 confSetTemp=confSet;
 confSetTemp.save_path0=DataFolder;
-MatTBLvol = XMLmatch_VoltageOutput(DataFolder, confSetTemp, PSTHparam, idRanges);
-disp([sum(abs(MatTBLvol.VolOut-MatTBLvol.VolOutExc)) ' WhiskerPulse excuted mistakely'];
+[MatTBLvol,FrameTS] = XMLmatch_VoltageOutput(DataFolder, confSetTemp, PSTHparam, idRanges);
+disp([num2str(sum(abs(MatTBLvol.VolOut-MatTBLvol.VolOutExc)))  ' errors in WhiskerPulse excution']);
+
+
+VideoPath=['\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\Camera\SL0838-Ai203\01212025\'];
+VideoFile=['16-11-12.seq'];
+[roi,roi_mask]=drawBodyROIfromSeq([VideoPath VideoFile],[DataFolder 'Video037']);
+
+DownSampleRByFrame=1;
+fps=60;
+ShowProcess=0;
+fps=100;
+
+fps=83.1315;
+
+[infoTemp, framesWhiskTemp] = Norpix2MATLABAna([VideoPath VideoFile], 10, []);
+
+[diff_hist1,time1]=BodyMovement([VideoPath VideoFile],roi_mask,fps,DownSampleRByFrame,ShowProcess);
+[diff_hist1,time1]=BodyMovement([VideoPath VideoFile],roi_mask,fps,DownSampleRByFrame,ShowProcess);
+
+timeX=[1:length(diff_hist1)]/fps;
+
+[fSpeedAll,fStimAll,timeStampCa_PlaneAll,FrameTS,fVideoAll,VideoStartFrameTime]=PV_VolExtract_MultiCyc(confSetTemp,37);
+
+SampleRate=1/median(diff(timeStampCa_PlaneAll(:,1)));
+
+
+FrameTS.absoluteTime(1)
+figure;
+plot(FrameTS.absoluteTime(1:3:end)-FrameTS.absoluteTime(1),fSpeedAll(:,1));
+hold on;
+plot(FrameTS.absoluteTime(1:3:end)-FrameTS.absoluteTime(1),fStimAll(:,1));
+% plot(FrameTS.absoluteTime(1:3:end),fVideoAll(:,1)*20);
+plot(timeX+VideoStartFrameTime(1),zscore(smooth(diff_hist1)))
+
+
+
+
+figure;
+plot(time,diff_hist)
+xlabel('Time (Seconds)') 
+ylabel('Pixel Change (Intensity)') 
+
+
+[diff_hist,time]=BodyMovementV0(fileName,roi_mask,fps,DownSampleRByFrame,ShowProcess);
+
+
+
+
+
+
+
 
 

@@ -1,4 +1,4 @@
-function [fSpeedAll,fStimAll,timeStampCa_PlaneAll,FrameTS]=PV_VolExtract_MultiCyc(confSet,fileID)
+function [fSpeedAll,fStimAll,timeStampCa_PlaneAll,FrameTS,fVideoAll,VideoStartFrameTime]=PV_VolExtract_MultiCyc(confSet,fileID)
 
 
 % PV_SpeedExtract extracts Voltage signals including speed, Stim, and timestamps from photovoltaic speed recording systems.
@@ -29,6 +29,7 @@ numPlanes=length(confSet.ETL);
 fSpeedAll=[];
 fStimAll=[];
 timeStampCa_PlaneAll=[];
+fVideoAll=[];
 SeqStart=[1;caTrials.LastFrameSeqFile(1:end-1)+1];
 
 if length(caTrials.vRec)~=length(caTrials.LastFrameSeqFile)
@@ -46,6 +47,7 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
     clear TSnum timeStampCa_Plane;
     fSpeed=[];
     fStim=[];
+    fVideo=[];
     timeStampCa_Plane=[];
 
     for iPlane=1:numPlanes
@@ -95,7 +97,7 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
            disp('sampleRate of Voltage Recording does not match;');
         end
 
-        tic
+        % tic
     % Analyze camera TTL pulses to identify frame edges and distinguish between positive and negative TTL scenarios.
         if sum(vRecTemp(:,3)<1)>sum(vRecTemp(:,3)>2)
            IsPositiveTTL=1;
@@ -105,7 +107,11 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
            IsPositiveTTL=0;
            fallingEdges = LocalMinima(diff(vRecTemp(:,3)),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
         end
-        toc
+
+        if iseq==1
+           VideoStartFrameTime(iPlane)=vRecTemp(fallingEdges(1),3)/1000; %%voltage recording sampling time is micro-second
+        end
+        % toc
         % plot(vRecTemp(1:10000,3));hold on;
         % plot(fallingEdges(1:50),vRecTemp(fallingEdges(1:50),3),'r.')
         
@@ -175,11 +181,22 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
         tempStim = tempStim(min(vRecTemp(:,12)):end);
         % fSpeed = [fSpeed; tempSpeed];
         fStim(:,iPlane)=tempStim;
+
+
+        vRecTemp(vRecTemp(:,12)==0,:)=[];
+        tempVideo = [];
+        tempVideo = accumarray(vRecTemp(:,12), vRecTemp(:,3), [], @nanmean);
+        tempVideo= tempVideo(min(vRecTemp(:,12)):end);
+        % fSpeed = [fSpeed; tempSpeed];
+        fVideo(:,iPlane)=tempVideo;
+
    
     end
 
     fSpeedAll=[fSpeedAll;fSpeed];
     fStimAll=[fStimAll;fStim];
+    fVideoAll=[fVideoAll;fVideo];
+
     timeStampCa_PlaneAll=[timeStampCa_PlaneAll;timeStampCa_Plane];
     FrameTS=caTrials.FrameTS;
     FrameTS.FrameID=FrameID;

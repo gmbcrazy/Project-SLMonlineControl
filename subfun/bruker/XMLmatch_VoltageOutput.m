@@ -1,4 +1,4 @@
-function MatTBL = XMLmatch_VoltageOutput(folderPath, confSet, PSTHparam, idRanges)
+function [MatTBL,FrameTS] = XMLmatch_VoltageOutput(folderPath, confSet, PSTHparam, idRanges)
 % GETSLMROI_BINMAT Processes binary .mat files to calculate ROI maps and combines results.
 %
 % Inputs:
@@ -41,6 +41,7 @@ end
 % ---------------------------
 MatTBL = [];    % Placeholder for combined output tables
 % XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
+FrameTSall = [];    % Placeholder for combined output tables
 
 % ---------------------------
 % STEP 5: Process each file
@@ -79,6 +80,7 @@ for iCount = 1:length(FileGenerateInfo)
     end
 
     MatTBL=[MatTBL;matInfoTable];
+    FrameTSall=[FrameTSall;FrameTS];
 end
 
 end
