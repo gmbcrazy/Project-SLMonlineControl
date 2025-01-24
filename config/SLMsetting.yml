@@ -1,19 +1,19 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\SL0838-Ai203\11212025\
+save_path0: E:\LuSLMOnlineTest\SL0838-Ai203\01242025\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 182.57 #Z device depth
-ETL: -45 0 45 #Depth of Z planes reference to scan_Z
+scan_Z: 163.68 #Z device depth
+ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 IsSpiral: True #whether using spiral stimulation
 SpiralSizeUM: 15
 SpiralRevolution: 3
 Repetition: 5 #SLM pulse numbers
 Duration: 20 #Duration of SLM pulse
 InterPointDelay: 30 #Interval between SLM pulses
-UncagingLaserPower: 1.3 1.45 1.6 #SLM power LevelTest
+UncagingLaserPower: 1.35 1.45 1.6 #SLM power LevelTest
 InitialDelay: 22.1 #SLM Initial Delay
 
 
@@ -33,4 +33,4 @@ tau: 0.9  #suite2p parameters
 
 # SLM Power customarization
 Ziteration: 11      # NumTrialTseries-1 trials repeated in Single Tseries; As the 1st Zseries is not synchornized with MP. So Actual trials Need to substract 1;
-ZRepetition: 37      # number of repetition in each Zseries
+ZRepetition: 34      # number of repetition in each Zseries

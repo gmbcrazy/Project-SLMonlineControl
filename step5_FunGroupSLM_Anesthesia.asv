@@ -108,7 +108,7 @@ for TseriesID=1:5
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
 % [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
-pause(5.5);
+pause(4.5);
 'Ready'
 [~,~]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLparam,PVparam)
 pause(6)

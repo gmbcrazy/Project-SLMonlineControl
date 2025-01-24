@@ -546,8 +546,8 @@ function executableList = generateExecutableList(xmlFilesStruct, PVparam)
     xmlFiles = {xmlFilesStruct.name};
 
     % Separate the XML files into categories
-    laser05Files = xmlFiles(contains(xmlFiles, 'Laser0.5FunGroup'));
-    laserNonZeroFiles = xmlFiles(~contains(xmlFiles, 'Laser0.5FunGroup'));
+    laser05Files = xmlFiles(contains(xmlFiles, 'Laser0.6FunGroup'));
+    laserNonZeroFiles = xmlFiles(~contains(xmlFiles, 'Laser0.6FunGroup'));
     
     
     % Initialize the output list

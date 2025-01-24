@@ -30,7 +30,7 @@ for iGroup=1:length(Group)
     tempGroup.FileName=['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];
     MarkPoints3D_XMLmaker_Group(tempGroup,confSet, SavePathAllPoint);
 %% Make sham stim xml file
-    UncagingLaserPower=0.5;
+    UncagingLaserPower=0.6;
     confSetZero=confSet;
     confSetZero.UncagingLaserPower=UncagingLaserPower;
     tempGroup.FileName=['Laser' num2str(UncagingLaserPower) 'FunGroup' num2str(iGroup)];

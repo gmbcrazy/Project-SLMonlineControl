@@ -112,8 +112,8 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[1 4 7 19 20 22 1 4 7 19];
-% XMLparam.Laser(1:10)=repmat(1.6,1,10);
+XMLparam.PointList=[5 7 8 15 16 18 21 23 41 45 ];
+XMLparam.Laser(1:10)=repmat(1.6,1,10);
 
 
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
