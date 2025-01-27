@@ -180,16 +180,10 @@ function ClickStart(h, e)
         end
     else
         filePath=[baseDirectory, filesep, tSeriesName '-' sprintf('%0.3d', str2double(AddToFileID))];
-        
-        %In case of error happend during recording, the error data is
-        %written to the original bin file, make a copy of original bin file
-        %for back up
-        %Check exsiting Copy.Bin to avoid overwrite
+        % Check exsiting ROI png to avoid overwrite
         ExistingPngList=dir([baseDirectory filesep '*CopyTSeries*.bin']);
         CopyFileID=length(ExistingPngList)+1;
-        CopyFile=[baseDirectory filesep 'CopyTSeries' num2str(CopyFileID) '.bin'];
-        copyfile([filePath '.bin'],CopyFile,'f');
-
+        OutPng=[baseDirectory 'CopyTSeries' num2str(CopyFileID) '.bin'];
 
 
          if DoRegistration
