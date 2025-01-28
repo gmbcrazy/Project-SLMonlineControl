@@ -194,7 +194,6 @@ function ClickStart(h, e)
 
          if DoRegistration
             fileID = fopen([filePath '.bin'], 'ab');
-            copyBinFile
             fileIDraw = fopen([filePath 'Raw.bin'], 'ab');
             shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'ab');
         else

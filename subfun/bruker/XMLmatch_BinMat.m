@@ -1,4 +1,4 @@
-function [ExcuteTBL,MatTBL] = XMLmatch_BinMat(folderPath, confSet, PSTHparam, Pos3Dneed, idRanges, XMLpattern)
+function [ExcuteTBL,ExcutePowerWeight,MatTBL] = XMLmatch_BinMat(folderPath, confSet, PSTHparam, Pos3Dneed, idRanges, XMLpattern)
 % GETSLMROI_BINMAT Processes binary .mat files to calculate ROI maps and combines results.
 %
 % Inputs:
@@ -40,6 +40,7 @@ end
 % STEP 4: Initialize outputs
 % ---------------------------
 ExcuteTBL = [];    % Placeholder for combined output tables
+ExcutePowerWeight=[];
 MatTBL = [];    % Placeholder for combined output tables
 % XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
 
@@ -56,13 +57,13 @@ for iCount = 1:length(FileGenerateInfo)
     clear OutTBL  % Clear previous output table for new file
     % Extract table for current file using position and configuration settings
     if iscell(Pos3Dneed)
-       [OutTBL,~]=MPSeqFolder_GroupTargets(FileGenerateInfo(iCount).tifFolder,confSet, Pos3Dneed); %%FuncGroup
+       [OutTBL,~, PowerWeight]=MPSeqFolder_GroupTargets(FileGenerateInfo(iCount).tifFolder,confSet, Pos3Dneed); %%FuncGroup
     else
         OutTBL = MPSeqFolder_1TargetXNon(FileGenerateInfo(iCount).tifFolder, confSet, Pos3Dneed);  %%SingleCell
     end
     % Assign FileID to the output table for current processing
     OutTBL.FileID = FileGenerateInfo(iCount).FileID * ones(size(OutTBL, 1), 1);
-    
+
     [pointIDs, laserPowers] = XMLPatterExtract(FileGenerateInfo(iCount).xmlFile, XMLpattern);
 
     TBLmat=[FileGenerateInfo(iCount).FileID*ones(length(pointIDs), 1), pointIDs(:), laserPowers(:)];
@@ -83,9 +84,15 @@ for iCount = 1:length(FileGenerateInfo)
                               indexVector, stimulusIDVector, prePostStimuliVector);
     OutTBL(InvalidID,:)=[];
 
+    if exist('PowerWeight')
+    PowerWeight(InvalidID,:)=[];
+    end
+
     % Append the current table to the aggregated table
     ExcuteTBL = [ExcuteTBL; OutTBL];
-
+    if exist('PowerWeight')
+    ExcutePowerWeight=[ExcutePowerWeight; PowerWeight];
+    end
 
     % Clear temporary variables for the current iteration
     clear OutTBL;

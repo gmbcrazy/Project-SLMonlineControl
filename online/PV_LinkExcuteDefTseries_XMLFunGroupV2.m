@@ -1,12 +1,7 @@
 
 %% Automatic excute multiple MarkPoint.xml files within a specific Folder
-%Noted that the TimeSeries in PrairieLink should be MarkPoint current,
-%setting -> Multiple Imaging/Zseries Sequence recording of specific fixed
-%frame number
-% the 1st Imaing/Zseries served as 1st baseline, Not synchronized
-%with any MPs, the rest of Zseries is synchronized with MPs, each MPs should be associated with a specific gpl file and a xml files
-%: Zseries (50 repetitions) -> Zseries (50 repetitions, syn MP current)-> Zseries (50 repetitions, syn MP current)-> Zseries (50 repetitions, syn MP current)
-
+%Noted that the TimeSeries in PrairieLink should be MarkPoint current
+%setting -> Imaging or Zseries Sequence recording of specific frames
 
 %% Lu Zhang 2024, developed from PV_LinkExcuteFolder.m, this is for multiple
 %MarkPoints and multiple Function Groups defined in the same .gpl file, 
@@ -16,7 +11,7 @@
 
 
 % callback function
-function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVparam)
+function [XMLTable,FileGenerateInfo]=PV_LinkExcuteDefTseries_XMLFunGroupV2(XMLparam,PVparam)
 
 
      ProcessFolder=XMLparam.ProcessFolder;
@@ -32,8 +27,6 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
      end
 
-
-
      SaveDataFolder=[ProcessFolder 'Data\'];
      LogDataFolder=[ProcessFolder '\DataLog\'];
 
@@ -48,50 +41,38 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
 
 %%     % Determine the source of MarkPoint files; load from structure or directory'
-     XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
+     XMLpattern = 'Laser([\d.]+)FunGroup\s?(\d+)';
      ProcessFolder=XMLparam.ProcessFolder;
 
-     Laser=XMLparam.Laser;
-
-     Round=XMLparam.RoundID;
-     ProcessFolder=XMLparam.ProcessFolder;
-
-     %%Define the Cells needs to be test for this Tseries excution;
-     PointList=XMLparam.PointList;
-     if length(Laser)==1&&length(PointList)>1
-        Laser=repmat(Laser,1,length(PointList));
-     end
-
-
-     % MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser) '*Point*.xml']);
-%      MarkPointList=dir([ProcessFolder 'R' num2str(Round) 'Laser*Point*.xml']);
-     for iP=1:length(PointList)
-         MarkPointList(iP)=dir([ProcessFolder 'R' num2str(Round) 'Laser' num2str(Laser(iP)) 'GPoint' num2str(PointList(iP)) '.xml']);
+     if XMLparam.LoadGPL==1
+     GPLPointList=dir([ProcessFolder 'GPLFunGroup*.gpl']);
+%      pl.SendScriptCommands(['-LoadMarkPoints ' GPLPointList(1).folder '\' GPLPointList(1).name] );  %Load the gpl file including all MP as well as all Functional Groups.
      end
      
+     GPLpattern='GPLFunGroup\s?(\d+)';
+     GPLgroupIDs = FunGPLPatterExtract({GPLPointList.name}, GPLpattern);
 
-     [roundIDs, AllpointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern);
-%      MarkPointList=MarkPointList(ismember(AllpointIDs,PointList));
-%      [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern);
-     [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round);
-     
-     PVparam.ZRepetition=31;
-     Ziteration=length(PointList)+1;   %%Noted that the 1st Z is not syn with MP.
-%      InterMPFrame=Ziteration*PVparam.ZRepetition*PVparam.nPlane;
+
+     MarkPointList=dir([ProcessFolder 'Laser*FunGroup*.xml']);
      InterMPFrame=PVparam.InterMPRepetition*PVparam.nPlane;
      CumInterMPFrame=cumsum(InterMPFrame);
      StartMPFrame=[0 CumInterMPFrame(1:end-1)];
      maxFrame=PVparam.maxFrame;
 
 
+     ExXMLList = generateExecutableList(MarkPointList, PVparam);
+    [groupIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
 
-    %  ShamPossibility=XMLparam.ShamPossibility;
-    %  ExXMLList = generateExecutableList(MarkPointList, PVparam.TrialMPSwitch, XMLparam.ShamPossibility);
-    % [roundIDs, laserPowers] = FunXMLPatterExtract(ExXMLList, XMLpattern);
-     % ExroundIDs=[];
-     % ExlaserPowers=[];
+
+
+     ExgroupIDs=[];
+     ExlaserPowers=[];
 %     ExXMLList
-    % ExGPLPointList=GPLPointList(roundIDs);
+    XMLTable=[groupIDs(:) laserPowers(:)];
+    ExGPLPointList=GPLPointList(groupIDs);
+
+     XMLTable=[repmat(tSeriesIterID,length(groupIDs),1) groupIDs(:) laserPowers(:)];
+     XMLTable=array2table(XMLTable,'VariableNames',{'FileID','Group','Lasers'});
 
 
     preview=0;
@@ -101,44 +82,41 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
     HavedChecked=0;
 
 
-     filePath = [baseDirectory, tSeriesName '-' tSeriesIter];
-     XMLTable=[repmat(tSeriesIterID,length(pointIDs),1) roundIDs(:) pointIDs(:) laserPowers(:)];
-     XMLTable=array2table(XMLTable,'VariableNames',{'FileID','Round','Point','Lasers'});
-
-
+     filePath = [baseDirectory, filesep, tSeriesName '-' tSeriesIter];
      completeFileName = filePath;
-     binFile=[completeFileName '.bin'];
+     binFile=[completeFileName '.bin'];     
      logFile=[LogDataFolder  filesep tSeriesName '-' tSeriesIter '.txt'];
      matFile=[baseDirectory 'ExpInfo-' tSeriesIter '.mat']; 
 
+
+
      FileGenerateInfo.FileKey=[tSeriesName '-' tSeriesIter];
      FileGenerateInfo.binFile=binFile;
-     FileGenerateInfo.FileID=tSeriesIterID;
      FileGenerateInfo.logFile=logFile;
      FileGenerateInfo.matFile=matFile;
      FileGenerateInfo.tifFolder=[filePath '\'];
-     FileGenerateInfo.gplFile={MarkPointList.gplname};
-     FileGenerateInfo.xmlFile={MarkPointList.name};
+     FileGenerateInfo.gplFile={ExGPLPointList.name};
+     FileGenerateInfo.xmlFile=ExXMLList;
      FileGenerateInfo.checkingTiffBinMatch=0;
      FileGenerateInfo.motionFile=[];
      FileGenerateInfo.motionMed=[];
      FileGenerateInfo.binFileRaw=[];
- 
+
 
 
      if DoRegistration
         fileID = fopen(binFile, 'wb'); %Write online motion collection data to a bin file
-        % shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
-        % FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
-        % fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
+        shiftsAndCorrFileID = fopen([filePath '_ShiftsAndCorr.bin'],'wb'); %Write online motion frame by frame
+        FileGenerateInfo.motionFile=[filePath '_ShiftsAndCorr.bin'];
+
+        fileIDraw = fopen([filePath 'Raw.bin'], 'wb');%Write raw imaging without motion correction to a bin file
         FileGenerateInfo.binFileRaw=[filePath 'Raw.bin'];
     else
         fileID = fopen(binFile, 'wb');
     end
- 
+     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
 
      LogfileID = fopen(logFile,'w'); %Records of key events to a log file.
-
 
     flushing = 1;
     while flushing
@@ -160,7 +138,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
     allSamplesRead = [];
     msg            = [];
     motionMed = [];
-    motionMat=[];
+
 %          loopTimes      = [];
     droppedData    = [];
 
@@ -168,7 +146,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
     loadxml=1;
     BreakPointFrame=CumInterMPFrame(ixml);
     SLMChecking=0;
-
+    jxml=0;
     
     while running   
         % start timer
@@ -178,28 +156,28 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
             if loadxml==1&&frameNum>StartMPFrame(ixml)+XMLparam.SwitchXMLPostMPFrame*PVparam.nPlane&&ixml<=length(CumInterMPFrame)+0.1   %%when frame number is 10 frames after the previous MP stimuli, update the next xml file.
 
                if ixml<=length(CumInterMPFrame)-0.9
-                  %ExroundIDs(ixml)=roundIDs(ixml);
-                  %ExlaserPowers(ixml)=laserPowers(ixml);
+                  ExgroupIDs(ixml)=groupIDs(ixml);
+                  ExlaserPowers(ixml)=laserPowers(ixml);
                   ixml
-                  pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname ' True'] ); %%Clear existing MarkPoints and load MarkPoints from the gpl file.
+                  pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExGPLPointList(ixml).name] );  %Load the gpl file including all MP as well as all Functional Groups.
                   pause(0.5);
-                  pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
-                  pause(0.1);
+                  % pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExXMLList{ixml}]);
+                  % pause(0.01);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
-%                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExroundIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
-                  LogMessage(LogfileID,['Load' [MarkPointList(ixml).gplname ' ' MarkPointList(ixml).name] ' at ' num2str(frameNum)]);   
-
-
+%                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
+                  LogMessage(LogfileID,[num2str(ixml) 'Load' ExGPLPointList(ixml).name ' at ' num2str(frameNum)]);   
+                  jxml=ixml;                  
                end
-                  BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
-                  LogMessage(LogfileID,['BreakPoint Updated Frame ' num2str(BreakPointFrame)]);   
-                  loadxml=0;
-                  BreakYet=0;
-                  SLMChecking=0;
-                  framesCounter=frameNum;
-                  ZeroSampleSMLCount=0;
-                  SampleSML=zeros(4,1);
-                  ixml=ixml+1;
+               BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done
+               LogMessage(LogfileID,['BreakPoint Updated Frame ' num2str(BreakPointFrame)]);   
+
+               loadxml=0;
+               BreakYet=0;
+               SLMChecking=0;
+               framesCounter=frameNum;
+               ZeroSampleSMLCount=0;
+               SampleSML=zeros(4,1);
+               ixml=ixml+1;
             end
 
 
@@ -243,6 +221,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                         started = 1;
                       end
                       plane = mod(frameNum,numPlanes)+1;
+
                 % get single frame
                       frame = toProcess(((i-1)*totalSamplesPerFrame)+1:(i*totalSamplesPerFrame));
                       frame = PrairieLink_ProcessFrame(frame, samplesPerPixel, linesPerFrame, pixelsPerLine, flipEvenRows);
@@ -271,18 +250,12 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                         [regFrame,dv,cv] = return_offsets_phasecorr(single((frame)),ops{plane});
                         motionTemp=sum(abs(dv));
                         motionMed=[motionMed;motionTemp];
-                        motionMat=[motionMat;dv(:)'];
-
                        % save processed frame and correlation values to file
-                          fwrite(fileID, uint16(regFrame), 'uint16');
-                          % fwrite(shiftsAndCorrFileID, [dv cv], 'single');
-                          % fwrite(fileIDraw, uint16(frame), 'uint16');
-
+                          fwrite(fileID, gather(uint16(regFrame)), 'uint16');
+                          fwrite(shiftsAndCorrFileID, [gather(dv) gather(cv)], 'single');
                       else
                           fwrite(fileID, frame, 'uint16');
                       end
-
-
 
 
 
@@ -304,8 +277,6 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 
                end
           end
-
-
           %%Check if there is continous iteras with no sample data right
           %%after SLM; if it is, clean buffer;
           if BreakPointFrame<=CumInterMPFrame(end)&&SLMChecking==1
@@ -328,6 +299,14 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
           end 
           %%Check if there is continous iteras with no sample data right
           %%after SLM; if it is, clean buffer;
+            if jxml~=0
+               pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(jxml).folder '\' ExXMLList{jxml}]);
+               pause(0.2);
+%                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
+%                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
+               LogMessage(LogfileID,[num2str(jxml) 'Load' [' ' ExXMLList{ixml}] ' at ' num2str(frameNum)]);
+               jxml=0;
+            end
 
 
              msg = ['Frame: ' num2str(frameNum) ', Loop: ' num2str(loopCounter) ', Sample: ' num2str(totalSamples)];
@@ -372,22 +351,27 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
 %                [samples, numSamplesRead] = pl.ReadRawDataStream(0);
 %             end
 
-            if started && loopCounter > 600 && sum(allSamplesRead(end-400:end)) == 0 % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
-               LogMessage(LogfileID,[num2str(frameNum) ' frames saved, no more samples detected, terminated.']);
+
+            if started && loopCounter > 500 && sum(allSamplesRead(end-400:end)) == 0   % Keep running but clean buffer during no-data period (such as MarkPoints) but recording not finished yet (if no data collected for previous Y loops)
                running=0;
+               LogMessage(LogfileID,[num2str(frameNum) ' frames saved, no more samples detected, terminated.']);
             end
     end
 
+
          fclose(fileID);
           if DoRegistration
-             % fclose(shiftsAndCorrFileID);
-             % fclose(fileIDraw);
+             fclose(shiftsAndCorrFileID);
+             fclose(fileIDraw);
+
               motionMed=median(motionMed);
               LogMessage(LogfileID,['Median motion of ' num2str(motionMed) ' pixels (MotionX + MotionY) detected']);
               FileGenerateInfo.motionMed=motionMed;
           end
          fclose(LogfileID);
-     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam','motionMat');
+
+     save(matFile,'FileGenerateInfo','XMLTable','XMLparam','PVparam');
+
 
     %% Update file name for next recording trial
 
@@ -460,92 +444,27 @@ function [samplesPerPixel,pixelsPerLine, linesPerFrame, totalSamplesPerFrame, fl
 end
 
 
-function [MarkPointList,roundIDs,pointIDs,laserPowers]=GetXMLFile(MarkPointList,XMLpattern,Round)
-
-
-    [roundIDs,pointIDs,laserPowers]=XMLPatterExtract(MarkPointList,XMLpattern);
-    NeedXMLIndex=ismember(roundIDs,Round);
-    roundIDs=roundIDs(NeedXMLIndex);
-    pointIDs=pointIDs(NeedXMLIndex);
-    laserPowers=laserPowers(NeedXMLIndex);
-    MarkPointList=MarkPointList(NeedXMLIndex);
-
-    %%Find the corresponding gpl files defining MarkPoint based on each xml
-    %%files
-    if ~isfield(MarkPointList,'gplname')
-        for ixml=1:length(MarkPointList)
-            MarkPointGPL(ixml)=dir([MarkPointList(ixml).folder '\R' num2str(roundIDs(ixml)) 'GPoint' num2str(pointIDs(ixml)) '.gpl']);
-            MarkPointList(ixml).gplname=MarkPointGPL(ixml).name;
-        end
-    end
-
-
- %% Random execution of all XML files to prevent consecutive executions of the same point
-    % Initialize the shuffled execution order
-%     executionOrder = zeros(length(MarkPointList), 1);
-% 
-% % Generate a randomized execution order with the constraint
-%     while ~isempty(find(executionOrder == 0, 1))
-%     % Shuffle the indices
-%     shuffledIndices = randperm(length(MarkPointList));
-% 
-%     % Check for consecutive PointIDs
-%     validShuffle = true;
-%         for i = 2:length(shuffledIndices)
-%              if pointIDs(shuffledIndices(i)) == pointIDs(shuffledIndices(i-1))
-%                 validShuffle = false;
-%                  break;
-%             end
-%          end
-% 
-%     % If the shuffle is valid, use it as the execution order
-%          if validShuffle
-%             executionOrder = shuffledIndices;
-%         end
-%     end
-
-
-%%    MarkPointGPL = MarkPointGPL(executionOrder);
-    % MarkPointList = MarkPointList(executionOrder);
-    % MarkPointGPL=MarkPointGPL(executionOrder);
-    % roundIDs=roundIDs(executionOrder);
-    % pointIDs=pointIDs(executionOrder);
-    % laserPowers=laserPowers(executionOrder);
-
-%%
-
-% %     RestFiletable=struct2table(MarkPointList);
-% % %     GPLtable=struct2table(MarkPointGPL);
-% % %     RestFiletable.gplname=GPLtable.name;
-% %     RestFiletable.excutionID=[1:length(MarkPointList)]';
-% %     writetable(RestFiletable,[MarkPointList(1).folder '\xmlListCurrent.csv'])
-
-
-
-end
 
 
 
 
-function [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern)
+function [groupIDs, laserPowers] = FunXMLPatterExtract(MarkPointList, XMLpattern)
     % PatterExtract Extracts round IDs, point IDs, and laser powers from a list of filenames.
     % Inputs:
     %   MarkPointList - A structure array containing file information, typically from a dir() call.
     %   XMLpattern - A regular expression pattern designed to extract specific numerical IDs from the filenames.
     % Outputs:
-    %   roundIDs - An array containing numerical round IDs extracted from the file names.
-    %   pointIDs - An array containing point identifiers.
+    %   groupIDs - An array containing point identifiers.
     %   laserPowers - An array of laser power values extracted from file names.
 
     % Initialize arrays to hold extracted data
-    roundIDs = zeros(length(MarkPointList), 1);
     laserPowers = zeros(length(MarkPointList), 1);
-    pointIDs = zeros(length(MarkPointList), 1);
+    groupIDs = zeros(length(MarkPointList), 1);
 
     % Iterate through each file in the MarkPointList
     for ixml = 1:length(MarkPointList)
         % Extract the file name from the structure
-        fileName = MarkPointList(ixml).name;
+        fileName = MarkPointList{ixml};
         
         % Use regex to parse out the desired data from the file name
         tokens = regexp(fileName, XMLpattern, 'tokens');
@@ -553,30 +472,28 @@ function [roundIDs, pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XML
         % Check if the regex pattern matched and tokens were found
         if ~isempty(tokens)
             % Convert the captured strings to numbers and store them in the respective arrays
-            roundIDs(ixml) = str2double(tokens{1}{1});
-            laserPowers(ixml) = str2double(tokens{1}{2});
-            pointIDs(ixml) = str2double(tokens{1}{3});
+            laserPowers(ixml) = str2double(tokens{1}{1});
+            groupIDs(ixml) = str2double(tokens{1}{2});
         end
     end
 
     % Round the extracted numeric values to ensure they are integers
-    roundIDs = round(roundIDs);
-    pointIDs = round(pointIDs);
+    groupIDs = round(groupIDs);
 end
 
 
-function [roundIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern)
+function [groupIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern)
     % PatterExtract Extracts round IDs, point IDs, and laser powers from a list of filenames.
     % Inputs:
     %   MarkPointList - A structure array containing file information, typically from a dir() call.
     %   XMLpattern - A regular expression pattern designed to extract specific numerical IDs from the filenames.
     % Outputs:
-    %   roundIDs - An array containing point identifiers.
+    %   groupIDs - An array containing point identifiers.
     %   laserPowers - An array of laser power values extracted from file names.
 
     % Initialize arrays to hold extracted data
 %     laserPowers = zeros(length(MarkPointList), 1);
-    roundIDs = zeros(length(MarkPointList), 1);
+    groupIDs = zeros(length(MarkPointList), 1);
 
     % Iterate through each file in the MarkPointList
     for ixml = 1:length(MarkPointList)
@@ -590,12 +507,12 @@ function [roundIDs, laserPowers] = FunGPLPatterExtract(MarkPointList, GPLpattern
         if ~isempty(tokens)
             % Convert the captured strings to numbers and store them in the respective arrays
 %             laserPowers(ixml) = str2double(tokens{1}{1});
-            roundIDs(ixml) = str2double(tokens{1}{1});
+            groupIDs(ixml) = str2double(tokens{1}{1});
         end
     end
 
     % Round the extracted numeric values to ensure they are integers
-    roundIDs = round(roundIDs);
+    groupIDs = round(groupIDs);
 end
 
 
@@ -626,7 +543,7 @@ end
 
 
 
-function executableList = generateExecutableList(xmlFilesStruct, x, ShamPossibility)
+function executableList = generateExecutableList(xmlFilesStruct, PVparam)
 %GENERATEEXECUTABLELIST Generates a list of XML files to be executed.
 %   EXECUTABLELIST = GENERATEEXECUTABLELIST(X) returns a cell array containing
 %   the names of XML files to be executed X times. The selection is random with
@@ -637,31 +554,25 @@ function executableList = generateExecutableList(xmlFilesStruct, x, ShamPossibil
     xmlFiles = {xmlFilesStruct.name};
 
     % Separate the XML files into categories
-    laser05Files = xmlFiles(contains(xmlFiles, 'Laser0.5'));
-    laserNonZeroFiles = xmlFiles(~contains(xmlFiles, 'Laser0.5'));
+    laser05Files = xmlFiles(contains(xmlFiles, 'Laser0.6FunGroup'));
+    laserNonZeroFiles = xmlFiles(~contains(xmlFiles, 'Laser0.6FunGroup'));
     
-    % Probabilities
-    probLaser05 = ShamPossibility; % 10% probability for Laser0.5 files
-    probLaserNonZero = 1-ShamPossibility; % 90% probability for Laser1.7 files
     
     % Initialize the output list
-    executableList = cell(x, 1);
+    executableList = cell(length(PVparam.MPFunGroup), 1);
     
     % Generate the executable list
-    for i = 1:x
+    for i = 1:length(PVparam.MPFunGroup)
         P=rand();
-        if P < probLaser05
+        if PVparam.MPPowerZero(i)==1
             % Select a random Laser0.5 file
-            selectedFile = laser05Files{randi(length(laser05Files))};
+            selectedFile = laser05Files{PVparam.MPFunGroup(i)};
         else
             % Select a random Laser1.7 file
-            selectedFile = laserNonZeroFiles{randi(length(laserNonZeroFiles))};
+            selectedFile = laserNonZeroFiles{PVparam.MPFunGroup(i)};
         end
         % Add the selected file to the list
         executableList{i} = selectedFile;
     end
 end
-
-
-
 

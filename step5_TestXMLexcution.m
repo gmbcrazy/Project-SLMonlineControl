@@ -1,11 +1,11 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\11212025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01242025\'
 % load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-ProcessFolder=[WorkingFolder 'SingleP\' 'Top16SpeedStimEdgeExc\'];
+ProcessFolder=[WorkingFolder 'SingleP\' 'Top19SpeedStimEdgeExc\'];
 load([ProcessFolder,'SLMFunGroup.mat'])
 % % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % % 
@@ -29,12 +29,17 @@ PSTHparam.MPFrameJump=2;
 % idRanges=[3;3];
 % idRanges=[4;37];
 % idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
-idRanges=[59;65];   %Automatic update the new File ID to calculate ROIs
+idRanges=[28 36;34 40];   %Automatic update the new File ID to calculate ROIs
 
 XMLpattern = 'Laser([\d.]+)GPoint\s?(\d+)';
-[ExcuteTBL,MatTBL] = XMLmatch_BinMat(DataFolder, confSet, PSTHparam, Pos3Dneed, idRanges, XMLpattern);
+[ExcuteTBL,~,MatTBL] = XMLmatch_BinMat(DataFolder, confSet, PSTHparam, Pos3Dneed, idRanges, XMLpattern);
 NonMatchFileID=[];
+
+MatTBL.PVpower=round(xmlPower2PVpower(MatTBL.UncagingLaserPower));
+
 FileIDAll=unique(ExcuteTBL.FileID);
+
+a=[ExcuteTBL.FileID ExcuteTBL.UncagingLaserPower MatTBL.PVpower] 
 
 for iFile=1:length(FileIDAll)
      IndExc=find(ExcuteTBL.FileID==FileIDAll(iFile));
@@ -76,16 +81,30 @@ Zdepth=confSet.scan_Z+confSet.ETL
 
 for iGroup=1:length(Group)
     Pos3DGroup{iGroup}=Pos3DAll(Group(iGroup).Indices,:);
+    Pos3DWeightGroup(:,iGroup)=SLMPosInfo.Group(iGroup).PowerWeight;
 end
 
 
 
 DataFolder=[ProcessFolder 'Data\'];
-idRanges=[37;37];   %Automatic update the new File ID to calculate ROIs
+idRanges=[42 50;48 76];   %Automatic update the new File ID to calculate ROIs
 XMLpattern = 'Laser([\d.]+)FunGroup\s?(\d+)';
-[ExcuteTBL,MatTBL] = XMLmatch_BinMat(DataFolder, confSet, PSTHparam, Pos3DGroup, idRanges, XMLpattern);
+[ExcuteTBL, ExcutePowerWeight,MatTBL] = XMLmatch_BinMat(DataFolder, confSet, PSTHparam, Pos3DGroup, idRanges, XMLpattern);
 
+ExcuteWeightGroup=[];
+for i=1:size(ExcutePowerWeight)
+    minI=find(sum(abs(repmat(ExcutePowerWeight(i,:),length(Group),1)-Pos3DWeightGroup'),2)<0.01);
+    if ~isempty(minI)
+       ExcuteWeightGroup(i,1)=minI;
+    else
+       ExcuteWeightGroup(i,1)=0;
+    end
 
+end
+
+MatTBL.PVpower=round(xmlPower2PVpower(MatTBL.UncagingLaserPower))
+
+a=[ExcuteTBL.Group ExcuteWeightGroup]
 
 
 NonMatchFileID=[]
@@ -100,6 +119,15 @@ for iFile=1:length(FileIDAll)
 
      if length(IndExc)==length(IndMat)
         DiffP=sum(abs(ExcuteTBL.Group(IndExc)-MatTBL.Group(IndMat)));
+        DiffPower=sum(abs(ExcuteTBL.UncagingLaserPower(IndExc)-MatTBL.PVpower(IndMat)));
+    
+        if DiffP==0
+           disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted correctly']);
+        else
+           disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted not correctly']);
+           disp([MatTBL.Group(IndMat)';ExcuteTBL.Group(IndExc)']);
+        end
+
         if DiffP==0
            disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted correctly']);
         else
