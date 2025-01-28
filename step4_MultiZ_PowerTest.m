@@ -2,7 +2,7 @@ clear all
 % TestFile='TSeries-04222024-0926-040'
 WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01242025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
 ProcessFolder=[WorkingFolder 'SingleP\' 'Top19SpeedStimEdgeExc\'];
@@ -121,6 +121,8 @@ XMLparam.PointList=[1 4 7 19 20 22 1 4 7 19];
 % idRanges=[6;12];
 % idRanges=[6 18;16 18];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
+
+idRanges=[40;40];   %Automatic update the new File ID to calculate ROIs
 
 step4_MultiZ_SubStep2_UpdatingROIandXML
 close all

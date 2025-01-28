@@ -183,12 +183,12 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                   ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname ' True'] ); %%Clear existing MarkPoints and load MarkPoints from the gpl file.
                   pause(0.5);
-                  pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
-                  pause(0.1);
+                  % pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
+                  % pause(0.1);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
 %                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExroundIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
-                  LogMessage(LogfileID,['Load' [MarkPointList(ixml).gplname ' ' MarkPointList(ixml).name] ' at ' num2str(frameNum)]);   
-
+                  % LogMessage(LogfileID,['Load' [MarkPointList(ixml).gplname ' ' MarkPointList(ixml).name] ' at ' num2str(frameNum)]);   
+                  LogMessage(LogfileID,['Load' MarkPointList(ixml).gplname ' at ' num2str(frameNum)]);   
 
                end
                   BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done

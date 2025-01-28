@@ -160,12 +160,15 @@ function [XMLTable,FileGenerateInfo]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLpara
                   ExlaserPowers(ixml)=laserPowers(ixml);
                   ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExGPLPointList(ixml).name] );  %Load the gpl file including all MP as well as all Functional Groups.
-                  pause(0.3);
+                  pause(0.1);
+
+                  %There is error by loading MarkPoint.xml through PV_link in the following way.  
+
 %                   pl.SendScriptCommands(['-LoadMarkPoints ' ExGPLPointList(ixml).folder '\' ExXMLList{ixml}]);
 %                   pause(0.3);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
 %                   LogMessage(LogfileID,['LoadMarkPoints FunGroup' num2str(ExgroupIDs(ixml)) 'with laser' num2str(ExlaserPowers(ixml)) ' at ' num2str(frameNum)]);   
-                  LogMessage(LogfileID,[num2str(ixml) 'Load' [ExGPLPointList(ixml).name ' ' ExXMLList{ixml}] ' at ' num2str(frameNum)]);   
+                  LogMessage(LogfileID,[num2str(ixml) 'Load' ExGPLPointList(ixml).name ' at ' num2str(frameNum)]);   
 
                end
                BreakPointFrame=CumInterMPFrame(ixml);                                     %Update next break point once a MP stimuli was done

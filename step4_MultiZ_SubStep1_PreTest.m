@@ -1,4 +1,4 @@
-[PointLaserPair,ResPointLaser] = SelectPointsForTesting_v3(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1);
+[PointLaserPair,ResPointLaser] = SelectPointsForTesting_v4(SLMRes, sampleN, SLMTestParam, PowerTestPVPar.Ziteration-1);
 disp('Next Point and Power Level Index (ROI.LaserPower) for Test:')
 disp(PointLaserPair')
 
@@ -13,6 +13,9 @@ else
    XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);    %next round of Non-targets were chosen.
    PSTHparam.PointsTest=ROIparam.PointsTest;
    PSTHparam.LaserPower=ROIparam.LaserPower;
+
+   PVpower=xmlPower2PVpower(XMLparam.Laser(1));
+   disp(['Change Satusma Power to ' num2str(PVpower)]);
 
 end
 
