@@ -5,7 +5,7 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-WorkingFolder='E:\LuSLMOnlineTest\NoAnimalTest\01282025\';%<---------------------------Edit, Data folder
+WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';%<---------------------------Edit, Data folder
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
 PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
@@ -17,7 +17,7 @@ ConfigFile='SLMsetting.yml';%<--------------------------------------------------
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder=[WorkingFolder 'SingleP\Top19SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
+ProcessFolder=[WorkingFolder 'SingleP\Top51SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
 mkdir(SumDataFolder)
 DataLogFolder=[ProcessFolder 'DataLog\'];
@@ -79,7 +79,7 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 % 
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
-RefFile=[WorkingFolder 'RefReg2\'];
+RefFile=[WorkingFolder 'RegRef2\'];
 % 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
@@ -105,7 +105,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:3
+for TseriesID=1:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
@@ -113,7 +113,7 @@ LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVpara
 pause(6);
 'Ready'
 [~,~]=PV_LinkExcuteDefTseries_XMLFunGroup(XMLparam,PVparam)
-pause(7)
+pause(4)
 end
 
 

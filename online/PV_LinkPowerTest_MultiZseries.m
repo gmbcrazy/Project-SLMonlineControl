@@ -182,7 +182,7 @@ function [XMLTable,FileGenerateInfo]=PV_LinkPowerTest_MultiZseries(XMLparam,PVpa
                   %ExlaserPowers(ixml)=laserPowers(ixml);
                   ixml
                   pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).gplname ' True'] ); %%Clear existing MarkPoints and load MarkPoints from the gpl file.
-                  pause(0.5);
+                  pause(0.1);
                   % pl.SendScriptCommands(['-LoadMarkPoints ' MarkPointList(ixml).folder '\' MarkPointList(ixml).name] );
                   % pause(0.1);
 %                   [ExGPLPointList(ixml).name ExXMLList{ixml}]
