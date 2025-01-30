@@ -1,0 +1,123 @@
+function [MatTBL,FrameTS] = XMLmatch_VoltageOutput(folderPath, confSet, PSTHparam, idRanges)
+% GETSLMROI_BINMAT Processes binary .mat files to calculate ROI maps and combines results.
+%
+% Inputs:
+%   folderPath - String: Path to the folder containing ExpInfo files.
+%   PSTHparam  - Struct: Parameters for PSTH calculation, including Pre and Post stimulus windows.
+%   Pos3Dneed  - Numeric array: Contains 3D position data needed for processing.
+%   ROIparam   - Struct: Parameters defining ROI size, like 'NeighbourHfWidthPixel'.
+%   idRanges   - Nx2 matrix (optional): Ranges of file IDs to process. If not provided, all files are considered.
+%
+% Outputs:
+%   ROIall     - 3D array: Aggregated ROI heatmaps for all files.
+%   ExcuteTBL  - Table: Combined output table containing processing results for all files.
+
+% ---------------------------
+% STEP 1: Handle optional input for ID ranges
+% ---------------------------
+if nargin < 4
+    idRanges = [];  % If no idRanges is provided, consider all files.
+end
+MPFrameJump = PSTHparam.MPFrameJump; 
+% ---------------------------
+% STEP 2: Get the list of files based on ID ranges
+% ---------------------------
+% Retrieve file names and corresponding IDs that match the given ranges.
+[fileList, ~] = getExpInfoFiles(folderPath, idRanges);
+
+% ---------------------------
+% STEP 3: Load file generation information
+% ---------------------------
+% Initialize FileListMAT and load associated metadata.
+
+% Loop through each file and load the `FileGenerateInfo` structure.
+for i = 1:length(fileList)
+    A = load([folderPath fileList{i}]);  % Load the .mat file
+    FileGenerateInfo(i) = A.FileGenerateInfo;  % Extract and store FileGenerateInfo
+end
+
+% ---------------------------
+% STEP 4: Initialize outputs
+% ---------------------------
+MatTBL = [];    % Placeholder for combined output tables
+% XMLpattern = 'R(\d+)Laser([\d.]+)GPoint\s?(\d+)';
+FrameTSall = [];    % Placeholder for combined output tables
+
+% ---------------------------
+% STEP 5: Process each file
+% ---------------------------
+if ~isfield(FileGenerateInfo,'FileID')
+   for iCount = 1:length(FileGenerateInfo)
+       FileGenerateInfo(iCount).FileID=str2num(FileGenerateInfo(iCount).FileKey(end-2:end));
+   end
+end
+
+for iCount = 1:length(FileGenerateInfo)
+    % clear OutTBL  % Clear previous output table for new file
+    % % Extract table for current file using position and configuration settings
+    % if iscell(Pos3Dneed)
+    %    [OutTBL,~]=MPSeqFolder_GroupTargets(FileGenerateInfo(iCount).tifFolder,confSet, Pos3Dneed); %%FuncGroup
+    % else
+    %     OutTBL = MPSeqFolder_1TargetXNon(FileGenerateInfo(iCount).tifFolder, confSet, Pos3Dneed);  %%SingleCell
+    % end
+    % % Assign FileID to the output table for current processing
+    % OutTBL.FileID = FileGenerateInfo(iCount).FileID * ones(size(OutTBL, 1), 1);
+    
+    matInfo=load(FileGenerateInfo(iCount).matFile);
+    VolOutPlan=matInfo.PVparam.TseriesTBL.VolOut;
+    matInfoTable=matInfo.PVparam.TseriesTBL;
+    [~,fStimAll,~,FrameTS]=PV_VolExtract_MultiCyc(confSet,FileGenerateInfo(iCount).FileID);
+    SeqID=unique(FrameTS.Seq);
+    VolExcP1=zeros(length(SeqID),1);
+
+    SeqP1=FrameTS.Seq(FrameTS.index==1);
+    VolExcP1(SeqP1(find(fStimAll(:,1)>1)))=1;
+
+    if length(VolExcP1)==length(VolOutPlan)
+       matInfoTable.VolOutExc=VolExcP1;
+    else
+       disp([num2str(length(VolOutPlan)) ' of planned sequence does not match Voltage recording seuence ' num2str(length(VolOutPlan))]);
+    end
+
+    MatTBL=[MatTBL;matInfoTable];
+    FrameTSall=[FrameTSall;FrameTS];
+end
+
+end
+
+function [pointIDs, laserPowers] = XMLPatterExtract(MarkPointList, XMLpattern)
+    % PatterExtract Extracts round IDs, point IDs, and laser powers from a list of filenames.
+    % Inputs:
+    %   MarkPointList - A structure array containing file information, typically from a dir() call.
+    %   XMLpattern - A regular expression pattern designed to extract specific numerical IDs from the filenames.
+    % Outputs:
+    %   roundIDs - An array containing numerical round IDs extracted from the file names.
+    %   pointIDs - An array containing point identifiers.
+    %   laserPowers - An array of laser power values extracted from file names.
+
+    % Initialize arrays to hold extracted data
+    % roundIDs = zeros(length(MarkPointList), 1);
+    laserPowers = zeros(length(MarkPointList), 1);
+    pointIDs = zeros(length(MarkPointList), 1);
+
+    % Iterate through each file in the MarkPointList
+    for ixml = 1:length(MarkPointList)
+        % Extract the file name from the structure
+        fileName = MarkPointList{ixml};
+        
+        % Use regex to parse out the desired data from the file name
+        tokens = regexp(fileName, XMLpattern, 'tokens');
+        
+        % Check if the regex pattern matched and tokens were found
+        if ~isempty(tokens)
+            % Convert the captured strings to numbers and store them in the respective arrays
+            % roundIDs(ixml) = str2double(tokens{1}{1});
+            laserPowers(ixml) = str2double(tokens{1}{1});
+            pointIDs(ixml) = str2double(tokens{1}{2});
+        end
+    end
+
+    % Round the extracted numeric values to ensure they are integers
+    pointIDs = round(pointIDs);
+end
+
