@@ -66,19 +66,20 @@ OutTBLAll=OutTBLorigin;
 OutTBLAll.AwakeState(OutTBLAll.TSeriesInd<=5)=1;
 OutTBLAll.AwakeState(OutTBLAll.TSeriesInd>=6)=2;
 
-% PSTHparam.PostSLMCal=12;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
-% PSTHparam.FrameStep=3;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
-% [PSTHallDyn, OutTBLAllDyn] = getSLMGroup_Dyn_BinNonMat(ProcessFolder, confSet, PSTHparam, Pos3DGroup, idRanges);
+PSTHparam.PostSLMCal=12;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparam.FrameStep=3;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
+[PSTHallDyn, OutTBLAllDyn] = getSLMGroup_Dyn_BinNonMat(ProcessFolder, confSet, PSTHparam, Pos3DGroup, idRanges);
 
 PowerGroup=[40 440];
 WiskGroup=[0 1];
 WiskKey={'NoWisk','Wisk'};
 FunGroup=[1 2 3];
 AwakeState=[1 2];
-AwakeKey={'Awake','Anes'};
+AwakeState{'Awake','Anes'}
 
 
 
+PSTHShowKey=
 
 for iState=1:length(AwakeState)
     for iWisk=1:length(WiskGroup)
@@ -86,7 +87,7 @@ for iState=1:length(AwakeState)
         Index0=OutTBLAll.UncagingLaserPower==40&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk);
         PSTHZero=squeeze(nanmean(PSTHall(:,:,Index0,:),3));
 
-        clear PSTHGroupDyn PSTHGroup SampleSize;
+        clear PSTHGroupDyn PSTHGroup;
         for iGroup=1:length(Group)
              Index=OutTBLAll.UncagingLaserPower==440&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk)&OutTBLAll.Group==iGroup;
 
@@ -106,80 +107,12 @@ for iState=1:length(AwakeState)
         PSTHShowAll{iState,iWisk}=PSTHPlot;
         clear PSTHPlot;
 
-        PSTHShowKey{iState,iWisk}=[AwakeKey{iState} WiskKey{iWisk}];
-        TargetNShow{iState,iWisk}=[SampleSize sum(Index0)];
+        PSTHShowKey{iState,iWisk}=[AwakeState{iState} WiskKey{iWisk}]
 
     end
 
 
 end
-
-
-TargetName = {'Locomotion C.', 'Sensory C.', 'Non C.','Zero power'};
-ImgClim=[-150;150];
-
-for iState=1:length(AwakeState)
-    for iWisk=1:length(WiskGroup)
-        PSTHPlot=PSTHShowAll{iState,iWisk};
-        TargetN=TargetNShow{iState,iWisk};
-        figure;
-        
-        for iGroup=1:length(PSTHPlot)
-         
-            PlotParam.RowColID=iGroup;
-        
-            TempColor=repmat(colorGroup(iGroup,:),size(TargetPlot{iGroup},1),1);
-            if iGroup<4
-            NonCell=find(isnan(FunScore(FunScore(:,1)==iGroup,2))==1);
-            TempColor(NonCell,:)=repmat(FakeColor,length(NonCell),1);
-            end
-            H{iGroup}=MultiPlanes2DShow(SmoothDecDim3(PSTHPlot{iGroup},1), [], TargetPlot{iGroup}, [], Zdepth, TempColor, ImgClim, PlotParam);
-        
-        end
-            colormap(colorMapPN1)
-        
-            b=colorbar;
-            set(b,'position',[0.93 0.3 0.02 0.5],'Ticks',[ImgClim(1) 0 ImgClim(2)])
-            b.Label.String='DeltaF (PostSLM-PreSLM)'
-        
-        for iplane=1:length(Zdepth)
-            H{1}(iplane).YLabel.String = ['Plane ' num2str(iplane)] ;
-        end
-        for icol = 1:length(PSTHPlot)
-            % Get the handle of the axes in the first row for each column
-            ax = H{icol}(1);  
-            % Add the title to the corresponding axes
-            title(ax, TargetName{icol}, 'FontSize', 10, 'FontWeight', 'bold');
-        
-             H{icol}(3).XLabel.String = ['n = ' num2str(TargetN(icol))] ;
-        
-        end
-
-       papersizePX=[0 0 8*length(PSTHPlot)+2 8*length(Zdepth)+1];
-      set(gcf, 'PaperUnits', 'centimeters');
-      set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-      saveas(gcf,[SaveFolder PSTHShowKey{iState,iWisk} num2str(PSTHparam.PostSLMCal) 'FramePostSLM'],'png'); 
-      saveas(gcf,[SaveFolder PSTHShowKey{iState,iWisk} num2str(PSTHparam.PostSLMCal) 'FramePostSLM'],'fig'); 
-     % 
-     close all
-
-
-
-
-    end
-end
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -213,7 +146,7 @@ TargetN=[SampleSize sum(Index0)];
 TargetName = {'Locomotion C.', 'Sensory C.', 'Non C.','Zero power'};
 
 
-ImgClim=[-150;150];
+ImgClim=[-100;100];
 colorGroup=[0 1 0;1 1 0;1 0 1];
 colorGroup=[0 1 0;0 1 0;0 1 0;0 1 0];
 

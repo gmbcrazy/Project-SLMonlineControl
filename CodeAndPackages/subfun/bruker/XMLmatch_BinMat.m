@@ -65,7 +65,7 @@ for iCount = 1:length(FileGenerateInfo)
     OutTBL.FileID = FileGenerateInfo(iCount).FileID * ones(size(OutTBL, 1), 1);
 
     [pointIDs, laserPowers] = XMLPatterExtract(FileGenerateInfo(iCount).xmlFile, XMLpattern);
-
+    
     TBLmat=[FileGenerateInfo(iCount).FileID*ones(length(pointIDs), 1), pointIDs(:), laserPowers(:)];
     MatTBL=[MatTBL;TBLmat];
     % ---------------------------

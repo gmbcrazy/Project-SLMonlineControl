@@ -132,15 +132,13 @@ for iFile=1:length(FileIDAll)
         TempTable.MatGroup=MatTBL.Group(IndMat);
         TempTable.MatPower=MatTBL.PVpower(IndMat);
 
-        diffGroup=sum(abs(TempTable.Group-TempTable.MatGroup));
-        diffPower=sum(abs(TempTable.UncagingLaserPower-TempTable.MatPower));
 
-        if diffGroup>0||diffPower>0
+
+        if sum(abs(TempTable.Group-TempTable.MatGroup))>0||sum(abs(TempTable.UncagingLaserPower-TempTable.MatPower))>0
+           disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted as planned correctly']);
+        else
            disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted not correctly']);
            TempTable
-        else
-           disp(['FileID ' num2str(FileIDAll(iFile)) ' xml file excuted as planned']);
-
         end
 
      else

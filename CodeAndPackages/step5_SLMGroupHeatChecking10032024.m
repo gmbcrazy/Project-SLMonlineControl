@@ -6,10 +6,11 @@ PostMarkPointRepetition=10;   %<------------------------------------------------
 PreSLMCal=15;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
 PostSLMCal=3;                 %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate responsive map
 ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
-ConfigFile='SLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
-[~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
+WorkFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';
+ConfigFile='CurrentSLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
+[~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(WorkFolder,ConfigFile);
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat','colorMapPN1')
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat','colorMapPN1')
 
 nPlane=length(yaml.Zdepth_ETL);
 frameRepetion=PreMarkPointRepetition+PostMarkPointRepetition; %%Total repepitions of Z series in T series setting.
@@ -28,15 +29,13 @@ PSTHparam.ColorMap=colorMapPN1;
 PSTHparam.Clim=[-400 400];
 
 %param for xml files
-XMLparam.ProcessFolder=ProcessFolder;
-XMLparam.TotalRounds=confSet.NumTrial;
+% XMLparam.ProcessFolder=WorkFolder;
+% XMLparam.TotalRounds=confSet.NumTrial;
+
+ProcessFolder = Get_ExpDataFolder(WorkFolder, 'SpeedStimEdgeExc', {'Data','AllIncluded','DataSum','.gpl','.xml'})
 
 
 
-SumDataFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\10032024\SingleP\Top13SpeedStimEdgeExc\DataSum\'
-load([SumDataFolder 'SLMResponseTable.mat'],'SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore');
-
-ProcessFolder='F:\LuSLMOnlineTest\SL0541-Emx1Ai96\10032024\SingleP\Top13SpeedStimEdgeExc\'
 % 
 
 ResultFolder=SumDataFolder;

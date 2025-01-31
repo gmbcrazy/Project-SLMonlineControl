@@ -8,7 +8,7 @@ else
    SLMsettingFile='SLMsetting.yml';
 end
 
-confSet = ReadYaml([ConfigFolder '\' SLMsettingFile]);
+confSet = ReadYaml([ConfigFolder SLMsettingFile]);
 LoadPath=confSet.save_path0;
 SavePath=[LoadPath 'SingleP\'];
 mkdir(SavePath)
