@@ -4,7 +4,7 @@
 % % 
 % idRanges=[3;16];
 
-[ROItemp, TBLtemp] = getSLMROI_BinMat(DataFolder, confSet, PSTHparam, Pos3Dneed, ROIparam, idRanges);
+[ROItemp, TBLtemp,PSTHtemp] = getSLMROI_BinMat(DataFolder, confSet, PSTHparam, Pos3Dneed, ROIparam, idRanges);
 ROIall=cat(3,ROIall,ROItemp);
 TBLall=[TBLall;TBLtemp];
 SLMTrialInfo=TBLall;

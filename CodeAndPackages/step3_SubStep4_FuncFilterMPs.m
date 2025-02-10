@@ -28,6 +28,70 @@ for iCell = 1:size(iscell, 1)
     rStim(iCell, 1) = c(PostI(i1),iCell);
 end
 
+
+[~, ~, ~, cellBoundary] = Suite2pCellIDMapFromStat(CaData.statCell, [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
+[~,cellPlane]=ismember(Pos3D(:,3),PlaneZ);
+
+rSpeed
+ClimRspeed=[-0.2 0.2];
+ClimRstim=[0 0.15];
+CellSpeedColors = valueToColor(rSpeed, ClimRspeed, jet(64));
+CellStimColors = valueToColor(rStim, ClimRstim, jet(64));
+
+ImgClim=[0 300];
+        PlotParam.RowPlot=1;
+        PlotParam.RowColNum=1;
+        PlotParam.RowColID=1;
+        PlotParam.EdgeParam=[0.06 0.1 0.1 0.06 0.06 0.06];
+        PlotParam.CellCenterWith=1;
+        PlotParam.CellBoundaryWidth=1;
+
+figure;      
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
+subplot('position',[0.95 0.3 0.01 0.3])
+MultibarPlot(1:64,jet(64),0,0,1,1);
+set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
+xlabel('Speed-Corr')
+camroll(90);
+papersizePX=[0 0 10*numPlanes 10];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
+saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
+
+figure
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
+subplot('position',[0.95 0.3 0.01 0.3])
+MultibarPlot(1:64,jet(64),0,0,1,1);
+set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
+xlabel('Speed-Corr')
+camroll(90);
+papersizePX=[0 0 10*numPlanes 10];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
+saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
+
+figure;
+subplot(1,2,1)
+% hist(rSpeed,[-1 1])
+DisX=[-0.4:0.02:0.4];
+m=histPlotLU(rSpeed,DisX,[0.2 0.2 0.2],0.5);
+xlabel('SpeedCorr');
+ylabel('Cell Counts')
+subplot(1,2,2)
+% hist(rSpeed,[-1 1])
+DisX=[0:0.01:0.3];
+m=histPlotLU(rStim,DisX,[0.2 0.2 0.2],0.5);
+xlabel('StimCorr')
+papersizePX=[0 0 20 10];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[SavePathAllPoint 'DisSpeedStimCorr'],'fig')
+saveas(gcf,[SavePathAllPoint 'DisSpeedStimCorr.png'],'png')
+
+close all
+
 rSpeed=rSpeed(:);
 rStim=rStim(:);
 
@@ -88,7 +152,47 @@ mkdir(SavePathStimSpeed)
 
 
 IncludePathOri=[SavePathStimSpeed '\AllIncludedOrigin\'];
+TempGroup={rCenterISpeed(:) rCenterIStim(:) NonFunctionI(:)}
+
+GroupName={'L cell','S cell','Non-LS cell'}
+for iGroup=1:length(TempGroup)
+figure;      
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), Pos3D(TempGroup{iGroup},:), [], PlaneZ, CellSpeedColors(TempGroup{iGroup},:), ImgClim,PlotParam);
+subplot('position',[0.95 0.3 0.01 0.3])
+MultibarPlot(1:64,jet(64),0,0,1,1);
+set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
+xlabel('Speed-Corr')
+camroll(90);
+papersizePX=[0 0 10*numPlanes 10];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[IncludePathOri GroupName{iGroup} 'SpeedCorr'],'fig')
+saveas(gcf,[IncludePathOri GroupName{iGroup} 'SpeedCorr.png'],'png')
+end
+close all
+for iGroup=1:length(TempGroup)
+figure;      
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), Pos3D(TempGroup{iGroup},:), [], PlaneZ, CellStimColors(TempGroup{iGroup},:), ImgClim,PlotParam);
+subplot('position',[0.95 0.3 0.01 0.3])
+MultibarPlot(1:64,jet(64),0,0,1,1);
+set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
+xlabel('Speed-Corr')
+camroll(90);
+papersizePX=[0 0 10*numPlanes 10];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[IncludePathOri GroupName{iGroup} 'StimCorr'],'fig')
+saveas(gcf,[IncludePathOri GroupName{iGroup} 'StimCorr.png'],'png')
+end
+close all
+
 IncludePath=[SavePathStimSpeed '\AllIncluded\'];
 mkdir(IncludePathOri)
 mkdir(IncludePath)
 XYZtoMarkPoint(IncludePathOri,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell,FunScore);
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-function [ROIall, OutTBLAll] = getSLMROI_BinMat(folderPath, confSet, PSTHparam, Pos3Dneed, ROIparam, idRanges)
+function [ROIall, OutTBLAll,PSTHall,PSTHplane] = getSLMROI_BinMat(folderPath, confSet, PSTHparam, Pos3Dneed, ROIparam, idRanges)
 % GETSLMROI_BINMAT Processes binary .mat files to calculate ROI maps and combines results.
 %
 % Inputs:
@@ -42,6 +42,7 @@ end
 ROIall = [];       % Placeholder for aggregated ROI maps
 OutTBLAll = [];    % Placeholder for combined output tables
 PSTHall =[];
+PSTHplane =[];
 % ---------------------------
 % STEP 5: Process each file
 % ---------------------------
@@ -97,6 +98,8 @@ for iCount = 1:length(FileGenerateInfo)
         
         % Combine the ROI heatmap into the aggregated ROI array
         ROIall = cat(3, ROIall, roiHeat);
+
+        PSTHplane=cat(3, PSTHplane, SmoothDecDim3(squeeze(PSTHmap(:, :, iP, planeI(iP))),[1 ,1]));
     end
     
     % Clear temporary variables for the current iteration

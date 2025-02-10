@@ -35,7 +35,9 @@ function MultPlaneIs2DShow1Plane(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, P
         if ~isempty(Pos3Dlabel)
             labelCellCenter(Pos3D(:,[2 1]), Pos3Dlabel,colorCell);
         end
-
+        if ~isempty(Pos3D)
+            plotCellCenter(Pos3D(:,[2 1]), 10, colorCell,1.5);
+        end
     % If Img is 3D (multi-plane)
     elseif length(Dim) == 3
         % Loop through each plane and display it in a subplot            

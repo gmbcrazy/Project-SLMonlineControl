@@ -26,9 +26,9 @@ SLMIncludedIndFromIscell=IncludeCellFinal;
 [XYPosPixel,Z]=gplXYtoPixel(EditedTable,yaml);
 Pos3Dneed=[XYPosPixel Z(:,1)];
 
-save([IncludePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
+save([IncludePath 'SLMIncludedIndFromIscellTemp.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
 
-[~, ~, MedCenter, cellBoundary] = Suite2pCellIDMapFromStat(Cellstat(SLMIncludedIndFromIscell), [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
+[~, ~, ~, cellBoundary] = Suite2pCellIDMapFromStat(Cellstat(IncludeCellFinal), [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
 GroupName={'L cell','S cell','Non-LS cell'};
 numPlanes=length(confSet.ETL);
 ClimRspeed=[-0.2 0.2];
@@ -61,7 +61,7 @@ close all
 for iGroup=1:length(TempGroup)
 figure;      
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), Pos3Dneed(TempGroup{iGroup},:), [], PlaneZ, CellStimColors(TempGroup{iGroup},:), ImgClim,PlotParam);
-% H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), permute(Pos3Dneed(TempGroup{iGroup},:),[2 1 3]), [], PlaneZ, CellStimColors(TempGroup{iGroup},:), ImgClim,PlotParam);
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), Pos3Dneed(TempGroup{iGroup},:), [], PlaneZ, CellStimColors(TempGroup{iGroup},:), ImgClim,PlotParam);
 
 subplot('position',[0.95 0.3 0.01 0.3])
 MultibarPlot(1:64,jet(64),0,0,1,1);

@@ -2,7 +2,7 @@ clear all
 % TestFile='TSeries-04222024-0926-040'
 WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\11212025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
 ProcessFolder=[WorkingFolder 'SingleP\' 'Top16SpeedStimEdgeExc\'];
@@ -119,7 +119,7 @@ XMLparam.Laser(1:10)=repmat(1.6,1,10);
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 
-% idRanges=[6;12];
+idRanges=[6;36];
 % idRanges=[6 18;16 18];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 

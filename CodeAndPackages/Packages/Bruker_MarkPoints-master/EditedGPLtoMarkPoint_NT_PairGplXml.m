@@ -16,6 +16,10 @@ NonTargets=[NonTargetsPosPixel ZNonTargets(:,1)];
 % Save the relevant indices and position data along with configuration settings to a .mat file.
 save([SavePathAllPoint 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
 confSetTemp=confSet;
+
+
+
+
 % Iterate over each trial specified in the configuration settings.
 for iTrial=1:confSet.NumTrial
     % Select the non-target points for the current trial using indices provided in IndexNonTargetTrial.

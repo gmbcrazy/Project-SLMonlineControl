@@ -20,7 +20,7 @@ function H=MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, color
         PlotParam.RowPlot=1;
         PlotParam.RowColNum=1;
         PlotParam.RowColID=1;
-        PlotParam.EdgeParam=[0.06 0.1 0.06 0.06];
+        PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.06 0.06];
         PlotParam.CellCenterWith=1;
         PlotParam.CellBoundaryWidth=0.5;
     else
@@ -85,7 +85,7 @@ function H=MultiPlanes2DShow(Img, cellBoundary, Pos3D, Pos3Dlabel, Zdepth, color
             
             % Plot the centers of the cells in the current plane
             if ~isempty(Pos3D)
-                 plotCellCenter(Pos3D(I,[2 1]), 7, colorCell(I,:),PlotParam.CellCenterWith)
+                 plotCellCenter(Pos3D(I,[2 1]), 9, colorCell(I,:),PlotParam.CellCenterWith)
             end
             set(gca,'xtick',[],'ytick',[]);
         end
