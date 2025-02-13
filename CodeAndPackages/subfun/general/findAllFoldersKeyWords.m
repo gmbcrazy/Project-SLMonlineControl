@@ -1,4 +1,4 @@
-function resultPaths = findAllFoldersKeyWords(rootPath, targetFolderName)
+function resultPaths = findAllFoldersKeyWords(rootPath, targetFolderName,varargin)
     % findAllFolders - Recursively searches for all folders with a specific name 
     % in the directory and its subdirectories.
     %
@@ -12,6 +12,11 @@ function resultPaths = findAllFoldersKeyWords(rootPath, targetFolderName)
     %    resultPaths - Cell array containing paths of all found folders. 
     %                  If not found, returns an empty cell array.
 
+    if nargin==2
+       LookSubFolder=1;
+    else
+       LookSubFolder=varargin{1};
+    end
     % Initialize result
     resultPaths = {};
 
@@ -33,12 +38,16 @@ function resultPaths = findAllFoldersKeyWords(rootPath, targetFolderName)
                 resultPaths{end+1} = [fullfile(rootPath, items(i).name) '\'];
             end
             % Recursively search in subdirectory
+            if LookSubFolder==1
             subDirPath = [fullfile(rootPath, items(i).name) '\'];
             subDirResults = findAllFoldersKeyWords(subDirPath, targetFolderName);
-            if ~isempty(subDirResults)
-                % Append found paths to resultPaths
-                resultPaths = [resultPaths, subDirResults];
+                if ~isempty(subDirResults)
+                 % Append found paths to resultPaths
+                     resultPaths = [resultPaths, subDirResults];
+                end
             end
         end
     end
+
+    % disp([num2str(length(resultPaths)) ' folders found']);
 end

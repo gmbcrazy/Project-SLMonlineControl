@@ -3,12 +3,99 @@ clear all
 WorkFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';
 ConfigFile='CurrentSLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(WorkFolder,ConfigFile);
-ProcessFolder = Get_ExpDataFolder(WorkFolder, 'SpeedStimEdgeExc', {'Data','AllIncluded','DataSum','.gpl','.xml'})
+ProcessFolder = Get_ExpDataFolder(WorkFolder, 'SpeedStimEdgeExc', {'Data','AllIncluded','DataSum','.gpl','.xml'});
 
-SLMPosInfo=load([ProcessFolder 'SLMFunGroup.mat']);
-load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat','colorMapPN1')
+sponRecording = findAllFoldersKeyWords(WorkFolder, 'TSeries',0);
+sponids = extractIds(sponRecording);
+
+%Motion correction data from spontanous behavior recording files
+[sponPixShift, Files] = PixShiftLoad(WorkFolder);
 
 DataFolder=[ProcessFolder 'Data\'];
+
+%Copy spontanous behavior recording files to the DataFolder
+copyInitialRecordedFolders(sponRecording, DataFolder);
+
+
+
+idRanges=[1;99];
+
+%Tif folders in total
+[TifGenInfo,TifList, TifIDs] = getExpInfoFiles_NonMat(DataFolder, idRanges);
+TBLtif=table(TifIDs(:),'VariableNames',{'FileID'});
+
+
+%Recording file with Experiment informaiton stored in MatFiles
+[TBLmat, TBLInfo] = ExtractExp_FromMat(DataFolder);
+TBLmat.MatInfo=repmat(1,size(TBLmat,1),1);
+
+%Merge the Tiff folder and Mat Table
+TBLtifMat = outerjoin(TBLtif, TBLmat, 'Keys', 'FileID', 'MergeKeys', true);
+temp1=ismember(TBLtifMat.FileID,sponids);
+TBLtifMat.MatInfo(temp1)=0;
+TBLtifMat.motionMed(temp1)=sponPixShift(:);
+
+
+%Data with too much Pixshift were excluded for further analysis. 
+MotionTh=10;
+TBLtifMat=TBLtifMat(TBLtifMat.motionMed<MotionTh,:);
+[~,DelIdx]=setdiff(TifIDs,TBLtifMat.FileID);
+
+%%Move unqulified file folders to ExcludeFolder
+RemovedList=TifList(DelIdx);
+RemoveFolder=[DataFolder 'ExcludeFolder\'];
+mkdir(RemoveFolder);
+copyInitialRecordedFolders(RemovedList, RemoveFolder, DataFolder)
+DelFolders(RemovedList, DataFolder) 
+%%Move unqulified file folders to ExcludeFolder
+
+clear all
+ProcessedFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01142025\SingleP\Top14SpeedStimEdgeExc\Data\DataGroup\';
+% TiffTable = RemoveMPsynTiffFolder(DataFolder)
+
+RemoveFrame=2; %%2 repetitions right together with MarkPoint would be removed.
+[TiffTable, RemoveList] = RemoveMPsynTiffFolder(DataFolder,RemoveFrame);
+removeMP=[];
+for iFile=1:length(RemoveList)
+    removeMP(iFile,1)=length(RemoveList{iFile})/RemoveFrame/length(confSet.ETL);
+end
+
+MPnumPerFile=10;
+TiffID=extractIds(TiffTable.name);
+FromRemoveTifTable=table(TiffID(:),removeMP(:),'VariableNames',{'FileID','MPnum'});
+FromRemoveTifTable.Name=TiffTable.name;
+
+tempTable=join(TBLtifMat,FromRemoveTifTable,"Keys","FileID");
+
+RemoveI=find(tempTable.MatInfo==1&tempTable.MPnum<MPnumPerFile);
+%%Move unqulified file folders to ExcludeFolder
+RemovedList=tempTable.Name(RemoveI);
+copyInitialRecordedFolders(RemovedList, RemoveFolder, DataFolder)
+DelFolders(RemovedList, DataFolder) 
+tempTable(RemoveI,:)=[];
+
+
+%%Move unqulified file folders to ExcludeFolder
+
+
+
+
+
+
+
+
+a=TBLmat(ValidID,:);
+TBLtifMat = outerjoin(TBLtif, a, 'Keys', 'FileID', 'MergeKeys', true);
+
+sponRecording = findAllFoldersKeyWords(WorkFolder, 'TSeries',0);
+
+
+
+caTrialsInd=[7 8 66]
+caTrials2=XMLread_Basic(DataFolder,caTrialsInd);
+
+
+SLMPosInfo=load([ProcessFolder 'SLMFunGroup.mat']);
 
 SaveFolder=[ProcessFolder 'Results\'];
 mkdir(SaveFolder)

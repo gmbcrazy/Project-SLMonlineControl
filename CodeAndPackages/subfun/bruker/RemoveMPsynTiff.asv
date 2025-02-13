@@ -91,7 +91,7 @@ function RemoveFiles = RemoveMPsynTiff(folderPath,varargin)
     if length(MPxmlFiles)==0
         disp(['No MarkPoints found in ' folderPath]);
 
-        RemoveFiles=[];
+        folderPath
         return
 
     end
