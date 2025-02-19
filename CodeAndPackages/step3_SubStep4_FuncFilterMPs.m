@@ -123,10 +123,10 @@ while Continueloop
     end
 end
 
-if length(NonFunctionI)<TopCellN
+if length(NonFunctionI)<TopCellNRaw
    NonFunctionI=NonFunctionI;
 else
-   NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellN));
+   NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellNRaw));
 end
 
 
@@ -152,6 +152,13 @@ mkdir(SavePathStimSpeed)
 
 
 IncludePathOri=[SavePathStimSpeed '\AllIncludedOrigin\'];
+IncludePath=[SavePathStimSpeed '\AllIncluded\'];
+mkdir(IncludePathOri)
+mkdir(IncludePath)
+
+
+
+
 TempGroup={rCenterISpeed(:) rCenterIStim(:) NonFunctionI(:)}
 
 GroupName={'L cell','S cell','Non-LS cell'}
@@ -186,9 +193,7 @@ saveas(gcf,[IncludePathOri GroupName{iGroup} 'StimCorr.png'],'png')
 end
 close all
 
-IncludePath=[SavePathStimSpeed '\AllIncluded\'];
-mkdir(IncludePathOri)
-mkdir(IncludePath)
+
 XYZtoMarkPoint(IncludePathOri,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell,FunScore);
 
 
