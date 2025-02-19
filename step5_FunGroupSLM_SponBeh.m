@@ -5,7 +5,7 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';%<---------------------------Edit, Data folder
+WorkingFolder='E:\LuSLMOnlineTest\SL0840-Ai203\02192025\';%<---------------------------Edit, Data folder
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
 PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
@@ -17,7 +17,7 @@ ConfigFile='SLMsetting.yml';%<--------------------------------------------------
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder=[WorkingFolder 'SingleP\Top51SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
+ProcessFolder=[WorkingFolder 'SingleP\Top38SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
 mkdir(SumDataFolder)
 DataLogFolder=[ProcessFolder 'DataLog\'];

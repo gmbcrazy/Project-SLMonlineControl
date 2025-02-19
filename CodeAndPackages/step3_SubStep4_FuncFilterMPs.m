@@ -4,6 +4,8 @@ XTimesStdTh = 3;
 MinInterVal = 20;
 maxLag = 10;
 Continueloop=1;
+ExcludeStimInd=[1:2000 2800:4100];  
+ExcludeStimInd=union(ExcludeStimInd,ExcludeStimInd+4100);
 
 
 deltaFoF=F2deltaFoF(double(CaData.F),double(CaData.Fneu),double(confSet.fs));
@@ -14,10 +16,12 @@ NeuroDataCell=NeuroData(:,iscell);
 
 TopCellNRaw=TopCellN;
 
+
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
-    [rSpeed(I1),pSpeed(I1)]=corr(NeuroData(:,iscell(I1)),fSpeed(:,iPlane),'type','Spearman','rows','pairwise');
+    [rSpeed(I1),pSpeed(I1)]=corr(NeuroData(ExcludeStimInd,iscell(I1)),fSpeed(ExcludeStimInd,iPlane),'type','Spearman','rows','pairwise');
 end
+
 clear rStim c
 for iCell = 1:size(iscell, 1)
     iCell;
@@ -38,7 +42,7 @@ ClimRstim=[0 0.15];
 CellSpeedColors = valueToColor(rSpeed, ClimRspeed, jet(64));
 CellStimColors = valueToColor(rStim, ClimRstim, jet(64));
 
-ImgClim=[0 300];
+ImgClim=[0 400];
         PlotParam.RowPlot=1;
         PlotParam.RowColNum=1;
         PlotParam.RowColID=1;
