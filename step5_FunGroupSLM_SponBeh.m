@@ -5,7 +5,7 @@ clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-WorkingFolder='E:\LuSLMOnlineTest\SL0840-Ai203\02192025\';%<---------------------------Edit, Data folder
+WorkingFolder='E:\LuSLMOnlineTest\SL0843-Ai203\02202025\';%<---------------------------Edit, Data folder
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
 PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
@@ -79,7 +79,7 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 % 
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
-RefFile=[WorkingFolder 'RegRef2\'];
+RefFile=[WorkingFolder 'RegRef3\'];
 % 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
@@ -105,7 +105,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:5
+for TseriesID=2:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
