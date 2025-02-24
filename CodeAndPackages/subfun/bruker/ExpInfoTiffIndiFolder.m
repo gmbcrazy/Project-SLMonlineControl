@@ -47,7 +47,7 @@ function [totalRepetitions, framesAfterStimuli,StimuliPower,Zdepth, ZdepthLaser,
     for i = 1:length(files)
         fileName = files(i).name;
         % Extract the cycle number and plane number using regular expressions
-        tokens = regexp(fileName, '_Cycle(\d{5})_Ch2_(\d{6})\.ome\.tif', 'tokens');
+        tokens = regexp(fileName, '_Cycle(\d{5})_Ch\d+_(\d{6})\.ome\.tif', 'tokens');
         if ~isempty(tokens)
          cycleNumbers(end+1) = str2num(tokens{1}{1});
          planeNumbers(end+1) = max(str2num(tokens{1}{2}),tempnumPlanes);

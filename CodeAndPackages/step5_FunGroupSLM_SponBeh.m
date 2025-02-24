@@ -3,31 +3,37 @@
 %% Load Data
 clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+% load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-WorkingFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';%<---------------------------Edit, Data folder
-PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
-PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
-PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
+% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
+ConfigFile='SLMsetting.yml';
+confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
+WorkingFolder=confSet.save_path0;
 
-ConfigFile='SLMsetting.yml';%<---------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
-confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
-ProcessFolder=[WorkingFolder 'SingleP\Top51SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
+FolderKeyWord='SpeedStimEdgeExc';
+IncludedList={'.xml','FunGroup*.gpl','SLMFunGroup.mat'};
+ProcessFolder = Get_ExpDataFolder(WorkingFolder, FolderKeyWord, IncludedList);
+% ProcessFolder=[WorkingFolder 'SingleP\Top51SpeedStimEdgeExc\'];%<----------------------Edit, Data folder
 SumDataFolder=[ProcessFolder '\DataSum\'];
 mkdir(SumDataFolder)
 DataLogFolder=[ProcessFolder 'DataLog\'];
 mkdir(DataLogFolder)
-
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
+
+
+
+
+
+PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
+PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
+PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
 load([PreDefTseriesFolder PreDefTmat],'TSeriesBrukerTBL');              
-
 TSeriesENVFile=dir([PreDefFolder '*.env']);
-
 
 
 
