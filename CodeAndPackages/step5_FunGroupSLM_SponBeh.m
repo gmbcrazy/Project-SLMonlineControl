@@ -25,12 +25,17 @@ DataLogFolder=[ProcessFolder 'DataLog\'];
 mkdir(DataLogFolder)
 load([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 
+figure;
+plot(0,0);set(gca,'xlim',[0 10],'ylim',[0 10],'xcolor','w','ycolor','w')
+hold on;
+text(0,6,['Have you saved the xml into SavedMarkPoints in Bruker!'],'color','r','fontsize',13);
 
-
-
+%%Load either spontanouse Tseries or Anesthesia Tseries
 
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
 PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
+PreDefTmat='Anesthesia5T_Z11Frame550.mat';                %<-------------------------Edit, TseriesPreDefined
+
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
 load([PreDefTseriesFolder PreDefTmat],'TSeriesBrukerTBL');              
 TSeriesENVFile=dir([PreDefFolder '*.env']);

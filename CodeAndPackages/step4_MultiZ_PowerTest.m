@@ -140,6 +140,11 @@ CellPerGroup=10;
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 XYZtoMarkPointFunGroup_MultiZ(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
 
+figure;
+plot(0,0);set(gca,'xlim',[0 10],'ylim',[0 10],'xcolor','w','ycolor','w')
+hold on;
+text(0,6,['Save the xml into SavedMarkPoints in Bruker!'],'color','r','fontsize',13);
+
 
 
 
