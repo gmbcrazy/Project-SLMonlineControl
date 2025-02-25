@@ -1,11 +1,11 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0840-Ai203\02132025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0840-Ai203\02242025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-ProcessFolder=[WorkingFolder 'SingleP\' 'Top32SpeedStimEdgeExc\'];
+ProcessFolder=[WorkingFolder 'SingleP\' 'Top28SpeedStimEdgeExc\'];
 % % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % % 
 % % SLMsettingFile='SLMsetting.yml';
@@ -30,11 +30,11 @@ ROIparam.TotalSLMPos3D=Pos3Dneed;    %%such that ROIparam.PointAll=1:size(Pos3Dn
 ROIparam.PointAll=PointAll;
 % ROIparam.PlaneZ=PlaneZ;
 ROIparam.CellSize=20;                %%normal neuron diameter by um;        
-ROIparam.threshold_percentage=0.3;   %%thereshold to define responsive fields SLM responsive heatmap: percentage*Peak rate
+ROIparam.threshold_percentage=0.25;   %%thereshold to define responsive fields SLM responsive heatmap: percentage*Peak rate
 ROIparam.thNum=10;                   %%Minimal single responsive field by pixels
 ROIparam.max_distance=ceil(ROIparam.CellSize/2/umPerPixel);  %% 1/3 diameter of a cell by pixel as maximal response region-SLM center distance
 ROIparam.min_region_size=5;
-ROIparam.PeakTh=200;
+ROIparam.PeakTh=170;
 ROIparam.min_merged_region_size=50;  %%Minimal total size of responsive fields by pixels
 ROIparam.contourMethod='boundaries';      %%Method to detect ROI boader of responsive fields
 ROIparam.NeighbourHfWidthPixel=20;   %%PixFromMedCenter: Number of pixels from the median center of each ROI to get the ROI neighborhood.
@@ -111,9 +111,9 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-% XMLparam.PointList=[7 10 21 30 5 33 34 35 21 10];
-% XMLparam.Laser(1:10)=repmat(1.5,1,10);
-
+XMLparam.PointList=[1 24  27 29 34 1 24  27 29 34];
+% XMLparam.Laser(1:10)=repmat(1.55,1,10);
+% 
 
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 

@@ -1,7 +1,6 @@
 %% Initialize, run this part before mannual correction of Suite2p processed data for saving time
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
 ConfigFile='SLMsetting.yml';
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
@@ -46,7 +45,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=14;  
+TopCellN=13;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 

@@ -1,11 +1,11 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\SL0843-Ai203\02202025\
+save_path0: E:\LuSLMOnlineTest\SL0840-Ai203\02242025\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 188.69 #Z device depth
+scan_Z: 171.74 #Z device depth
 ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 IsSpiral: True #whether using spiral stimulation
 SpiralSizeUM: 15
