@@ -33,7 +33,7 @@ text(0,6,['Have you saved the xml into SavedMarkPoints in Bruker!'],'color','r',
 %%Load either spontanouse Tseries or Anesthesia Tseries
 
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
-PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
+% PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
 PreDefTmat='Anesthesia5T_Z11Frame550.mat';                %<-------------------------Edit, TseriesPreDefined
 
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
@@ -90,7 +90,7 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 % 
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
-RefFile=[WorkingFolder 'RegRef3\'];
+RefFile=[WorkingFolder 'RegRef2\'];
 % 
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
@@ -116,7 +116,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=3:5
+for TseriesID=1:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);
