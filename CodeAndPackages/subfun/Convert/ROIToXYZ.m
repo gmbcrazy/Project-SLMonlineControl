@@ -64,6 +64,8 @@ for i=1:PlaneN
     statTemp=[statTemp CaDataPlane(i).stat];
     CellPlaneID=[CellPlaneID;zeros(length(CaDataPlane(i).stat),1)+i];
     CaData.PlaneMeanImg(:,:,i)=CaDataPlane(i).ops.meanImg;
+    CaData.PlaneMeanImgE(:,:,i)=CaDataPlane(i).ops.meanImgE;
+
 end
 
 statRaw=statTemp;

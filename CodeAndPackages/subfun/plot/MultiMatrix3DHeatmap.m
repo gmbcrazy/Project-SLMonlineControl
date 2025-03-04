@@ -5,7 +5,6 @@ function MultiMatrix3DHeatmap(Data)
     [rows, cols, numMatrices] = size(Data);
 
     % Create a figure
-    figure;
 
     % Initialize a common set of X and Z coordinates
     X = 1:cols;

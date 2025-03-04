@@ -8,6 +8,7 @@ from suite2p.registration import register
 from suite2p.registration import rigid
 from suite2p.io import tiff
 from skimage.registration import phase_cross_correlation
+from scipy.ndimage import gaussian_filter
 import numpy as np
 import scipy.io
 from scipy.signal import convolve, convolve2d
@@ -510,6 +511,62 @@ def ImgNormalize(Image1):
     Image2 = (Image1 - mean) / std_dev
     return Image2
 
+
+def amp_normalize_dim(data, norm_dim, prc_th):
+    """
+    Normalize each slice independently along a specified dimension.
+
+    Parameters:
+    - data: 3D NumPy array (e.g., n x height x width).
+    - norm_dim: The dimension along which to normalize (0, 1, or 2).
+    - prc_th: Tuple (low percentile, high percentile) for normalization.
+
+    Returns:
+    - Normalized 3D NumPy array.
+    """
+    sub_data = get_data_dim(data, norm_dim)  # Extract slices along norm_dim
+
+    # Normalize each slice independently
+    for i in range(len(sub_data)):
+        sub_data[i] = amp_normalize(sub_data[i], prc_th)
+
+    return reconstruct_from_data_dim(sub_data, norm_dim, data.shape)  # Rebuild full data
+
+def get_data_dim(data, norm_dim):
+    """
+    Extract slices along a specified dimension.
+
+    Returns:
+    - List of 2D slices along the specified dimension.
+    """
+    return [np.take(data, i, axis=norm_dim) for i in range(data.shape[norm_dim])]
+
+def reconstruct_from_data_dim(sub_data, norm_dim, original_shape):
+    """
+    Reconstructs a 3D array from slices.
+
+    Returns:
+    - Reconstructed NumPy array.
+    """
+    return np.stack(sub_data, axis=norm_dim).reshape(original_shape)
+
+def amp_normalize(slice_data, prc_th):
+    """
+    Apply percentile-based normalization to a 2D slice.
+
+    Returns:
+    - Normalized slice.
+    """
+    low_t, high_t = np.percentile(slice_data, prc_th)
+
+    if high_t - low_t < 1e-8:
+        high_t = low_t + 1e-8  # Prevent division by zero
+
+    slice_data = np.clip(slice_data, low_t, high_t)  # Clip extreme values
+    return (slice_data - low_t) / (high_t - low_t)  # Normalize
+
+
+
 def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=15, ExistingBinFile=None, folder_keywords=None):
     # Initialize previous files list with ExistingBinFile if provided, else empty list
     if ExistingBinFile is None:
@@ -589,7 +646,59 @@ def monitor_folderBinFiles(folder_path, reference_Data, plane_idx, ops0, TimeTh=
     return Pixel_ShiftAll,corrValue,fileList
 
 
-def smooth(data, smooth):
+
+
+
+def gaussian_smooth_3D(image, sigma, smooth_dim=0):
+    """
+    Applies 2D Gaussian smoothing to each slice along the specified dimension of a 3D image.
+
+    Parameters:
+    - image: 3D NumPy array (n x height x width).
+    - sigma: Gaussian smoothing parameter (standard deviation).
+    - smooth_dim: The dimension along which to apply 2D smoothing (default: 0).
+
+    Returns:
+    - smoothed_image: 3D NumPy array after applying Gaussian smoothing.
+    """
+    smoothed_image = np.zeros_like(image)
+
+    if smooth_dim == 0:
+        for i in range(image.shape[0]):  # Loop over first dimension (n)
+            smoothed_image[i, :, :] = gaussian_filter(image[i, :, :], sigma=sigma)
+    elif smooth_dim == 1:
+        for i in range(image.shape[1]):  # Loop over second dimension (height)
+            smoothed_image[:, i, :] = gaussian_filter(image[:, i, :], sigma=sigma)
+    elif smooth_dim == 2:
+        for i in range(image.shape[2]):  # Loop over third dimension (width)
+            smoothed_image[:, :, i] = gaussian_filter(image[:, :, i], sigma=sigma)
+    else:
+        raise ValueError("Invalid smooth_dim. Must be 0, 1, or 2.")
+
+    return smoothed_image
+
+
+##Not used
+def smooth3D_dim1(data, smooth_par):
+    """
+    Applies a smoothing function along the third dimension of a 3D NumPy array.
+
+    Parameters:
+    - data: 3D NumPy array (nPlane or nFrame, Height, Width)
+    - smooth: Function to apply for smoothing 
+
+    Returns:
+    - smoothed: 3D NumPy array after applying smoothing function.
+    """
+    smoothed = np.zeros_like(data)
+
+    for i in range(data.shape[2]):  # Loop over the third dimension
+        smoothed[i,:, :] = smooth(data[i,:, :],smooth_par)
+
+    return smoothed
+
+
+def smoothDec(data, smooth):
     if not isinstance(data, np.ndarray):
         raise ValueError("Data must be a numpy array.")
     if not isinstance(smooth, (list, tuple, np.ndarray)) or not all(isinstance(x, (int, float)) for x in smooth):
@@ -641,7 +750,7 @@ def smooth(data, smooth):
             smoothed = convolve2d(data, np.outer(v_smoother, h_smoother), mode='same')
 
         return smoothed
-
+##Not used
 
 def apply_affine_transform_to_all_frames(frames, yxShift, planeID=None):
     """
@@ -680,6 +789,46 @@ def apply_affine_transform_to_all_frames(frames, yxShift, planeID=None):
     )
 
     return transformed_frames
+
+def apply_affine_transform_to_ImgPlane(ImgPlane, yxShift):
+    """
+    Apply specific affine transform to each frame in a 3D stack based on its index.
+
+    Parameters:
+    - ImgPlane: A 3D numpy array of shape (n_ImgPlane, height, width) or a 2D array of shape (height, width).
+    - yxShift: A 2D array with shape (n_ImgPlane, 2) or a 1D array of shape (2) if ImgPlane are 2D.
+
+    Returns:
+    - Transformed ImgPlane as a 3D numpy array of the same shape if input is 3D,
+      or a 2D array if the input is 2D.
+    """
+    # Handle the case where ImgPlane is a 2D array
+    is_2d = False
+    if ImgPlane.ndim == 2:
+        ImgPlane = np.expand_dims(ImgPlane, axis=0)
+        yxShift = np.expand_dims(yxShift, axis=0)
+        is_2d = True
+
+    n_ImgPlane, height, width = ImgPlane.shape
+
+    transformed_ImgPlane = np.stack([
+        cv2.warpAffine(
+            frame, 
+            np.array([
+                [1, 0, -yxShift[frameID, 1]],  # Apply x shift (negative sign for correct direction)
+                [0, 1, -yxShift[frameID, 0]]   # Apply y shift (negative sign for correct direction)
+            ], dtype=np.float32),
+            (width, height),
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0
+        ) for frameID, frame in enumerate(ImgPlane)
+    ])
+
+    # Return as 2D array if the input was 2D
+    if is_2d:
+        return transformed_ImgPlane[0]
+
+    return transformed_ImgPlane
 
 def Pixel_Shift(rmg1,rmg2,nplanes):
 
