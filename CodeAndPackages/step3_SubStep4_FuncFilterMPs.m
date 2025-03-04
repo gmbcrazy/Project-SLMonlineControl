@@ -42,7 +42,7 @@ ClimRstim=[0 0.15];
 CellSpeedColors = valueToColor(rSpeed, ClimRspeed, jet(64));
 CellStimColors = valueToColor(rStim, ClimRstim, jet(64));
 
-ImgClim=[0 400];
+ImgClim=[0 800];
         PlotParam.RowPlot=1;
         PlotParam.RowColNum=1;
         PlotParam.RowColID=1;

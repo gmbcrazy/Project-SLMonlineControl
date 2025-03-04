@@ -1,11 +1,11 @@
 # Settings to be used by various SLM / Prairie interfacing scripts
 # General
-save_path0: E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\02262025\
+save_path0: E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03042025\
 
 # SLM
 SLM_Pixels_X: 512
 SLM_Pixels_Y: 512
-scan_Z: 196.60 #Z device depth
+scan_Z: 195.75 #Z device depth
 ETL: -50 0 50 #Depth of Z planes reference to scan_Z
 IsSpiral: True #whether using spiral stimulation
 SpiralSizeUM: 15
@@ -13,7 +13,7 @@ SpiralRevolution: 3
 Repetition: 5 #SLM pulse numbers
 Duration: 20 #Duration of SLM pulse
 InterPointDelay: 30 #Interval between SLM pulses
-UncagingLaserPower: 1.4 1.5 1.6 #SLM power LevelTest
+UncagingLaserPower: 1.35 1.45 1.55 1.65 #SLM power LevelTest
 InitialDelay: 22.1 #SLM Initial Delay
 
 
@@ -28,7 +28,7 @@ RadiusAvoidParam: 3 #Nontargets appears outside 2x radius of targets cells
 # Suite2p
 nchannels: 1 #
 fs: 6.9  #sampling rate for 1 Zseries
-tau: 0.9  #suite2p parameters
+tau: 1.5  #suite2p parameters
 
 
 # SLM Power customarization
