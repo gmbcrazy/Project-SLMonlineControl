@@ -37,8 +37,8 @@ end
 [~,cellPlane]=ismember(Pos3D(:,3),PlaneZ);
 
 rSpeed
-ClimRspeed=[-0.2 0.2];
-ClimRstim=[0 0.15];
+ClimRspeed=[-0.3 0.3];
+ClimRstim=[0 0.3];
 CellSpeedColors = valueToColor(rSpeed, ClimRspeed, jet(64));
 CellStimColors = valueToColor(rStim, ClimRstim, jet(64));
 
@@ -116,8 +116,12 @@ while Continueloop
     ColFunctionI=intersect(rCenterIStim,rCenterISpeed);
     NonFunctionI=setdiff(CenterCloseI,AllFunctionI);
 
+    disp([TopCellN length(rCenterISpeed) length(rCenterIStim) length(ColFunctionI)])
+
     rCenterIStim=setdiff(rCenterIStim,ColFunctionI);
     rCenterISpeed=setdiff(rCenterISpeed,ColFunctionI);
+
+%     disp([TopCellN length(rCenterISpeed) length(rCenterIStim) length(ColFunctionI)])
 
     if length(rCenterIStim)<TopCellNRaw||length(rCenterISpeed)<TopCellNRaw
         TopCellN=TopCellN+1;
@@ -127,13 +131,27 @@ while Continueloop
     end
 end
 
+%%In case too many cells, just choose the TopCellNRaw
+if length(rCenterISpeed)>TopCellNRaw
+   [~,temp1]=sort(rSpeed(rCenterISpeed),'descend');
+   temp2=rCenterISpeed(temp1);
+   rCenterISpeed=temp2(1:TopCellNRaw);
+%    rSpeed(rCenterISpeed);
+end
+if length(rCenterIStim)>TopCellNRaw
+   [~,temp1]=sort(rStim(rCenterIStim),'descend');
+   temp2=rCenterIStim(temp1);
+   rCenterIStim=temp2(1:TopCellNRaw);
+%    rStim(rCenterIStim);
+end
+
 if length(NonFunctionI)<TopCellNRaw
    NonFunctionI=NonFunctionI;
 else
    NonFunctionI=NonFunctionI(randperm(length(NonFunctionI),TopCellNRaw));
 end
 
-
+%% 
 % plot(lags,c(:,rCenterIStim))
 % figure;
 % plot(NeuroDataCell(:,rCenterIStim));

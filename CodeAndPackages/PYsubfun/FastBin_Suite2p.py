@@ -211,7 +211,7 @@ def PostMannual(SaveFolder, ops0):
     print(len(statCombined),'of units including', np.int16(np.sum(iscellCombined[:,0])),'identified cells in combined planes')
     nplanes=ops0['nplanes']
 ##extract the plane ID into a numpy variable
-    UnitPlane=[];
+    UnitPlane=[]
     for index, Unit in enumerate(statCombined):
         UnitPlane.append(Unit['iplane'])
     UnitPlane=np.array(UnitPlane)
@@ -258,3 +258,59 @@ def copy_and_merge_files(output_file, input_files):
 
     print(f"Merged binary file saved to {output_file}")
 
+import os
+import numpy as np
+from suite2p.io.tiff import imread
+
+def load_ref_ch(data_folder, ChID=1):
+    """
+    Load a specific reference channel (1 or 2) from multi-channel TIFF files using Suite2p.
+    
+    Parameters:
+    - data_folder (str): The folder containing TIFF files.
+    - ChID (int): The channel ID to load (1 or 2). Ch2 data is identified by filenames containing 'Ch2'.
+    
+    Returns:
+    - channel_data (numpy.ndarray): Concatenated data from the specified channel across all TIFF files.
+      The output shape is (nPlane, Ly, Lx).
+    """
+    if ChID not in [1, 2]:
+        raise ValueError("ChID must be 1 or 2.")
+
+    # List all TIFF files that match the specified channel
+    tiff_files = [os.path.join(data_folder, f) for f in os.listdir(data_folder) 
+                  if f.lower().endswith('.tif') and f'Ch{ChID}' in f]
+
+    if not tiff_files:
+        print(f"No TIFF files found for Channel {ChID} in the specified folder.")
+        return None
+
+    # Load the specified channel from all TIFF files
+    channel_data = []
+    for tiff_file in tiff_files:
+        img_data = imread(tiff_file)  # Load the TIFF data
+        if img_data is None:
+            print(f"Failed to load image: {tiff_file}")
+            continue
+
+        # Handle multi-page or multi-channel TIFF files
+        if img_data.ndim == 4:  # Expected shape: (num_frames, num_channels, height, width)
+            plane_data = img_data[ChID-1, 0, :, :]  # Select the specified channel and the first plane only
+            channel_data.append(plane_data)
+        elif img_data.ndim == 3 and img_data.shape[0] in [2, 3]:
+            img_data = img_data[ChID-1, :, :]  # Select the correct channel if multi-channel
+            channel_data.append(img_data)
+        elif img_data.ndim == 2:  # Already a 2D image
+            channel_data.append(img_data)
+        else:
+            print(f"Unexpected image dimensions for {tiff_file}: {img_data.shape}")
+            continue
+
+    # Concatenate data along the plane dimension to get (nPlane, Ly, Lx)
+    if channel_data:
+        channel_data = np.stack(channel_data, axis=0)
+        print(f"Loaded data shape: {channel_data.shape}, Expected nPlane: {len(tiff_files)}")
+        return channel_data
+    else:
+        print("No valid channel data loaded.")
+        return None

@@ -1,6 +1,6 @@
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
-% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder);
 
 PlaneZ=confSet.ETL+confSet.scan_Z;
