@@ -47,6 +47,7 @@ PSTHall =[];
 % ---------------------------
 for iCount = 1:length(FileGenerateInfo)
     clear OutTBL  % Clear previous output table for new file
+    FileGenerateInfo(iCount).FileID
     % Extract table for current file using position and configuration settings
     % OutTBL = MPSeqFolder_1TargetXNon(FileGenerateInfo(iCount).tifFolder, confSet, FunGroupPos3D);
     [OutTBL,~]=MPSeqFolder_GroupTargets(FileGenerateInfo(iCount).tifFolder,confSet, FunGroupPos3D);

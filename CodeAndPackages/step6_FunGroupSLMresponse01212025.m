@@ -1,6 +1,6 @@
 clear all
 
-WorkFolder='E:\LuSLMOnlineTest\SL0838-Ai203\01292025\';
+WorkFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03042025\';
 ConfigFile='CurrentSLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
 [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(WorkFolder,ConfigFile);
 ProcessFolder = Get_ExpDataFolder(WorkFolder, 'SpeedStimEdgeExc', {'Data','AllIncluded','DataSum','.gpl','.xml'})
@@ -23,8 +23,8 @@ for iGroup=1:length(Group)
     Pos3DGroup{iGroup}=Pos3DAll(Group(iGroup).Indices,:);
 end
 
-PSTHparam.PreSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
-PSTHparam.PostSLMCal=12;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparam.PreSLMCal=7;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PSTHparam.PostSLMCal=14;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
 PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
 PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
@@ -32,9 +32,9 @@ PSTHparam.FrameStep=3;          %%<----------------------------------------- Edi
 PSTHparam.MPFrameJump=2;
 
 
-idRanges=[37;58]
+idRanges=[66;66]
 
-idRanges=[55;70]
+idRanges=[39;84]
 
 DataList=dir([DataFolder,'ExpInfo*.mat']);
 
@@ -66,10 +66,10 @@ OutTBLAll=OutTBLorigin;
 OutTBLAll.AwakeState(OutTBLAll.TSeriesInd<=5)=1;    %%The 1st half 5 Tseries is designed for awake state.
 OutTBLAll.AwakeState(OutTBLAll.TSeriesInd>=6)=2;    %%The 2nd half 5 Tseries is designed for anesia state.
 
-
-PSTHparam.PostSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
-PSTHparam.FrameStep=3;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
-[PSTHallDyn, OutTBLAllDyn] = getSLMGroup_Dyn_BinNonMat(DataFolder, confSet, PSTHparam, Pos3DGroup, idRanges);
+PSTHparamDyn=PSTHparam;
+PSTHparamDyn.PostSLMCal=32;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+PSTHparamDyn.FrameStep=4;          %%<----------------------------------------- Edit, time window size for dyanmic changes of PSTH.
+[PSTHallDyn, OutTBLAllDyn] = getSLMGroup_Dyn_BinNonMat(DataFolder, confSet, PSTHparamDyn, Pos3DGroup, idRanges);
 OutTBLoriginDyn=OutTBLAllDyn;
 OutTBLoriginDyn = join(OutTBLoriginDyn, MatFile, 'Keys', 'FileID');
 OutTBLoriginDyn = MatchOutTBLAll_TSeriesBruker(OutTBLoriginDyn, TSeriesBrukerTBL);
@@ -80,26 +80,45 @@ OutTBLAllDyn.AwakeState(OutTBLAllDyn.TSeriesInd>=6)=2;    %%The 2nd half 5 Tseri
 
 
 
-PowerGroup=[40 440];
+PowerGroup=[40 420];
 WiskGroup=[0 1];
 WiskKey={'NoWisk','Wisk'};
 FunGroup=[1 2 3];
 AwakeState=[1 2];
 AwakeKey={'Awake','Anes'};
 
+colorGroup=[0 1 0;1 1 0;1 0 1];
+colorGroup=[0 1 0;0 1 0;0 1 0;0 1 0];
+
+FakeColor=[0 0 0];
+% close all
+
+   P.xLeft=0.06;        %%%%%%Left Margin
+   P.xRight=0.1;       %%%%%%Right Margin
+   P.yTop=0.02;         %%%%%%Top Margin
+   P.yBottom=0.06;      %%%%%%Bottom Margin
+   P.xInt=0.02;         %%%%%%Width-interval between subplots
+   P.yInt=0.02;         %%%
+
+  PlotParam.RowPlot=0;
+  PlotParam.RowColNum=length(PSTHPlot);
+  PlotParam.RowColID=1;
+  PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.01 0.01];
+  PlotParam.CellCenterWith=1;
+  PlotParam.CellBoundaryWidth=0.5;
+  PlotParam.PlotCenter=1;
 
 clear PSTHPlotDyn PSTHPlot PSTHShowAll PSTHShowAllDyn PSTHShowKey TargetNShow
-
 for iState=1:length(AwakeState)
     for iWisk=1:length(WiskGroup)
 
-        Index0=OutTBLAll.UncagingLaserPower==40&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk);
+        Index0=OutTBLAll.UncagingLaserPower==PowerGroup(1)&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk);
         PSTHZero=squeeze(nanmean(PSTHall(:,:,Index0,:),3));     
         PSTHZeroDyn=squeeze(nanmean(PSTHallDyn(:,:,Index0,:,:),3));
 
         clear PSTHGroupDyn PSTHGroup SampleSize;
         for iGroup=1:length(Group)
-             Index=OutTBLAll.UncagingLaserPower==440&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk)&OutTBLAll.Group==iGroup;
+             Index=OutTBLAll.UncagingLaserPower==PowerGroup(2)&OutTBLAll.AwakeState==AwakeState(iState)&OutTBLAll.VolOut==WiskGroup(iWisk)&OutTBLAll.Group==iGroup;
              SampleSize(iGroup) = sum(Index);
              PSTHGroup{iGroup}=squeeze(nanmean(PSTHall(:,:,Index,:),3));
 
@@ -108,13 +127,13 @@ for iState=1:length(AwakeState)
             end
         end
 
-        PSTHPlot={PSTHZero};
+        PSTHPlot={PSTHZero*3};
         PSTHPlot=[PSTHGroup PSTHPlot];
 
         TargetPlot={Pos3DAll};
         TargetPlot=[Pos3DGroup TargetPlot];
 
-        PSTHPlotDyn={PSTHZeroDyn};
+        PSTHPlotDyn={PSTHZeroDyn*3};
         PSTHPlotDyn=[PSTHGroupDyn PSTHPlotDyn];
 
         PSTHShowAll{iState,iWisk}=PSTHPlot;
@@ -134,8 +153,8 @@ for iState=1:length(AwakeState)
 end
 
 
-TargetName = {'Locomotion', 'Sensory', 'Non','ZeroPower'};
-ImgClim=[-150;150];
+TargetName = {'LC', 'SC', 'NC','0Power'};
+ImgClim=[-600 600]
 
 for iState=1:length(AwakeState)
     for iWisk=1:length(WiskGroup)
@@ -200,6 +219,8 @@ end
   PlotParam.CellCenterWith=1;
   PlotParam.CellBoundaryWidth=0.5;
 
+ImgClim=[-600 600]
+
 for iState=1:length(AwakeState)
     for iWisk=1:length(WiskGroup)
         TargetN=TargetNShow{iState,iWisk};
@@ -244,8 +265,8 @@ for iState=1:length(AwakeState)
        papersizePX=[0 0 8*size(PSTHPlot,3)+2 8*length(Zdepth)+1];
       set(gcf, 'PaperUnits', 'centimeters');
       set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-      saveas(gcf,[SaveFolder TargetName{iGroup} PSTHShowKey{iState,iWisk} num2str(PSTHparam.PostSLMCal) 'FramePostSLM'],'png'); 
-      saveas(gcf,[SaveFolder TargetName{iGroup} PSTHShowKey{iState,iWisk} num2str(PSTHparam.PostSLMCal) 'FramePostSLM'],'fig'); 
+      saveas(gcf,[SaveFolder TargetName{iGroup} PSTHShowKey{iState,iWisk} num2str(PSTHparamDyn.PostSLMCal) 'FramePostSLM'],'png'); 
+      saveas(gcf,[SaveFolder TargetName{iGroup} PSTHShowKey{iState,iWisk} num2str(PSTHparamDyn.PostSLMCal) 'FramePostSLM'],'fig'); 
              close all
 
         end

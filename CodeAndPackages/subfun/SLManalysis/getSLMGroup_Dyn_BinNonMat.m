@@ -70,9 +70,8 @@ for iCount = 1:length(FileGenerateInfo)
     % ---------------------------
     % STEP 7: Generate PSTH (Peri-Stimulus Time Histogram)
     % ---------------------------
-    MPFrameJump = 1;  % Frame jump parameter
     [indexVector, stimulusIDVector, prePostStimuliVector] = getPSTHFrames_MPxmlInfo(...
-        OutTBL, PSTHparam.PreSLMCal, PSTHparam.PostSLMCal, MPFrameJump);
+        OutTBL, PSTHparam.PreSLMCal, PSTHparam.PostSLMCal, PSTHparam.MPFrameJump);
     
     % Calculate PSTH map from the binary file
     PSTHmap = CalMultiPSTHBin_Dyn(FileGenerateInfo(iCount).binFile, confSet, ...

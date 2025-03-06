@@ -15,7 +15,7 @@ function [TBLmat, TBLInfo] = ExtractExp_FromMat(DataFolder)
     TBLInfo = table();
     
     for iFile = 1:length(DataList)
-        % DataList(iFile).name
+        DataList(iFile).name;
         [TBLmatTemp, TBLInfoTemp] = Mat2ExpInfo(fullfile(DataFolder, DataList(iFile).name));
         TBLmat = [TBLmat; TBLmatTemp];
         TBLInfo = [TBLInfo; TBLInfoTemp];
@@ -31,8 +31,12 @@ function [MatTBL, TBLInfo] = Mat2ExpInfo(PathFile)
     % Outputs:
     %   MatTBL - Table with extracted FileID and motionMed data
     %   TBLInfo - Table with extracted ExpKey and TSeriesENVFile data
-    
+    MatTBL=[];
+    TBLInfo=[];
     tempLoad = load(PathFile);
+    if ~isfield(tempLoad,'FileGenerateInfo');
+       return;
+    end
     if ~isfield(tempLoad.FileGenerateInfo,'FileID')
         tempLoad.FileGenerateInfo.FileID=str2num(tempLoad.FileGenerateInfo.FileKey(end-2:end));
     end
