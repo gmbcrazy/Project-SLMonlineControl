@@ -113,7 +113,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
+% XMLparam.PointList=[23    30    37    23    30    37    23    30    37    23];
 % XMLparam.PointList(10)=[29]
 % XMLparam.Laser(1:10)=repmat(1.3,1,10);
 % 
@@ -121,7 +121,7 @@ XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 % idRanges=[6;12];
-idRanges=[4;33];
+% idRanges=[6 18;16 18];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 step4_MultiZ_SubStep2_UpdatingROIandXML
 close all
@@ -132,7 +132,7 @@ close all
 SLMTableOrigin=SLMTable;
 % PostSLMTable;
 FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
-SLMTable(FalsePositiveID,2)=nan;
+SLMTable(FalsePositiveID,:)=nan;
 
 
 
