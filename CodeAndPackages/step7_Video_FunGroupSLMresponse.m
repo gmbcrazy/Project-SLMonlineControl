@@ -69,7 +69,7 @@ OutTBLAll.AwakeState(OutTBLAll.TSeriesInd>=6)=2;
 
 MovieTable=OutTBLAll(OutTBLAll.FileID==41,:)
 
-FrameLim=[360;490];
+FrameLim=[400;560];
 InvalidFrame=MovieTable.markCycle(MovieTable.markCycle>=FrameLim(1)&MovieTable.markCycle<=FrameLim(2));
 GroupSeq=MovieTable.Group(MovieTable.markCycle>=FrameLim(1)&MovieTable.markCycle<=FrameLim(2))
 
@@ -120,10 +120,18 @@ for iPlane=1:nPlane
 end
 
 NormDim=4;
-prcTh=[1 99];
+prcTh=[1 99.9];
 
 Data3PlaneSmooth=AmpNormalizeDim(Data3PlaneSmooth,NormDim,prcTh);
 
+RefPlane=squeeze(nanmean(Data3PlaneSmooth(:,:,ShowMPframePost==0,:),3));
+
+DeltaData3PlaneSmooth=zeros(size(Data3PlaneSmooth));
+for iPlane=1:nPlane
+    DeltaData3PlaneSmooth(:,:,:,iPlane)=Data3PlaneSmooth(:,:,:,iPlane)-repmat(squeeze(RefPlane(:,:,iPlane)),1,1,size(DeltaData3PlaneSmooth,3));
+end
+
+DataInt=cat(5,Data3PlaneSmooth,DeltaData3PlaneSmooth);
 
 figure;
 Zdepth=unique(Pos3DAll(:,3))
@@ -178,9 +186,74 @@ for iFrame=1:size(Data3Plane,3)
       close all;
 end
 
+
+
 % implay(mat2gray(ImgSmooth),6.9/2)  % Play the smoothed image sequence
 
 fps=6.9*0.75;
 createVideoFromJpeg(SaveVideo,fps)
 % deleteFile(SaveVideo,'.jpg')
+
+
+
+
+
+
+
+
+PlotParam.RowPlot=0;
+close all
+deleteFile(SaveVideo,'')
+ImgClim=[0 1;-0.5 0.5]
+
+ImgClim
+% figure;
+for iFrame=1:size(Data3Plane,3)
+% for iFrame=1:40
+    figure;
+    % PlotParam.RowColNum=1;
+    Img=squeeze(DataInt(:,:,iFrame,:,:));
+    % H=MultiPlanes2DMatrixShow(Img, [], Pos3DGroup{ShowMPframe(iFrame)},[], Zdepth, ColorGroup(ShowMPframe(iFrame),:), ImgClim,PlotParam);
+    % 
+    % colormap(H(2,1),colorMapPN1)
+    % colormap(H(2,2),colorMapPN1)
+    % colormap(H(2,3),colorMapPN1)
+    % 
+    if ShowMPframe(iFrame)~=0&&ShowMPframePost(iFrame)==0
+       PlotParam.CellCenterWith=2;
+       H=MultiPlanes2DMatrixShow(Img, [], Pos3DGroup{ShowMPframe(iFrame)}, [], Zdepth, ColorGroup(ShowMPframe(iFrame),:), ImgClim,PlotParam);
+       title(H(1,:),['SLM target Group ' num2str(ShowMPframe(iFrame))],'Color',ColorGroup(ShowMPframe(iFrame),:))
+    elseif ShowMPframe(iFrame)==0&&ShowMPframePost(iFrame)~=0
+       PlotParam.CellCenterWith=2;
+       % H=MultiPlanes2DShow(squeeze(Data3PlaneSmooth(:,:,iFrame,:)), [], Pos3DGroup{ShowMPframePost(iFrame)}, [], Zdepth, ColorGroup(ShowMPframePost(iFrame),:), ImgClim,PlotParam);
+       H=MultiPlanes2DMatrixShow(Img, [], Pos3DGroup{ShowMPframePost(iFrame)}, [], Zdepth, ColorGroup(ShowMPframePost(iFrame),:), ImgClim,PlotParam);
+       title(H(1,:),'SLM applied','Color',[1 0 0]);
+       set(H,'box','on','xcolor',[1 0 0],'ycolor',[1 0 0],'linewidth',3)
+    else
+       H=MultiPlanes2DMatrixShow(Img, [], [], [], Zdepth, ColorGroup(1,:), ImgClim,PlotParam);
+    end
+
+    b=colorbar(H(1,3));
+    set(b,'position',[0.97 0.6 0.01 0.2],'ticks',ImgClim(1,:),'ticklabels',{'Low','High'})
+    b.Label.String='Norm. F'
+
+    % 
+    % colormap(colorMapC);
+    colormap(H(2,1),colorMapPN1)
+    colormap(H(2,2),colorMapPN1)
+    colormap(H(2,3),colorMapPN1)
+
+    b2=colorbar(H(2,3));
+    set(b2,'position',[0.97 0.1 0.01 0.2],'ticks',ImgClim(2,:),'ticklabels',ImgClim(2,:))
+    b2.Label.String='Norm. F'
+
+
+     % pause(0.1)
+      papersizePX=[0 0 36 26];
+      set(gcf, 'PaperUnits', 'centimeters');
+      set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+      saveas(gcf,[SaveVideo num2str(iFrame)],'jpeg'); 
+      close all;
+end
+
 

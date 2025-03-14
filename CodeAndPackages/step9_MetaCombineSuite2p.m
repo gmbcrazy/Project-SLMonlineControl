@@ -1,0 +1,388 @@
+clear all
+
+WorkFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03062025\';
+% ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
+% ConfigFile='CurrentSLMsetting.yml';%<----------------------------------------------------------------------------------Edit, configuration file
+% [~,~,~,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(WorkFolder,ConfigFile);
+ProcessFolder = Get_ExpDataFolder(WorkFolder, 'SpeedStimEdgeExc', {'Data','AllIncluded','DataSum','.gpl','.xml'})
+DataFolder=[ProcessFolder 'Data\'];
+load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat','colorMapPN1')
+
+load([DataFolder 'TableForSuite2p.mat'])
+motionTh=5;
+
+confSet=SLMPosInfo.confSetFinal;
+confSet.save_path0=DataFolder;
+Zdepth=confSet.scan_Z+confSet.ETL;
+nPlane=length(Zdepth);
+
+
+[FileIDList,i1]=unique(Suite2pTable.FileID);
+for i=1:length(FileIDList)
+    [fSpeed{i},fStim{i},timeStampCa{i},FrameTS{i},fVideo{i},VideoStartFrameTime{i}]=PV_VolExtract_MultiCyc(confSet,FileIDList(i));
+end
+
+subT1=Suite2pTable(i1,:);
+tempTiffmark=[];
+suite2pInd=[];
+
+CumTiffNum=cumsum(subT1.Suite2pTiffNum);
+CumFrameNum=[0;CumTiffNum(1:end-1)]/nPlane;
+clear i1
+for i=1:length(FileIDList)
+    i2=find(Suite2pTable.FileID==FileIDList(i));
+    for j=1:length(i2)
+        AddTemp=Suite2pTable.markCycle(i2(j))-(j-1)*RemoveFrame;
+        tempTiffmark=[tempTiffmark;AddTemp];
+        suite2pInd=[suite2pInd;AddTemp+CumFrameNum(i)];
+    end
+end
+clear i2
+
+Suite2pTable.PostSLMTiffCycle=tempTiffmark;
+Suite2pTable.suite2pInd=suite2pInd;
+
+[NeuronPos3D,NeuronPos3DRaw,CaData,CaDataPlane,Neuronstat]=Extract_Suite2p(confSet);
+
+SpeedAll=[];
+StimAll=[];
+for i=1:length(FileIDList)
+    i2=find(Suite2pTable.FileID==FileIDList(i));
+
+    frameN=subT1.Suite2pTiffNum(i)/nPlane;
+    if ~isempty(fSpeed{i})
+        InValid=[];
+        for j=1:RemoveFrame  
+            InValid=[InValid;Suite2pTable.markCycle(i2)+j-1];
+        end
+        InValid(isnan(InValid))=[];
+        tempSpeed=fSpeed{i};
+        tempStim=fStim{i};
+        tempSpeed(InValid,:)=[];
+        tempStim(InValid,:)=[];
+    else
+        tempSpeed=zeros(frameN,nPlane)+NaN;
+        tempStim=tempSpeed;
+
+    end
+    SpeedAll=[SpeedAll;tempSpeed];
+    StimAll=[StimAll;tempStim];
+   
+    clear tempSpeed tempStim
+end
+
+
+
+
+
+
+SLMPos3D=SLMTestInfo.Pos3Dneed;
+DistTh=6;
+[SLMtarget,SLMtargetCellDist]=SLMtargetMatchCell(SLMPos3D,NeuronPos3D,DistTh);
+PointList1=find(SLMtarget>0);
+
+SLMtargetTable=zeros(size(Suite2pTable,1),1);
+for iTarget=1:length(SLMtarget)
+    SLMtargetTable(find(Suite2pTable.Point==iTarget))=SLMtarget(iTarget);
+end
+Suite2pTable.PointTargetCell=SLMtargetTable;
+
+
+TargetCellList=unique(SLMtargetTable(SLMtargetTable>0));
+
+
+deltaFoF=double(F2deltaFoF(CaData.F,CaData.Fneu,CaData.ops.fs));
+
+iscell=find(CaData.iscell(:,1)>0.99);
+deltaFoF=deltaFoF(:,iscell);
+spks=double(CaData.spks(iscell,:));
+
+% preSLM=10;
+% postSLM=3;
+
+PSTHparam.PreSLMCal=10;        %<----------------------------------------------------------------------------------Edit,Frame # before SLM to calculate baseline map
+PSTHparam.PostSLMCal=15;        %<----------------------------------------------------------------------------------Edit,Frame # after SLM to calculate responsive map
+% PSTHparam.YLim=[-50 600];       % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.pTh=0.05;             % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.TestMethod='ranksum'; % %<-----------------------------------------For Suite2p based ROI signal only method
+PSTHparam.MPFrameJump=2; % %<-----------------------------------------For Suite2p based ROI signal only method
+
+
+
+
+
+NData={deltaFoF' spks};
+Nlabel={'DeltaF'};
+
+tempNData=NData{2};
+ tempNData=AmpNormalizeRow(tempNData,[0 100]);
+
+SLMInfoTable=Suite2pTable(Suite2pTable.suite2pInd>0,:);
+AlignedtempNData=[];
+for i=1:size(SLMInfoTable,1)
+    I0=SLMInfoTable.suite2pInd(i);
+    s1=I0-PSTHparam.PreSLMCal:I0-1;
+    s2=I0:I0+PSTHparam.PostSLMCal-1;
+    AlignedtempNData(:,:,i)=tempNData(:,[s1 s2])-repmat(nanmean(tempNData(:,s1),2),1,length(s1)+length(s2));
+end
+
+unique(TargetCellList)
+
+CellSampleN=[];
+for iCell=1:length(TargetCellList)
+    for iPower=1:length(PVpower)
+        I1=find(SLMInfoTable.PointTargetCell==TargetCellList(iCell)&abs(SLMInfoTable.UncagingLaserPower-PVpower(iPower))<0.1);
+        CellSampleN(iCell,iPower)=length(I1);
+        if length(I1)==1
+           CellResponse{iCell,iPower}=squeeze(AlignedtempNData(:,:,I1));
+        elseif length(I1)>1
+           CellResponse{iCell,iPower}=nanmean(AlignedtempNData(:,:,I1),3);
+        else
+
+        end
+        
+    end
+end
+
+close all
+for iCell = 1:length(TargetCellList)
+    figure;
+    for iPower=1:length(PVpower)
+        if ~isempty(CellResponse{iCell,iPower})&CellSampleN(iCell,iPower)>=4
+            % TargetCellList(iCell)
+            subplotLU(1,length(PVpower),1,iPower)
+
+            imagesc(CellResponse{iCell,iPower})
+            set(gca,'clim',[-0.2 0.2]);colormap(colorMapPN1);
+            hold on;
+            plot([length(s1)+0.5 length(s1)+0.5],[0 length(iscell)],'k:')
+            plot(1,TargetCellList(iCell),'g>')
+        end
+    end
+
+end
+
+
+
+
+GroupList=[1 2 3]
+for iGroup = 1:length(GroupList)
+        I1=find(SLMInfoTable.Group==GroupList(iGroup)&SLMInfoTable.PowerZero>0.1&SLMInfoTable.VolOut<0.1);
+        GroupSampleN(iCell,iPower)=length(I1);
+        if length(I1)==1
+           GroupResponse{iGroup}=squeeze(AlignedtempNData(:,:,I1));
+        elseif length(I1)>1
+           GroupResponse{iGroup}=nanmean(AlignedtempNData(:,:,I1),3);
+        else
+
+        end
+        
+end
+
+
+GroupList=[1 2 3]
+
+figure;
+
+for iGroup = 1:length(GroupList)
+    subplotLU(1,length(GroupList),1,iGroup)
+
+            % TargetCellList(iCell)
+
+         imagesc(GroupResponse{iGroup})
+         set(gca,'clim',[-0.2 0.2]);colormap(colorMapPN1);
+         hold on;
+         plot([length(s1)+0.5 length(s1)+0.5],[0 length(iscell)],'k:')
+
+
+end
+
+
+PointList2=find(SLMPosInfo.SLMTable(:,2)>0)';
+SLMPosInfo.SLMRes.*SLMPosInfo.sampleN>=4;
+[~,PowerI]=ismember(SLMPosInfo.SLMTable(:,2),SLMTestInfo.confSet.UncagingLaserPower)
+PVpower=xmlPower2PVpower(SLMTestInfo.confSet.UncagingLaserPower);
+
+
+
+
+
+SampleTh=4;
+PointPower=zeros(size(PointList2));
+for iPoint=1:size(PointList2,1)
+    Point=PointList2(iPoint);
+    if PowerI(Point)>0
+       temp1=min(find(SLMPosInfo.SLMRes(Point,:).*SLMPosInfo.sampleN(Point,:)>=SampleTh))
+       % temp2=SLMPosInfo.SLMRes(Point,:)>0
+       temp2=max(find(SLMPosInfo.sampleN(Point,:)>=SampleTh));
+       if ~isempty(temp1)
+       PointPower(Point)=PVpower(temp1);
+       else
+       PointPower(Point)=PVpower(temp2);
+       end
+    end
+end
+PointList3=find(PointPower>0)';
+
+
+
+
+
+(PointList2,:)
+
+nPlane=length(confSet.ETL);
+if (size(CaData.F,2)==sum(subT1.Suite2pTiffNum)/nPlane)
+   disp('Suite2p Data match Tiff table')
+else
+   disp('Warning, suite2p Data does not match Tiff table')
+end
+
+
+
+
+% % %%Get Initial spontanous recording motion shifts, and move tiff files folder to final data folder for further processing
+% % [FileGenerateInfo,InitialfileList, InitialfileID] = getExpInfoFiles_NonMat(WorkFolder)
+% % [InitialPixShiftFile, Files] = PixShiftLoad(WorkFolder);
+% % copyInitialRecordedFolders(InitialfileList, DataFolder,WorkFolder);
+% % 
+% % load([ConfigFolder '\PreGenerateTseriesMultiZ\SpontBeh5T_Z11Frame550.mat','TSeriesBrukerTBL']);
+% % TSeriesBrukerTBL1=TSeriesBrukerTBL;
+% % load([ConfigFolder 'PreGenerateTseriesMultiZ\Anesthesia5T_Z11Frame550.mat','TSeriesBrukerTBL']);
+% % TSeriesBrukerTBL2=TSeriesBrukerTBL;
+% % clear TSeriesBrukerTBL
+% % TSeriesBrukerTBL=[TSeriesBrukerTBL1 TSeriesBrukerTBL2];
+
+
+
+
+%%Exclude sessions with non-correct num. of tiff
+[FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+
+PowerTestTiffNum=confSet.Ziteration*confSet.ZRepetition*length(confSet.ETL);
+GroupFunTiffNum=sum(TSeriesBrukerTBL{1}.Reps)*length(confSet.ETL);
+
+
+ValidTiffNum=unique(tiffNum(ismember(fileIDs,InitialfileID)|tiffNum==confSet.Ziteration*confSet.ZRepetition*length(confSet.ETL)|tiffNum==sum(TSeriesBrukerTBL{1}.Reps)*length(confSet.ETL)))
+% [FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+ismember(tiffNum,ValidTiffNum);
+Invalidfile=~ismember(tiffNum,ValidTiffNum);
+ExFolder=[DataFolder 'ExcludeFolder\'];
+mkdir(ExFolder);
+copyInitialRecordedFolders(fileList(Invalidfile), ExFolder, DataFolder);
+DelFolders(fileList(Invalidfile), DataFolder) 
+
+%%Exclude sessions with non-correct num. of tiff
+% [FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+[MatFile, MatExp] = ExtractExp_FromMat(DataFolder);
+[FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+
+
+NewData = table(round(InitialfileID(:)), repmat(InitialPixShiftFile, length(InitialfileID), 1), ...
+    'VariableNames', {'FileID', 'motionMed'});
+
+MatFile = [NewData;MatFile]; 
+
+%%Check if there is tiff folder where no experimental .mat files is record (due to wrong deletion when recording)
+[~,I1]=setdiff(fileIDs,MatFile.FileID);
+
+MissingPixShiftFile=[];
+MissingFileID=[];
+if ~isempty(I1)
+    for i=length(I1)
+        [PixShiftFile(i), ~] = PixShiftLoad([DataFolder fileList{I1(i)}]);
+    end
+    MissingFileID=round(fileIDs(I1));
+    NewData = table(MissingFileID(:), PixShiftFile(:), ...
+    'VariableNames', {'FileID', 'motionMed'});
+
+    MatFile = [NewData;MatFile]; 
+end
+
+
+Invalidfile=ismember(fileIDs,MatFile.FileID(MatFile.motionMed>motionTh)');
+copyInitialRecordedFolders(fileList(Invalidfile), ExFolder, DataFolder);
+DelFolders(fileList(Invalidfile), DataFolder);
+
+
+[FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+PowerTestfileI=find(tiffNum==PowerTestTiffNum)
+GroupFunfileI=find(tiffNum==GroupFunTiffNum)
+
+PowerTestSLMtbl=[];
+PowerTestSLMNum=[];
+for iFile=1:length(PowerTestfileI)
+    % [OutTBLTemp,XYTrials,PowerWeight]=MPSeqFolder_GroupTargets(Folder,SLMTestInfo)
+    OutTBLTemp=MPSeqFolder_1TargetXNon([DataFolder fileList{PowerTestfileI(iFile)} '\'],[confSet.SLM_Pixels_Y;confSet.SLM_Pixels_X],SLMTestInfo.Pos3Dneed);
+    OutTBLTemp.FileID = fileIDs(PowerTestfileI(iFile)) * ones(size(OutTBLTemp, 1), 1);
+    PowerTestSLMtbl=[PowerTestSLMtbl;OutTBLTemp];
+    PowerTestSLMNum(iFile,:)=[fileIDs(PowerTestfileI(iFile)) size(OutTBLTemp,1)];
+end
+
+
+Pos3DFun=SLMPosInfo.FinalPos3D;
+% FunScore=SLMPosInfo.FinalFunScore;
+Group=SLMPosInfo.Group;
+for iGroup=1:length(Group)
+    Pos3DGroup{iGroup}=Pos3DFun(Group(iGroup).Indices,:);
+end
+
+
+FunSLMtbl=[];
+FunSLMNum=[];
+for iFile=1:length(GroupFunfileI)
+    % [OutTBLTemp,XYTrials,PowerWeight]=MPSeqFolder_GroupTargets(Folder,SLMTestInfo)
+    OutTBLTemp=MPSeqFolder_GroupTargets([DataFolder fileList{GroupFunfileI(iFile)} '\'],[confSet.SLM_Pixels_Y;confSet.SLM_Pixels_X],Pos3DGroup);
+    OutTBLTemp.FileID = fileIDs(GroupFunfileI(iFile)) * ones(size(OutTBLTemp, 1), 1);
+    FunSLMtbl=[FunSLMtbl;OutTBLTemp];
+    FunSLMNum(iFile)=size(OutTBLTemp,1);
+end
+
+
+InvalidI1=PowerTestfileI(PowerTestSLMNum(:,2)<(confSet.Ziteration-1));
+InvalidI2=PowerTestfileI(FunSLMNum(:,2)<sum(TSeriesBrukerTBL{1}.SynMP));
+InvalidI=union(InvalidI1,InvalidI2);
+copyInitialRecordedFolders(fileList(InvalidI), ExFolder, DataFolder);
+DelFolders(fileList(InvalidI), DataFolder);
+
+
+FunSLMtbl = MatchOutTBLAll_TSeriesBruker(FunSLMtbl, TSeriesBrukerTBL);
+
+T = outerjoin(PowerTestSLMtbl, FunSLMtbl, 'MergeKeys', true);
+[~,I1]=sort(T.FileID);
+T=T(I1,:);
+
+FileInfo=table(fileIDs(:),tiffNum(:), fileList(:),'VariableNames',{'FileID', 'tiffNum','FileKey'});
+
+FileInfo = innerjoin(FileInfo, MatFile, "Keys", "FileID");
+
+TT = outerjoin(T, FileInfo, "Keys", "FileID", "Type", "right", "MergeKeys", true);
+
+
+
+OutTBLAll=TT; 
+OutTBLAll.AwakeState(TT.TSeriesInd<=5)=1;    %%The 1st half 5 Tseries is designed for awake state.
+OutTBLAll.AwakeState(TT.TSeriesInd>=6)=2;    %%The 2nd half 5 Tseries is designed for anesia state.
+
+
+FileID=unique(OutTBLAll.FileID)
+
+[~,~, fileIDCurrent,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+if isempty(setdiff(fileIDCurrent,FileID))&&isempty(setdiff(FileID,fileIDCurrent))
+   disp('FileID in tiff folder and OutTBLAll Table match, continue to delete post SLM tiff files for all folders');
+   RemoveFrame=2; %%2 repetitions right together with MarkPoint would be removed.
+    [TiffTable, RemoveList] = RemoveMPsynTiffFolder(DataFolder,RemoveFrame);
+
+    [FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(DataFolder);
+    PostTiffTable=table(fileIDs(:),tiffNum(:),'VariableNames',{'FileID','Suite2pTiffNum'})
+    Suite2pTable=outerjoin(OutTBLAll, PostTiffTable, "Keys", "FileID", "Type", "right", "MergeKeys", true); 
+    save([DataFolder 'TableForSuite2p.mat'],'Suite2pTable','SLMPosInfo','SLMTestInfo');
+
+    [~,i1]=unique(Suite2pTable.FileID);
+    subT1=Suite2pTable(i1,:);
+    disp(['Total of ' num2str(sum(subT1.Suite2pTiffNum)) ' tif files required to processed in suite2p']);
+else
+    disp('FileID in tiff folder and OutTBLAll Table do NOT match, check!');
+end
+
+sponRecording = findAllFoldersKeyWords(WorkFolder, 'TSeries',0);
+

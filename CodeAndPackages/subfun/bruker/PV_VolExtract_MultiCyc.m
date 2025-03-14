@@ -30,12 +30,14 @@ fSpeedAll=[];
 fStimAll=[];
 timeStampCa_PlaneAll=[];
 fVideoAll=[];
+VideoStartFrameTime=[];
 SeqStart=[1;caTrials.LastFrameSeqFile(1:end-1)+1];
 
-if length(caTrials.vRec)~=length(caTrials.LastFrameSeqFile)
-   disp([num2str(length(caTrials.vRec)) ' vRec does not match ' num2str(length(caTrials.LastFrameSeqFile)) 'FrameTS sequence']);
+if isfield(caTrials,'vRec')
+    if length(caTrials.vRec)~=length(caTrials.LastFrameSeqFile)
+       disp([num2str(length(caTrials.vRec)) ' vRec does not match ' num2str(length(caTrials.LastFrameSeqFile)) 'FrameTS sequence']);
+    end
 end
-
 FrameID=1:round(length(caTrials.FrameTS.relativeTime)/numPlanes);
 FrameID=repmat(FrameID(:),1,numPlanes)';
 FrameID=FrameID(:);
@@ -66,137 +68,140 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
     % Prepare for processing speed data from voltage recordings.
 
     lastFrame=FrameNum;
-    vRecRaw=caTrials.vRec{iseq};
 
-
-
-% Begin processing for each imaging plane.
-    for iPlane=1:numPlanes 
-% ---
-         vRec=vRecRaw;
-         vRecTemp = vRec;
+    if isfield(caTrials,'vRec')
     
-    % Delete column 2
-    % if deleteColumn2 == 1
-    %     vRecTemp = vRecTemp(:,[1 3 4]);
-    % end
+        vRecRaw=caTrials.vRec{iseq};
     
-    % Add more working columns
-       if size(vRec,2) == 3 % Time, Speed, Cam
-          vRec(:,4:12) = NaN; vRec(:,[7 10 11]) = 0;
-       end
-       if size(vRecTemp,2) == 4 % Time, Speed, Cam, LED
-         vRecTemp(:,5:12) = NaN; vRecTemp(:,[7 10 11]) = 0;
-        end
-
-    % Calculate sampling frequency from voltage recording and verify against expected rate.
-        sampFreq = 1/diff(vRecTemp(1:2,1))*1000;   %%voltage recording sampling time is micro-seconds
-        if sampFreq==str2num(caTrials.vConfig(1).Rate.Text)
     
-        else
-           disp('sampleRate of Voltage Recording does not match;');
-        end
-
-        % tic
-    % Analyze camera TTL pulses to identify frame edges and distinguish between positive and negative TTL scenarios.
-        if sum(vRecTemp(:,3)<1)>sum(vRecTemp(:,3)>2)
-           IsPositiveTTL=1;
-           Temp=-vRecTemp(:,3)+5;
-           fallingEdges = LocalMinima(diff(Temp),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
-        else
-           IsPositiveTTL=0;
-           fallingEdges = LocalMinima(diff(vRecTemp(:,3)),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
-        end
-
-        if iseq==1
-           VideoStartFrameTime(iPlane)=vRecTemp(fallingEdges(1),3)/1000; %%voltage recording sampling time is micro-second
-        end
-        % toc
-        % plot(vRecTemp(1:10000,3));hold on;
-        % plot(fallingEdges(1:50),vRecTemp(fallingEdges(1:50),3),'r.')
+    
+    % Begin processing for each imaging plane.
+        for iPlane=1:numPlanes 
+    % ---
+             vRec=vRecRaw;
+             vRecTemp = vRec;
         
-        % Indt=find(WhiskerFileID==vRecFileID(t));
-        % if ~isempty(Indt)   %% There is possible that some recording are without whisker files recorded.
-        if exist('whiskTrial1')
-           fW = numel(find(whiskTrial1>0))+1; % Total number of whisk frames actually recorded per trial; +1 because frame 1 is NaN
-           fW=min([fW,numel(fallingEdges)]);
-    
-        else
-           fW=numel(fallingEdges);
-        end
-        vRecTemp(fallingEdges(1:fW),5) = 1:fW;
-    
-    
-        if exist('BehavStruc')
-        vRecTemp(fallingEdges(1:fW),13:12+BehavNum)=BehavStruc(Indt).BehData(1:fW,:);
-        end
+        % Delete column 2
+        % if deleteColumn2 == 1
+        %     vRecTemp = vRecTemp(:,[1 3 4]);
+        % end
         
+        % Add more working columns
+           if size(vRec,2) == 3 % Time, Speed, Cam
+              vRec(:,4:12) = NaN; vRec(:,[7 10 11]) = 0;
+           end
+           if size(vRecTemp,2) == 4 % Time, Speed, Cam, LED
+             vRecTemp(:,5:12) = NaN; vRecTemp(:,[7 10 11]) = 0;
+            end
     
-        % Add calcium time stamps and frame number
-        timeStampCaTrial =  timeStampCa_Plane(:,iPlane)*1000;    %%voltage recording sampling time is micro-seconds
-        CaSampleTime=median(diff(timeStampCaTrial));   %%micro-seconds
-    
-    
-          % Merge calcium imaging timestamps with voltage recording data, aligning neuronal activity data with movement data
+        % Calculate sampling frequency from voltage recording and verify against expected rate.
+            sampFreq = 1/diff(vRecTemp(1:2,1))*1000;   %%voltage recording sampling time is micro-seconds
+            if sampFreq==str2num(caTrials.vConfig(1).Rate.Text)
         
-        addTime = timeStampCaTrial(1:end);
-        addTime(:,2:size(vRecTemp,2)) = NaN;
-        vRecTemp = sortrows([addTime; vRecTemp]);  %% Merge Ca signal time and Voltage time togoether
-        clear addTime
-        
-        % fCa = lastFrame(t+1)-(lastFrame(t)+1)+1;  %% # of frames of the trial
-        frame = 1;                   %% starting frame Index of the trial
-        [~,idx] = intersect(vRecTemp(:,1),timeStampCaTrial(:),'stable');
+            else
+               disp('sampleRate of Voltage Recording does not match;');
+            end
     
-        if length(idx)<lastFrame+1
-           idx(end+1)=idx(end)+length(find(vRecTemp(idx(end)+1:end,1)>=timeStampCaTrial(end)&vRecTemp(idx(end)+1:end,1)<=timeStampCaTrial(end)+CaSampleTime));
+            % tic
+        % Analyze camera TTL pulses to identify frame edges and distinguish between positive and negative TTL scenarios.
+            if sum(vRecTemp(:,3)<1)>sum(vRecTemp(:,3)>2)
+               IsPositiveTTL=1;
+               Temp=-vRecTemp(:,3)+5;
+               fallingEdges = LocalMinima(diff(Temp),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
+            else
+               IsPositiveTTL=0;
+               fallingEdges = LocalMinima(diff(vRecTemp(:,3)),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
+            end
+    
+            if iseq==1
+               VideoStartFrameTime(iPlane)=vRecTemp(fallingEdges(1),3)/1000; %%voltage recording sampling time is micro-second
+            end
+            % toc
+            % plot(vRecTemp(1:10000,3));hold on;
+            % plot(fallingEdges(1:50),vRecTemp(fallingEdges(1:50),3),'r.')
+            
+            % Indt=find(WhiskerFileID==vRecFileID(t));
+            % if ~isempty(Indt)   %% There is possible that some recording are without whisker files recorded.
+            if exist('whiskTrial1')
+               fW = numel(find(whiskTrial1>0))+1; % Total number of whisk frames actually recorded per trial; +1 because frame 1 is NaN
+               fW=min([fW,numel(fallingEdges)]);
+        
+            else
+               fW=numel(fallingEdges);
+            end
+            vRecTemp(fallingEdges(1:fW),5) = 1:fW;
+        
+        
+            if exist('BehavStruc')
+            vRecTemp(fallingEdges(1:fW),13:12+BehavNum)=BehavStruc(Indt).BehData(1:fW,:);
+            end
+            
+        
+            % Add calcium time stamps and frame number
+            timeStampCaTrial =  timeStampCa_Plane(:,iPlane)*1000;    %%voltage recording sampling time is micro-seconds
+            CaSampleTime=median(diff(timeStampCaTrial));   %%micro-seconds
+        
+        
+              % Merge calcium imaging timestamps with voltage recording data, aligning neuronal activity data with movement data
+            
+            addTime = timeStampCaTrial(1:end);
+            addTime(:,2:size(vRecTemp,2)) = NaN;
+            vRecTemp = sortrows([addTime; vRecTemp]);  %% Merge Ca signal time and Voltage time togoether
+            clear addTime
+            
+            % fCa = lastFrame(t+1)-(lastFrame(t)+1)+1;  %% # of frames of the trial
+            frame = 1;                   %% starting frame Index of the trial
+            [~,idx] = intersect(vRecTemp(:,1),timeStampCaTrial(:),'stable');
+        
+            if length(idx)<lastFrame+1
+               idx(end+1)=idx(end)+length(find(vRecTemp(idx(end)+1:end,1)>=timeStampCaTrial(end)&vRecTemp(idx(end)+1:end,1)<=timeStampCaTrial(end)+CaSampleTime));
+            end
+            % if fR > 25 NEED TO WORK ON THE MULTIPLANE PART
+            for n = 1:lastFrame
+                    vRecTemp(idx(n):idx(n+1)-1,12) = frame;
+                    frame = frame + 1;
+            end
+        
+            % Establish usable trial time
+            startCa = min(find(vRecTemp(:,12) == 1));
+            endCa = max(find(vRecTemp(:,12) == lastFrame));
+        
+            newStart(iPlane) = startCa;
+            newEnd(iPlane) = endCa;
+            % Crop vRecTemp
+            vRecTemp = vRecTemp(newStart(iPlane):newEnd(iPlane), :);
+            
+             % Finalize speed data processing, averaging speed per frame, and store results in fSpeed.
+            vRecTemp(vRecTemp(:,12)==0,:)=[];
+            tempSpeed = [];
+            tempSpeed = accumarray(vRecTemp(:,12), vRecTemp(:,2), [], @nanmean);
+            tempSpeed = tempSpeed(min(vRecTemp(:,12)):end);
+            % fSpeed = [fSpeed; tempSpeed];
+            fSpeed(:,iPlane)=tempSpeed;
+        
+        
+            vRecTemp(vRecTemp(:,12)==0,:)=[];
+            tempStim = [];
+            tempStim = accumarray(vRecTemp(:,12), vRecTemp(:,4), [], @nanmean);
+            tempStim = tempStim(min(vRecTemp(:,12)):end);
+            % fSpeed = [fSpeed; tempSpeed];
+            fStim(:,iPlane)=tempStim;
+    
+    
+            vRecTemp(vRecTemp(:,12)==0,:)=[];
+            tempVideo = [];
+            tempVideo = accumarray(vRecTemp(:,12), vRecTemp(:,3), [], @nanmean);
+            tempVideo= tempVideo(min(vRecTemp(:,12)):end);
+            % fSpeed = [fSpeed; tempSpeed];
+            fVideo(:,iPlane)=tempVideo;
+    
+       
         end
-        % if fR > 25 NEED TO WORK ON THE MULTIPLANE PART
-        for n = 1:lastFrame
-                vRecTemp(idx(n):idx(n+1)-1,12) = frame;
-                frame = frame + 1;
-        end
     
-        % Establish usable trial time
-        startCa = min(find(vRecTemp(:,12) == 1));
-        endCa = max(find(vRecTemp(:,12) == lastFrame));
-    
-        newStart(iPlane) = startCa;
-        newEnd(iPlane) = endCa;
-        % Crop vRecTemp
-        vRecTemp = vRecTemp(newStart(iPlane):newEnd(iPlane), :);
-        
-         % Finalize speed data processing, averaging speed per frame, and store results in fSpeed.
-        vRecTemp(vRecTemp(:,12)==0,:)=[];
-        tempSpeed = [];
-        tempSpeed = accumarray(vRecTemp(:,12), vRecTemp(:,2), [], @nanmean);
-        tempSpeed = tempSpeed(min(vRecTemp(:,12)):end);
-        % fSpeed = [fSpeed; tempSpeed];
-        fSpeed(:,iPlane)=tempSpeed;
-    
-    
-        vRecTemp(vRecTemp(:,12)==0,:)=[];
-        tempStim = [];
-        tempStim = accumarray(vRecTemp(:,12), vRecTemp(:,4), [], @nanmean);
-        tempStim = tempStim(min(vRecTemp(:,12)):end);
-        % fSpeed = [fSpeed; tempSpeed];
-        fStim(:,iPlane)=tempStim;
-
-
-        vRecTemp(vRecTemp(:,12)==0,:)=[];
-        tempVideo = [];
-        tempVideo = accumarray(vRecTemp(:,12), vRecTemp(:,3), [], @nanmean);
-        tempVideo= tempVideo(min(vRecTemp(:,12)):end);
-        % fSpeed = [fSpeed; tempSpeed];
-        fVideo(:,iPlane)=tempVideo;
-
-   
+        fSpeedAll=[fSpeedAll;fSpeed];
+        fStimAll=[fStimAll;fStim];
+        fVideoAll=[fVideoAll;fVideo];
     end
-
-    fSpeedAll=[fSpeedAll;fSpeed];
-    fStimAll=[fStimAll;fStim];
-    fVideoAll=[fVideoAll;fVideo];
-
     timeStampCa_PlaneAll=[timeStampCa_PlaneAll;timeStampCa_Plane];
     FrameTS=caTrials.FrameTS;
     FrameTS.FrameID=FrameID;

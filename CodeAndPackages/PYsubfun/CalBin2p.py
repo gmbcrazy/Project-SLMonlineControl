@@ -22,6 +22,8 @@ from collections import defaultdict
 import re
 import time
 import FastBin_Suite2p as FBS
+import os
+import fnmatch
 # Iterate over X and Y values and search for matching files
 #PointFile=[None]*len(PointI_values)
 
@@ -176,8 +178,9 @@ def plotCellCenter(ax, Ly, cellCenter, Radius, colorCell, LineWidth):
 # cellCenter = np.array([[x1, y1], [x2, y2], ...])
 # Radius = np.array([r1, r2, ...])
 # colorCell = np.array([[r1, g1, b1], [r2, g2, b2], ...]) or a single color
-# plotCellCenter(cellCenter, Radius, colorCell)
-def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
+
+
+
     if len(colorCell) == 1:
         colorCell = np.tile(colorCell, (cellCenter.shape[0], 1))
 
@@ -220,7 +223,6 @@ def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
    # ax.set_ylabel('Y-axis')
     ##ax.set_zlabel('Z-axis')
    # ax.set_title('Cell Centers with Circles (3D)')
-
 def PointLaser_files(file_names):
     # Regular expression to extract the point and laser level from the file name
     pattern = re.compile(r"Laser(\d+\.\d+)[a-zA-Z]Point(\d+)\.bin")
@@ -291,36 +293,6 @@ def plotCellCenter3DGroup(cellCenterGroup, Radius, *args):
     plt.show()
     return ax
 
-def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
-    if len(colorCell) == 1:
-        colorCell = np.tile(colorCell, (cellCenter.shape[0], 1))
-
-    if np.shape(Radius) == 1:
-        Radius = np.tile(Radius, cellCenter.shape[0])
-    
-    #print(Radius.shape)
-    plt.show()
-    if len(cellCenter.shape)==1:
-       cellN=1
-       CoorDim=len(cellCenter)
-    else:
-       CoorDim=cellCenter.shape[1]
-    
-    if CoorDim == 2:
-        cellCenter = np.hstack((cellCenter, np.zeros((len(cellCenter), 1))))
-
-    for i in range(cellN):
-        theta = np.linspace(0, 2*np.pi, 50)
-        x = cellCenter[i, 1] + Radius[i] * np.cos(theta)
-        y = cellCenter[i, 0] + Radius[i] * np.sin(theta)
-        z = np.zeros_like(x) + cellCenter[i, 2]
-        ax.plot(x, y, z, color=colorCell[i], linewidth=LineWidth, linestyle='-')
-        plt.show()
-    
-   # ax.set_xlabel('X-axis')
-   # ax.set_ylabel('Y-axis')
-    ##ax.set_zlabel('Z-axis')
-   # ax.set_title('Cell Centers with Circles (3D)')
 
 
 def Suite2pCellIDMap(ops,stat,iscell):
@@ -466,37 +438,170 @@ def plotCellCenter3DGroup(cellCenterGroup, Radius, *args):
     plt.show()
     return ax
 
-def plotCellCenter3D(ax,cellCenter, Radius, colorCell, LineWidth):
+def plotCellCenter3D(ax, cellCenter, Radius, colorCell, LineWidth):
     if len(colorCell) == 1:
         colorCell = np.tile(colorCell, (cellCenter.shape[0], 1))
 
     if np.shape(Radius) == 1:
         Radius = np.tile(Radius, cellCenter.shape[0])
-    
-    #print(Radius.shape)
-    plt.show()
-    if len(cellCenter.shape)==1:
-       cellN=1
-       CoorDim=len(cellCenter)
+
+    # Ensure cellN is defined before use
+    if len(cellCenter.shape) == 1:
+        cellN = 1
+        CoorDim = len(cellCenter)
     else:
-       CoorDim=cellCenter.shape[1]
-    
-    if CoorDim == 2:
+        cellN = cellCenter.shape[0]  # Set cellN properly
+        CoorDim = cellCenter.shape[1]
+
+    if CoorDim == 2 and cellN > 1:
         cellCenter = np.hstack((cellCenter, np.zeros((len(cellCenter), 1))))
+    elif CoorDim == 2 and cellN == 1:
+        cellCenter = np.append(cellCenter, 0)
+    else:
+        cellCenter = cellCenter
 
-    for i in range(cellN):
-        theta = np.linspace(0, 2*np.pi, 50)
-        x = cellCenter[i, 1] + Radius[i] * np.cos(theta)
-        y = cellCenter[i, 0] + Radius[i] * np.sin(theta)
-        z = np.zeros_like(x) + cellCenter[i, 2]
-        ax.plot(x, y, z, color=colorCell[i], linewidth=LineWidth, linestyle='-')
-        plt.show()
+    if cellN == 1:
+        theta = np.linspace(0, 2 * np.pi, 50)
+        x = cellCenter[1] + Radius * np.cos(theta)
+        y = cellCenter[0] + Radius * np.sin(theta)
+        z = np.zeros_like(x) + cellCenter[2]
+        ax.plot(x, y, z, color=colorCell[0], linewidth=LineWidth, linestyle='-')
+    else:
+        for i in range(cellN):
+            theta = np.linspace(0, 2 * np.pi, 50)
+            x = cellCenter[i, 1] + Radius[i] * np.cos(theta)
+            y = cellCenter[i, 0] + Radius[i] * np.sin(theta)
+            z = np.zeros_like(x) + cellCenter[i, 2]
+            ax.plot(x, y, z, color=colorCell[i], linewidth=LineWidth, linestyle='-')
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plotCellCenter(ax, cellCenter, Radius, colorCell, LineWidth):
+    """
+    Plots cell centers as circles in 2D.
     
-   # ax.set_xlabel('X-axis')
-   # ax.set_ylabel('Y-axis')
-    ##ax.set_zlabel('Z-axis')
-   # ax.set_title('Cell Centers with Circles (3D)')
+    Parameters:
+        ax : matplotlib axis
+            The axis on which to plot.
+        cellCenter : numpy.ndarray
+            Array of shape (N,2) with (x,y) positions of cell centers.
+        Radius : float or numpy.ndarray
+            Radius of circles. Can be scalar or array of shape (N,).
+        colorCell : numpy.ndarray
+            Color information for each circle.
+        LineWidth : float
+            Line width of the circles.
+    """
+    if len(colorCell.shape) == 1:
+        colorCell = np.tile(colorCell, (cellCenter.shape[0], 1))
 
+    if np.isscalar(Radius):
+        Radius = np.full(cellCenter.shape[0], Radius)
+
+    for i in range(cellCenter.shape[0]):
+        circle = plt.Circle((cellCenter[i, 1], cellCenter[i, 0]), Radius[i], 
+                            edgecolor=colorCell[i], facecolor='none', linewidth=LineWidth)
+        ax.add_patch(circle)
+
+def multi_planes_2d_show(img, cell_boundary, pos3d, pos3d_label, zdepth, color_cell, img_clim, plot_param=None):
+    """
+    Displays 2D images of multi-plane data and overlays cell boundaries and positions.
+    
+    Parameters:
+        img (numpy.ndarray): Image data, can be 2D or 3D (multi-plane).
+        cell_boundary (list): Cell boundary data to overlay on the image.
+        pos3d (numpy.ndarray): 3D positions of cells (X, Y, Z).
+        pos3d_label (list): Labels for cell positions.
+        zdepth (list): Z-depth values corresponding to each plane.
+        color_cell (numpy.ndarray or list): Colors to use for cell boundaries.
+        img_clim (tuple): Limits for image display (contrast adjustment).
+        plot_param (dict, optional): Plotting parameters. Defaults will be used if not provided.
+    
+    Returns:
+        fig, axes: Matplotlib figure and axes handles for further customization.
+    """
+    dim = img.shape
+    dim_pos = pos3d.shape
+    
+    if plot_param is None:
+        plot_param = {
+            'RowPlot': True,
+            'RowColNum': 1,
+            'RowColID': 1,
+            'EdgeParam': [0.06, 0.1, 0.06, 0.06, 0.06, 0.06],
+            'CellCenterWidth': 1,
+            'CellBoundaryWidth': 0.5,
+            'PlotCenter': True
+        }
+    
+    # Ensure color_cell is a numpy array
+    color_cell = np.array(color_cell)
+    if color_cell.ndim == 1:
+        color_cell = np.tile(color_cell, (dim_pos[0], 1))
+    
+    pos_z = pos3d[:, 2] if dim_pos[1] == 3 else []
+    
+    if len(dim) == 2:
+        fig, ax = plt.subplots()
+        ax.imshow(img.T, cmap='gray', clim=img_clim)
+        
+        if cell_boundary:
+            plotCellBoundary(cell_boundary, color_cell, plot_param['CellBoundaryWidth'])
+        
+        if pos3d_label:
+            label_cell_center(pos3d[:, [1, 0]], pos3d_label, color_cell)
+        
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.show()
+        return fig, ax
+    
+    elif len(dim) == 3:
+        fig, axes = plt.subplots(1, dim[2], figsize=(dim[2] * 5, 5))  # Adjust figure size
+        
+        for iplane in range(dim[2]):
+            #print(f"Processing plane {iplane}, image shape: {img.shape}")
+            ax = axes[iplane] if dim[2] > 1 else plt.gca()
+            ax.imshow(img[:, :, iplane], cmap='gray', vmin=img_clim[0], vmax=img_clim[1])
+            
+
+            if pos3d.size > 0:
+                indices = np.where(np.abs(pos3d[:, 2] - zdepth[iplane]) < 0.1)[0]
+                
+                if len(indices) > 0 and cell_boundary:
+                    plotCellBoundary([cell_boundary[i] for i in indices], color_cell[indices, :], plot_param['CellBoundaryWidth'])
+                
+                if len(indices) > 0 and pos3d_label:
+                    label_cell_center(pos3d[indices][:, [1, 0]], [pos3d_label[i] for i in indices], color_cell[indices, :])
+                
+                if plot_param['PlotCenter']:
+                    cell_center = pos3d[indices][:, [1, 0]]
+                    celln = color_cell.shape[1] if color_cell.ndim > 1 else 1
+                    if cell_center.shape[1] == 2 and celln > 1:
+                        if cell_center.ndim == 1:
+                            cell_center = np.append(cell_center, 0)
+                        else:
+                            cell_center = np.hstack((cell_center, np.zeros((len(cell_center), 1))))
+                        
+                        cellN = len(cell_center)  # Ensure cellN is properly initialized
+                        plotCellCenter(ax, cell_center, np.full(cellN, 9) if isinstance(9, (int, float)) else 9, color_cell[indices, :], plot_param['CellCenterWidth'])
+            
+            ax.set_xticks([])
+            ax.set_yticks([])
+    
+    for ax in axes.flat:
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.set_facecolor('black')  # Set background to black to blend in
+    fig.patch.set_alpha(0)  # Fully transparent figure background
+    return fig, axes
+
+def label_cell_center(positions, labels, color_cell):
+    for (x, y), label, color in zip(positions, labels, color_cell):
+        plt.text(x, y, str(label), color=color, fontsize=8, ha='center', va='center')
 
 def get_new_files(previous_files, current_files):
     # Return files that are in current_files but not in previous_files
@@ -842,3 +947,44 @@ def Pixel_Shift(rmg1,rmg2,nplanes):
 
     pixel_shifts = np.array(pixel_shifts)
     return pixel_shifts
+
+
+
+
+def find_all_folders_keywords(work_folder, folder_keyword):
+    """
+    Find all folders in 'work_folder' that contain 'folder_keyword' in their names.
+    """
+    matching_folders = []
+    for root, dirs, _ in os.walk(work_folder):
+        for d in dirs:
+            if folder_keyword in d:
+                matching_folders.append(os.path.join(root, d))
+    return matching_folders
+
+def get_exp_data_folder(work_folder, folder_keyword, included_list):
+    """
+    Function to find an experimental data folder containing specific files.
+    
+    Inputs:
+        work_folder (str): Root directory to search in.
+        folder_keyword (str): Keyword to filter folders.
+        included_list (list): List of required files/folders within the target folder.
+    
+    Output:
+        str: Path to the first folder that meets the criteria, empty if none found.
+    
+    Example usage:
+        workspace_folder = get_exp_data_folder('C:/Data', 'Experiment', ['Data', 'Results.mat'])
+    """
+    workspace_folder = ""
+    result_paths = find_all_folders_keywords(work_folder, folder_keyword)
+    
+    for folder in result_paths:
+        # Ensure folder is not empty
+        if len(os.listdir(folder)) > 2:
+            items = {item.name for item in os.scandir(folder)}  # Convert to set for fast lookup
+            if sum(1 for pattern in included_list if any(pattern in item for item in items)) >= len(included_list):
+                return folder  # Return the first matching folder
+    
+    return workspace_folder  # Return empty string if no folder matches

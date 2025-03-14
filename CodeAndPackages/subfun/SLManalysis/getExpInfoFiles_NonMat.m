@@ -1,4 +1,4 @@
-function [FileGenerateInfo,fileList, fileIDs] = getExpInfoFiles_NonMat(folderPath, idRanges)
+function [FileGenerateInfo,fileList, fileIDs,tiffNum] = getExpInfoFiles_NonMat(folderPath, idRanges)
 % GETEXPINFOFILES Finds 'ExpInfo-*.mat' files in the specified folder and filters them based on ID ranges.
 % 
 % Inputs:
@@ -55,6 +55,7 @@ function [FileGenerateInfo,fileList, fileIDs] = getExpInfoFiles_NonMat(folderPat
         FileGenerateInfo(iFile).binFile=[folderPath fileList{iFile} '.bin'];
         FileGenerateInfo(iFile).tifFolder=[folderPath fileList{iFile} '\'];
         FileGenerateInfo(iFile).FileID=fileIDs(iFile);
+        tiffNum(iFile)=length(dir([FileGenerateInfo(iFile).tifFolder '*.tif']));
     end
 
 end
