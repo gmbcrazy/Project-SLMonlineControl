@@ -18,6 +18,11 @@ cellIDMap3D = repmat(cellIDMap, [1, 1, length(stat)]);
 % Loop through each cell in the `stat` structure
 for iCell = 1:length(stat)
     % Create a temporary cell ID map for each cell to handle overlapping regions
+    if isempty(stat{iCell})
+       cellBoundary{iCell}=[];
+       continue
+    end
+
     cellIDMapTemp = zeros(FovSize); 
     cellID = iCell; % Cell ID corresponds to the loop index
 

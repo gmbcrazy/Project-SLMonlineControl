@@ -1,6 +1,6 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03062025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03042025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
@@ -113,7 +113,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-% XMLparam.PointList=[23    30    37    23    30    37    23    30    37    23];
+XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
 % XMLparam.PointList(10)=[29]
 % XMLparam.Laser(1:10)=repmat(1.3,1,10);
 % 
@@ -121,7 +121,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 % idRanges=[6;12];
-% idRanges=[6 18;16 18];
+idRanges=[4;33];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 step4_MultiZ_SubStep2_UpdatingROIandXML
 close all
@@ -132,7 +132,7 @@ close all
 SLMTableOrigin=SLMTable;
 % PostSLMTable;
 FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
-SLMTable(FalsePositiveID,:)=nan;
+SLMTable(FalsePositiveID,2)=nan;
 
 
 
@@ -142,6 +142,37 @@ CellPerGroup=10;
 [Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 XYZtoMarkPointFunGroup_MultiZ(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
+
+
+
+
+GroupLabel={'L','S','N'};
+% nGroup=length(SLMPosInfo.Group);
+GroupColor=[247 150 111;239 109 249;121 247 111]/255;
+        PlotParam.RowPlot=1;
+        PlotParam.RowColNum=1;
+        PlotParam.RowColID=1;
+        PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.06 0.06];
+        PlotParam.CellCenterWith=2;
+        PlotParam.CellBoundaryWidth=0.5;
+        PlotParam.PlotCenter=1;
+
+[~,~,~,CaData,~,~,~,~]=ROIToXYZ(confSetFinal.save_path0,'CurrentSLMsetting.yml');
+[~, ~, ~, FincalCellBoundary] = Suite2pCellIDMapFromStat(FinalCellstat, [confSetFinal.SLM_Pixels_Y confSetFinal.SLM_Pixels_X]);
+
+
+colorCell=repmat([1 1 0],length(FinalCellstat),1);
+for iGroup=1:length(Group)
+    I1=find(FinalFunScore(:,1)==iGroup);
+    colorCell(I1,:)=repmat(GroupColor(iGroup,:),length(I1),1);
+end
+
+MeanImg=AmpNormalizeDim(double(CaData.PlaneMeanImg),3,[1 99]);
+ImgClim=[0 800];
+H=MultiPlanes2DShow(permute(double(CaData.PlaneMeanImg),[2 1 3]), FincalCellBoundary, FinalPos3D, [], confSetFinal.ETL+confSetFinal.scan_Z(1), colorCell, ImgClim,PlotParam)
+
+
+
 
 figure;
 plot(0,0);set(gca,'xlim',[0 10],'ylim',[0 10],'xcolor','w','ycolor','w')

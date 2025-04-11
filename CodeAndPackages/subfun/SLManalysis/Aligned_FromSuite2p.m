@@ -1,0 +1,54 @@
+function [AlignedtempNData,SLMInfoTable,CellResponse,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(tempNData,TargetCellList,iscell,Suite2pTable,PVpower,PSTHparam)
+
+
+
+tempNData=AmpNormalizeRow(tempNData,[0 100]);
+SLMInfoTable=Suite2pTable(Suite2pTable.suite2pInd>0,:);
+AlignedtempNData=[];
+
+for i=1:size(SLMInfoTable,1)
+    I0=SLMInfoTable.suite2pInd(i);
+    s1=I0-PSTHparam.PreSLMCal:I0-1;
+    s2=I0:I0+PSTHparam.PostSLMCal-1;
+    AlignedtempNData(:,:,i)=tempNData(:,[s1 s2])-repmat(nanmean(tempNData(:,s1),2),1,length(s1)+length(s2));
+end
+
+
+CellSampleN=[];
+clear TargetResponse CellResponse
+TargetCellResP=zeros(length(TargetCellList),length(PVpower))+NaN;
+TargetCellResR=zeros(length(TargetCellList),length(PVpower))+NaN;
+
+% PSTHparam.TestStepFrame=3;
+for iCell=1:length(TargetCellList)
+    for iPower=1:length(PVpower)
+        I1=find(SLMInfoTable.PointTargetCell==TargetCellList(iCell)&abs(SLMInfoTable.UncagingLaserPower-PVpower(iPower))<0.1);
+        CellSampleN(iCell,iPower)=length(I1);
+
+        if length(I1)>1
+           % CellResponse{iCell,iPower}=squeeze(AlignedtempNData(:,:,I1));
+           % TargetResponse{iCell,iPower}=squeeze(AlignedtempNData(TargetCellList(iCell),:,I1))';
+
+        % elseif length(I1)>1
+           CellResponse{iCell,iPower}=nanmean(AlignedtempNData(:,:,I1),3);
+           TargetResponse{iCell,iPower}=squeeze(AlignedtempNData(TargetCellList(iCell),:,I1))';
+        % else
+           preSLMdata=squeeze(AlignedtempNData(:,1:PSTHparam.PreSLMCal,I1));
+           postSLMdata=squeeze(AlignedtempNData(:,PSTHparam.PreSLMCal+[1:PSTHparam.TestStepFrame],I1));
+           for jCell=1:length(iscell)
+               temp1=preSLMdata(jCell,:,:);
+               temp2=postSLMdata(jCell,:,:);
+               [~,p(jCell,1),~,t(jCell)]=ttest2(temp2(:),temp1(:));
+               temp3(jCell)=mean(temp2(:))-mean(temp1(:));
+           end
+           statCellRes(iCell,iPower).p=p;
+           statCellRes(iCell,iPower).t=t;
+           statCellRes(iCell,iPower).delta=temp3;
+
+           TargetCellResP(iCell,iPower)=p(TargetCellList(iCell));
+           TargetCellResR(iCell,iPower)=temp3(TargetCellList(iCell));
+           clear p t temp3;
+        end
+        
+    end
+end

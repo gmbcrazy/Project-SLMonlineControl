@@ -38,9 +38,12 @@ end
 
 rSpeed
 ClimRspeed=[-0.3 0.3];
-ClimRstim=[0 0.3];
-CellSpeedColors = valueToColor(rSpeed, ClimRspeed, jet(64));
-CellStimColors = valueToColor(rStim, ClimRstim, jet(64));
+ClimRstim=[-0.1 0.1];
+CellSpeedColors = valueToColor(rSpeed, ClimRspeed, slanCM('wildfire',64));
+CellStimColors = valueToColor(rStim, ClimRstim, slanCM('wildfire',64));
+
+
+
 
 ImgClim=[0 800];
         PlotParam.RowPlot=1;
@@ -53,7 +56,7 @@ ImgClim=[0 800];
 figure;      
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,jet(64),0,0,1,1);
+MultibarPlot(1:64,slanCM('wildfire',64),0,0,1,1);
 set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
 xlabel('Speed-Corr')
 camroll(90);
@@ -62,11 +65,12 @@ set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
+print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
 
 figure
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,jet(64),0,0,1,1);
+MultibarPlot(1:64,slanCM('wildfire',64),0,0,1,1);
 set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
 xlabel('Speed-Corr')
 camroll(90);
@@ -75,6 +79,11 @@ set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
+print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
+
+
+
+
 
 figure;
 subplot(1,2,1)

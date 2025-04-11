@@ -1,11 +1,14 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03062025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03042025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
 ProcessFolder=[WorkingFolder 'SingleP\' 'Top49SpeedStimEdgeExc\'];
+
+ProcessFolder = Get_ExpDataFolder(WorkingFolder, 'SpeedStimEdgeExc', {'AllIncluded','.gpl','.xml'})
+
 % % ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % % 
 % % SLMsettingFile='SLMsetting.yml';
@@ -142,6 +145,48 @@ CellPerGroup=10;
 [Group, FinalPos3D, FinalCellstat, FinalFunScore, confSetFinal] = SLMWeightsAssignToFunGroups(FunScore, CellPerGroup, Pos3Dneed, Cellstat, SLMIncludedIndFromIscell, SLMTable, NonTargets, refPVpower, confSet);
 save([ProcessFolder 'SLMFunGroup.mat'],'Group','FinalPos3D','FinalCellstat','FinalFunScore','confSetFinal','SLMTableOrigin','SLMTable','ROIparam','SLMRes','sampleN','SLMTestParam','SLMIncludedIndFromIscell','FunScore','yaml','Cellstat');
 XYZtoMarkPointFunGroup_MultiZ(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
+
+
+%%
+
+GroupLabel={'L','S','N'};
+% nGroup=length(SLMPosInfo.Group);
+GroupColor=[247 150 111;239 109 249;121 247 111]/255;
+        PlotParam.RowPlot=1;
+        PlotParam.RowColNum=1;
+        PlotParam.RowColID=1;
+        PlotParam.EdgeParam=[0.06 0.1 0.06 0.06 0.06 0.06];
+        PlotParam.CellCenterWith=1.5;
+        PlotParam.CellBoundaryWidth=0.5;
+        PlotParam.PlotCenter=1;
+
+[~,~,~,CaData,~,~,~,~]=ROIToXYZ(confSetFinal.save_path0,'CurrentSLMsetting.yml');
+[~, ~, ~, FincalCellBoundary] = Suite2pCellIDMapFromStat(FinalCellstat, [confSetFinal.SLM_Pixels_Y confSetFinal.SLM_Pixels_X]);
+
+
+
+colorCell=repmat([1 1 0],length(FinalCellstat),1);
+for iGroup=1:length(Group)
+    I1=find(FinalFunScore(:,1)==iGroup);
+    colorCell(I1,:)=repmat(GroupColor(iGroup,:),length(I1),1);
+end
+
+MeanImg=AmpNormalizeDim(double(CaData.PlaneMeanImg),3,[0.5 99.5]);
+ImgClim=[0 1];
+H=MultiPlanes2DShow(permute(MeanImg,[2 1 3]), FincalCellBoundary, FinalPos3D, [], confSetFinal.ETL+confSetFinal.scan_Z(1), colorCell, ImgClim,PlotParam);
+bar=colorbar(H(3));
+bar.Location='eastoutside';
+bar.Position=[0.95,0.3,0.01,0.3];
+bar.Label.String='F.';
+bar.Ticks=[0 1];
+papersizePX=[0 0 30 9];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+
+print(gcf, [ProcessFolder 'FinalSLMtarget.svg'], '-dsvg', '-painters');
+print(gcf, [ProcessFolder 'FinalSLMtarget.tif'], '-dtiffn', '-painters');          
+close all
+
 
 figure;
 plot(0,0);set(gca,'xlim',[0 10],'ylim',[0 10],'xcolor','w','ycolor','w')

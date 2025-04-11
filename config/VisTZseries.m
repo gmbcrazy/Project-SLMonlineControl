@@ -1,6 +1,7 @@
 % Load or define your table (TBL)
 % Assuming TBL is already loaded in MATLAB workspace
 TseriesMultiZFolder='C:\Users\User\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
+TseriesMultiZFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
 
 
 TListAll=dir([TseriesMultiZFolder '*.mat']);
@@ -45,6 +46,7 @@ set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,[SaveFolder 'T' num2str(iT)],'png'); 
 % saveas(gcf,[SaveFolder num2str(PSTHparam.PostSLMCal) 'FramePostSLMresponse'],'fig'); 
+print(gcf, [SaveFolder 'T' num2str(iT) '.svg'], '-dsvg', '-painters');
 
 close all
 end

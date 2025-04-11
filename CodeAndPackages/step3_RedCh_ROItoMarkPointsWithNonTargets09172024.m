@@ -1,6 +1,7 @@
 %% Initialize, run this part before mannual correction of Suite2p processed data for saving time
 clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+
 ConfigFile='SLMsetting.yml';
 
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
