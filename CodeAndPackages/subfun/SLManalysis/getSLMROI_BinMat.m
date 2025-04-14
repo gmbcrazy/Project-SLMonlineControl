@@ -51,6 +51,8 @@ for iCount = 1:length(FileGenerateInfo)
     % Extract table for current file using position and configuration settings
     OutTBL = MPSeqFolder_1TargetXNon(FileGenerateInfo(iCount).tifFolder, confSet, Pos3Dneed);
     
+    OutTBL(OutTBL.Point==0,:)=[];
+
     % Assign FileID to the output table for current processing
     OutTBL.FileID = FileGenerateInfo(iCount).FileID * ones(size(OutTBL, 1), 1);
     

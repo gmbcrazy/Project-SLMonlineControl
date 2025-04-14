@@ -35,9 +35,12 @@ end
 
 if exist('AllTestPoints3D')
    for i = 1:length(MPxmlFiles)
-        temp1=sum(abs(ExcuteMP(i,2:3)-AllTestPoints3D(:,1:2)),2);
-        [temp2,I1]=min(temp1);
+        temp1=sum(abs(ExcuteMP(i,2:3)-AllTestPoints3D(:,1:2)).^0.5,2);
+
+        [temp2,I1]=min(temp1)
+%         if temp2<=4                         %%<4 pixels difference of xy coordinates compared to original MarkPoints
         if temp2<=4                         %%<4 pixels difference of xy coordinates compared to original MarkPoints
+
            ExcuteMP(i,5)=I1;
         else
            ExcuteMP(i,5)=0;

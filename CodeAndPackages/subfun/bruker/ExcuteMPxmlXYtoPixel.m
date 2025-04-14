@@ -26,4 +26,10 @@ Ypx=[ceil(xy(:,2)*numY) ];
 else
 
 end
+
+
+
 XYPosPixel=[Xpx(:) Ypx(:)];
+
+
+

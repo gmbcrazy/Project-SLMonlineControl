@@ -9,3 +9,8 @@ mkdir(SumDataFolder);
 load([ProcessFolder 'SLMIncludedIndFromIscell.mat']);
 AllTestPoints3D=Pos3Dneed;
 PointAll=1:size(AllTestPoints3D,1);
+
+
+
+
+

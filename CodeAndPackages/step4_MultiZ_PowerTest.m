@@ -1,11 +1,11 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0855-Emx1G6CII-AAV9CAMKII\03042025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0864\04142025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
 
-ProcessFolder=[WorkingFolder 'SingleP\' 'Top49SpeedStimEdgeExc\'];
+% ProcessFolder=[WorkingFolder 'SingleP\' 'Top49SpeedStimEdgeExc\'];
 
 ProcessFolder = Get_ExpDataFolder(WorkingFolder, 'SpeedStimEdgeExc', {'AllIncluded','.gpl','.xml'})
 
@@ -116,7 +116,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
+% XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
 % XMLparam.PointList(10)=[29]
 % XMLparam.Laser(1:10)=repmat(1.3,1,10);
 % 
@@ -124,7 +124,7 @@ XMLparam.PointList=[36    37    13    20    23    26    33   23    18    36];
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 % idRanges=[6;12];
-idRanges=[4;33];
+% idRanges=[4;33];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 step4_MultiZ_SubStep2_UpdatingROIandXML
 close all

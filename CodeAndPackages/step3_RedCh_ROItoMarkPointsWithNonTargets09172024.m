@@ -5,14 +5,6 @@ ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 ConfigFile='SLMsetting.yml';
 
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
-% Loading ROI information 
-[SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder,ConfigFile);
-PlaneZ=confSet.ETL+confSet.scan_Z;
-% MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
-numPlanes=length(confSet.ETL);
-iscell=find(CaData.iscell(:,1)==1);
-
-
 % This part cost 3 minutes.
 fileID=[1 2];
 if ~exist('fSpeed')
@@ -21,6 +13,17 @@ if ~exist('fSpeed')
     fSpeed=AmpNormalizeRow(double(fSpeed)',[0 100])';
     fStim=AmpNormalizeRow(double(fStim)',[0 100])';
 end
+
+
+
+% Loading ROI information 
+[SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder,ConfigFile);
+PlaneZ=confSet.ETL+confSet.scan_Z;
+% MultiMatrix3DPlotZ(CaData.PlaneMeanImg,PlaneZ,0.9);
+numPlanes=length(confSet.ETL);
+iscell=find(CaData.iscell(:,1)==1);
+
+
 
 
 
