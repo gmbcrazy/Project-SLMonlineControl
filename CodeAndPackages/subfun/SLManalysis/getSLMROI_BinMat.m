@@ -47,6 +47,7 @@ PSTHplane =[];
 % STEP 5: Process each file
 % ---------------------------
 for iCount = 1:length(FileGenerateInfo)
+    iCount
     clear OutTBL  % Clear previous output table for new file
     % Extract table for current file using position and configuration settings
     OutTBL = MPSeqFolder_1TargetXNon(FileGenerateInfo(iCount).tifFolder, confSet, Pos3Dneed);

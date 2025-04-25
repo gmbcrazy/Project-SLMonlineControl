@@ -15,7 +15,7 @@ if ~exist('fSpeed')
 end
 
 
-
+%%
 % Loading ROI information 
 [SavePath,Pos3D,Pos3DRaw,CaData,CaDataPlane,stat,yaml,confSet]=ROIToXYZ(ConfigFolder,ConfigFile);
 PlaneZ=confSet.ETL+confSet.scan_Z;
@@ -50,7 +50,7 @@ hist(RedSignal,60);
 subplot(1,2,2)
 hist(RegRed(:),400)
 
-RedTh=0.2*0.001;
+RedTh=0.23*0.001;
 
 
 %%
@@ -86,7 +86,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=14;  
+TopCellN=15;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 

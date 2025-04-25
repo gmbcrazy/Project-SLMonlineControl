@@ -1,6 +1,6 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0864\04222025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL0886\04252025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
@@ -118,7 +118,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[31 27    26 35    34    36    31    27    26 35];
+XMLparam.PointList=[33 36 17 22 28 33 34 35 36 17];
 % % % XMLparam.PointList(10)=[29]
 % XMLparam.Laser(1:10)=repmat(1.4,1,10);
 % 
@@ -126,7 +126,7 @@ XMLparam.PointList=[31 27    26 35    34    36    31    27    26 35];
 [XMLTableTemp,FileGenerateInfoTemp]=PV_LinkPowerTest_MultiZseries(XMLparam,PowerTestPVPar);
 
 % idRanges=[6;12];
-% idRanges=[4;33];
+% idRanges=[4;27];
 idRanges=[FileGenerateInfoTemp.FileID;FileGenerateInfoTemp.FileID];   %Automatic update the new File ID to calculate ROIs
 step4_MultiZ_SubStep2_UpdatingROIandXML
 close all
@@ -139,6 +139,7 @@ SLMTableOrigin=SLMTable;
 FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
 SLMTable(FalsePositiveID,2)=nan;
 
+% SLMTable(28,2)=1.5;
 
 
 SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));
