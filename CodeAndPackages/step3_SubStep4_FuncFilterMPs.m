@@ -67,6 +67,11 @@ saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
 print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
 
+
+
+SaveCorrFigure(NeuroData, rSpeed, nanmean(fSpeed,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Speed');
+close all
+
 figure
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
@@ -80,6 +85,10 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
 print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
+
+SaveCorrFigure(NeuroData, rSpeed, nanmean(fStim,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Stim');
+close all
+
 
 
 

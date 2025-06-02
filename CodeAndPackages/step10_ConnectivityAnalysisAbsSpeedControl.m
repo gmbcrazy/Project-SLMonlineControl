@@ -254,8 +254,8 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                     
                     
                             else
-                               statGroupRes(iFun).p=zeros(size(iscell))+1;
-                               statGroupRes(iFun).delta=zeros(size(iscell));
+                               statGroupRes(iFun+1).p=zeros(size(iscell))+1;
+                               statGroupRes(iFun+1).delta=zeros(size(iscell));
     
                             end
                      %%Add Zero power as addtional group

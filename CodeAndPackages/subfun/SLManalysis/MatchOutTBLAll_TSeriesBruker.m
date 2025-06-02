@@ -47,6 +47,9 @@ function OutTBLtemp = MatchOutTBLAll_TSeriesBruker(OutTBLAll, TSeriesBrukerTBL)
 
                     % OutTBLAll(matchedIdx, :) = [subTable, AddTable];
                     OutTBLtemp=[OutTBLtemp;subTable, AddTable];
+
+% Now concatenate
+                    % OutTBLtemp = [OutTBLtemp;subTable];
                     break;
                 end
             end

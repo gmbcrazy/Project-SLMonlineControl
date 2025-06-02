@@ -22,7 +22,7 @@ x_outer = r_outer * cos(theta);
 y_outer = r_outer * sin(theta);
 
 hold on;
-r_band_outer=r_outer+1;
+% r_band_outer=r_outer+1;
 % figure;
 arc_width = (2*pi)/N;
 for k = 1:N

@@ -184,12 +184,12 @@ def CombinePlanes(SaveFolder, ops0):
         iscell = np.stack((iscell_0, iscell_1), axis=-1)
         fpath = os.path.join(SaveFolder, 'combined')
         print(ops0['nplanes'],' planes combined')
-
+        ops['save_path0']=SaveFolder
     if not os.path.exists(fpath):
         os.makedirs(fpath)
     else:
         print("Folder already exists.")
-
+        ops['save_path0']=SaveFolder
         np.save(os.path.join(fpath, "F.npy"), F)
         np.save(os.path.join(fpath, "Fneu.npy"), Fneu)
         np.save(os.path.join(fpath, "spks.npy"), spks)

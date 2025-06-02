@@ -1,7 +1,7 @@
 
 %Get information from *MarkPoitns.xml files in folder Path
-function caTrials=XMLread_SLM(pathGet,caTrialsInd)
-
+% function caTrials=XMLread_SLM(pathGet,caTrialsInd)
+function caTrials=XMLread_Basic(pathGet,caTrialsInd)
 
 
 %Get information from *MarkPoitns.xml files in folder Path

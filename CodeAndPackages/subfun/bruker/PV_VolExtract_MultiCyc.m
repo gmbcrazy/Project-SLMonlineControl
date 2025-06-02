@@ -57,6 +57,7 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
     end
     FrameNum=min(TSnum);
     
+
     % Extract and align timestamps for each plane based on the minimum frame count.
     for iPlane=1:numPlanes
         NeedI=find(TSplane==iPlane);
@@ -65,6 +66,8 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
     end
     
     
+
+
     % Prepare for processing speed data from voltage recordings.
 
     lastFrame=FrameNum;
@@ -72,7 +75,6 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
     if isfield(caTrials,'vRec')
     
         vRecRaw=caTrials.vRec{iseq};
-    
     
     
     % Begin processing for each imaging plane.
@@ -113,29 +115,35 @@ for iseq=1:length(caTrials.LastFrameSeqFile)
                fallingEdges = LocalMinima(diff(vRecTemp(:,3)),1,-1)+1; %%TTL pulse, looks like it is negative TTL pulse.
             end
     
-            if iseq==1
-               VideoStartFrameTime(iPlane)=vRecTemp(fallingEdges(1),3)/1000; %%voltage recording sampling time is micro-second
-            end
+            if ~isempty(fallingEdges)
+                if iseq==1
+                   VideoStartFrameTime(iPlane)=vRecTemp(fallingEdges(1),3)/1000; %%voltage recording sampling time is micro-second
+                end
             % toc
             % plot(vRecTemp(1:10000,3));hold on;
             % plot(fallingEdges(1:50),vRecTemp(fallingEdges(1:50),3),'r.')
             
             % Indt=find(WhiskerFileID==vRecFileID(t));
             % if ~isempty(Indt)   %% There is possible that some recording are without whisker files recorded.
-            if exist('whiskTrial1')
-               fW = numel(find(whiskTrial1>0))+1; % Total number of whisk frames actually recorded per trial; +1 because frame 1 is NaN
-               fW=min([fW,numel(fallingEdges)]);
-        
-            else
-               fW=numel(fallingEdges);
-            end
-            vRecTemp(fallingEdges(1:fW),5) = 1:fW;
-        
-        
-            if exist('BehavStruc')
-            vRecTemp(fallingEdges(1:fW),13:12+BehavNum)=BehavStruc(Indt).BehData(1:fW,:);
-            end
+                if exist('whiskTrial1')
+                   fW = numel(find(whiskTrial1>0))+1; % Total number of whisk frames actually recorded per trial; +1 because frame 1 is NaN
+                   fW=min([fW,numel(fallingEdges)]);
             
+                else
+                   fW=numel(fallingEdges);
+                end
+                vRecTemp(fallingEdges(1:fW),5) = 1:fW;
+        
+        
+                if exist('BehavStruc')
+                vRecTemp(fallingEdges(1:fW),13:12+BehavNum)=BehavStruc(Indt).BehData(1:fW,:);
+                end
+            else
+                fStim=zeros(FrameNum,numPlanes)+NaN;
+                fSpeed=zeros(FrameNum,numPlanes)+NaN;
+                fVideo=zeros(FrameNum,numPlanes)+NaN;
+                break
+            end
         
             % Add calcium time stamps and frame number
             timeStampCaTrial =  timeStampCa_Plane(:,iPlane)*1000;    %%voltage recording sampling time is micro-seconds

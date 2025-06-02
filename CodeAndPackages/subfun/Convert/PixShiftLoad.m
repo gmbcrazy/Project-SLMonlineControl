@@ -3,6 +3,7 @@ function [PixShiftFile, Files] = PixShiftLoad(WorkFolder)
     if isempty(motCorrBinFile)
         PixShiftFile=NaN;
         Files=NaN;
+        return
         % error('No binary files found in the specified folder.');
     end
     

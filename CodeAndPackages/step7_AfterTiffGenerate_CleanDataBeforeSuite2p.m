@@ -138,6 +138,10 @@ OutTBLAll.AwakeState(TT.TSeriesInd<=5)=1;    %%The 1st half 5 Tseries is designe
 OutTBLAll.AwakeState(TT.TSeriesInd>=6)=2;    %%The 2nd half 5 Tseries is designed for anesia state.
 
 
+
+
+
+
 FileID=unique(OutTBLAll.FileID)
 
 [~,~, fileIDCurrent,tiffNum] = getExpInfoFiles_NonMat(DataFolder);

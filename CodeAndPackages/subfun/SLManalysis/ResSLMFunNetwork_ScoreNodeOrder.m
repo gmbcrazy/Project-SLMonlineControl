@@ -1,10 +1,9 @@
-function [GgraphOut,Res,r,p,tHandels]=ResSLMFunNetwork_ScoreNodeOrder(SLMPosInfo,PSTHparam,ResponseAdj,ResponseNode,ParamNet,ScoreCell)
+function [GgraphOut,Res,r,p,tHandels]=ResSLMFunNetwork_ScoreNodeOrder(PSTHparam,ResponseAdj,ResponseNode,ParamNet,ScoreCell)
 
 
 GroupColor=ParamNet.GroupColor;
 TargetCellList=ParamNet.TargetCellList;
 % TargetCellListFunGroup=ParamNet.TargetCellListFunGroup;
-iscell=ParamNet.iscell;
 % SuccTarget=ParamNet.SuccTarget;
 ScoreLim=ParamNet.ScoreLim;
 ResponseLim=ParamNet.ResponseLim;
@@ -14,7 +13,7 @@ NodeColor=ParamNet.NodeColor;
 % PowerTargetI=ParamNet.PowerTargetI;
 statCellRes=ParamNet.statCellRes;
 crit_pAll=ParamNet.crit_pAll;
-SuccAmp=ParamNet.SuccAmp;
+% SuccAmp=ParamNet.SuccAmp;
 xMat=ParamNet.xMat;
 yMat=ParamNet.yMat;
 
@@ -26,10 +25,10 @@ TimeBinFrame=PSTHparam.TimeBinFrame;
    P.yBottom=0.1;
 
 [~,rankI]=sort(ScoreCell,'descend');
-rankI=[rankI;length(iscell)+1];
+rankI=[rankI;ParamNet.CellN+1];
 
 
-TargetCellBand=zeros(length(iscell)+1,1);
+TargetCellBand=zeros(ParamNet.CellN+1,1);
 TargetCellBand(ParamNet.GroupTargetCell)=ParamNet.SLMGroup;
 TargetCellBand(end)=ParamNet.SLMGroup;
 
@@ -50,17 +49,17 @@ AdjM(isnan(ResponseAdj))=0;
 figure;
 t1=subplotPosLu(xMat,yMat,1,2,P);
 hold on;
-
- imagesc(TimeBinFrame+0.5,1:length(iscell),PSTHparam.Data(rankI(1:end-1),:));
+if ~isempty(PSTHparam.Data)
+ imagesc(TimeBinFrame+0.5,1:ParamNet.CellN,PSTHparam.Data(rankI(1:end-1),:));
  if ~isempty(TargetCellSortedP{ParamNet.SLMGroup}(1:end-1))
     plot(TimeBinFrame(1),TargetCellSortedP{ParamNet.SLMGroup}(1:end-1),'o','Color',GroupColor(ParamNet.SLMGroup,:),'MarkerFaceColor',GroupColor(ParamNet.SLMGroup,:))
 
  end
- set(gca,'xlim',[-PSTHparam.PreSLMCal PSTHparam.PostSLMCal],'xtick',[-PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal],'ylim',[0 length(iscell)+0.5]);
+ set(gca,'xlim',[-PSTHparam.PreSLMCal PSTHparam.PostSLMCal],'xtick',[-PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal],'ylim',[0 ParamNet.CellN+0.5]);
  set(gca,'clim',ParamNet.ResponseLim);colormap(ParamNet.ResponseMap);
 
 axis ij
-
+end
 % hold on;
 % for iFun=1:length(SLMPosInfo.Group)
 %     plot(0,TargetCellSortedP{iFun},'>','Color',GroupColor(iFun,:),'MarkerFaceColor',GroupColor(iFun,:))
@@ -94,7 +93,7 @@ hold on;
 % ClimCorr=[-0.4 0.4];
 
 radius=5;
-% rankI=[rankI;length(iscell)+1];
+% rankI=[rankI;ParamNet.CellN+1];
 b=ResponseAdj(rankI,rankI);
 b(abs(b)<0.01)=NaN;
 a=abs(b);
@@ -173,7 +172,7 @@ t4=subplotPosLu(xMat,yMat,1,4,P);
 [Res,r,p]=LuPairRegressPlot_ExcludeDots(ScoreCell,Trans(1:end-1)',ParamNet.GroupTargetCell,ResParam);
 % set(gca,'ytick',ResParam.yLim,'xtick',union(0,ResParam.xLim))
 % 
-% IncludeInd=setdiff(1:length(iscell),ParamNet.GroupTargetCell);
+% IncludeInd=setdiff(1:ParamNet.CellN,ParamNet.GroupTargetCell);
 % IncludeInd=intersect(IncludeInd,find(PosRate>0.01));
 % ResParam.yLim=[0 ResponseLim(2)];
 % 
@@ -181,7 +180,7 @@ t4=subplotPosLu(xMat,yMat,1,4,P);
 % 
 % hold on;
 % 
-% IncludeInd=setdiff(1:length(iscell),ParamNet.GroupTargetCell);
+% IncludeInd=setdiff(1:ParamNet.CellN,ParamNet.GroupTargetCell);
 % IncludeInd=intersect(IncludeInd,find(NegRate<-0.01));
 % ResParam.yLim=[ResponseLim(1) 0];
 % [Res(2),r(2),p(2)]=LuPairRegressPlot(ScoreCell(IncludeInd),NegRate(IncludeInd)',ResParam);

@@ -4,6 +4,10 @@ ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 ConfigFile='SLMsetting.yml';
 
+% ConfigFolder='E:\LuSLMOnlineTest\SL0855\03042025\';
+% ConfigFile='CurrentSLMsetting.yml';
+
+
 confSet = ReadYaml([ConfigFolder '\' ConfigFile]);
 % This part cost 3 minutes.
 fileID=[1 2];

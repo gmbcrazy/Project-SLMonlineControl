@@ -27,6 +27,10 @@ function copyInitialRecordedFolders(cellVar, destFolder,varargin)
             end
             % Define destination path
             destPath = fullfile(destFolder, folderName);
+            if exist(destPath,'dir')
+               fprintf('%s exists, no need to copy.\n', destPath);
+               continue;
+            end
             mkdir(destPath);
             % Copy the entire folder recursively
             copyfile(srcFolder, destPath);

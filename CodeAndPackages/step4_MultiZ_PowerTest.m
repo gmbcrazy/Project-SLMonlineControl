@@ -68,6 +68,14 @@ XMLparam.Laser=confSet.UncagingLaserPower(1);
 %%
 SLMRes=zeros(length(XMLparam.AllPointList),length(ROIparam.LaserPower));
 sampleN=SLMRes;
+
+% Zdepth=confSet.ETL+confSet.scan_Z;
+% PointPlane=ismember(Pos3Dneed(:,3),PlaneZ);
+% SLMRes(PointPlane==3,1)=0;                   %No need to test low power for deepest plane, usually do not work
+% sampleN(PointPlane==3,1)=100;                %No need to test low power for deepest plane, usually do not work
+
+
+
 OutTBLAll=[];               %%SLM trial information across all testing files;
 PSTHall=[];
 ROIall=[];
