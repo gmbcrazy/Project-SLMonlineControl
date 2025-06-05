@@ -42,6 +42,8 @@ ClimRstim=[-0.1 0.1];
 CellSpeedColors = valueToColor(rSpeed, ClimRspeed, slanCM('wildfire',64));
 CellStimColors = valueToColor(rStim, ClimRstim, slanCM('wildfire',64));
 
+CellSpeedColors = valueToColor(rSpeed, ClimRspeed, parula(64));
+CellStimColors = valueToColor(rStim, ClimRstim, parula(64));
 
 
 
@@ -56,7 +58,7 @@ ImgClim=[0 800];
 figure;      
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,slanCM('wildfire',64),0,0,1,1);
+MultibarPlot(1:64,parula(64),0,0,1,1);
 set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
 xlabel('Speed-Corr')
 camroll(90);
@@ -75,7 +77,7 @@ close all
 figure
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,slanCM('wildfire',64),0,0,1,1);
+MultibarPlot(1:64,parula(64),0,0,1,1);
 set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
 xlabel('Speed-Corr')
 camroll(90);

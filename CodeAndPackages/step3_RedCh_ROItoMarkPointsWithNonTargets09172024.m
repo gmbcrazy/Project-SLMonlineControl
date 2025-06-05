@@ -102,7 +102,8 @@ step3_SubStep4_FuncFilterMPs;
 %% After Mannual Adjust Generated Functional Filtered MarkPoints in PV
 PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, FunScore, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial);
 %%
-
+mkdir(IncludePath)
+%%
 
 
 

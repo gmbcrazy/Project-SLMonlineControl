@@ -34,7 +34,7 @@ text(0,6,['Have you saved the xml into SavedMarkPoints in Bruker!'],'color','r',
 
 PreDefTseriesFolder=[ConfigFolder 'PreGenerateTseriesMultiZ\'];
 PreDefTmat='SpontBeh5T_Z11Frame550.mat';                  %<---------------------------Edit, TseriesPreDefined
-PreDefTmat='Anesthesia5T_Z11Frame550.mat';                %<-------------------------Edit, TseriesPreDefined
+% PreDefTmat='Anesthesia5T_Z11Frame550.mat';                %<-------------------------Edit, TseriesPreDefined
 
 PreDefFolder=[PreDefTseriesFolder PreDefTmat(1:end-4) '\'];
 load([PreDefTseriesFolder PreDefTmat],'TSeriesBrukerTBL');              
@@ -117,12 +117,12 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:1
+for TseriesID=4:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);
-PVparam.ExpKey='Anesthesia';                %<---------------------Update this
-% PVparam.ExpKey='Spontaneous';                 %<---------------------Update this
+%PVparam.ExpKey='Anesthesia';                %<---------------------Update this
+PVparam.ExpKey='Spontaneous';                 %<---------------------Update this
 
 LoadTSeriestoBruker(TSeriesENVFile(TseriesID))                   %%Update PVparam with Current Tseries
 % [~,~]=PV_LinkExcuteXMLFunGroup(XMLparam,PVparam);
