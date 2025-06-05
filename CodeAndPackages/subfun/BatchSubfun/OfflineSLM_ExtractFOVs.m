@@ -43,7 +43,7 @@ Cell3DPos=[CellMedCenter Zdepth(CaData.CellPlaneID)'];
 CellDistMeta{iFOV}=squareform(pdist(Cell3DPos));
 
 iData=PSTHparam.iData;
-PSTHparam.TestStepFrame=3;
+% PSTHparam.TestStepFrame=3;
 PVpower=xmlPower2PVpower(SLMTestInfo.confSet.UncagingLaserPower);
 PVpower=intersect(round(PVpower),SLMInfoTable.UncagingLaserPower);
 
@@ -57,7 +57,6 @@ GroupTargetCellMeta{iFOV}=GroupTargetCell;
 AlignedInfoTable=[AlignedInfoTable;AlignedInfoTableFOV{iFOV}];
 AlignedSpeedMeta=[AlignedSpeedMeta AlignedSpeed];
 AlignedStimMeta=[AlignedStimMeta AlignedStim];
-
 
 
 GroupTargetCellMeta{iFOV}=GroupTargetCell;
@@ -91,7 +90,26 @@ Output.rStim=rStimMeta;
 Output.CellDistMeta=CellDistMeta;
 
 
+GroupList=1:length(GroupTargetCell);
 
+for iFun=1:length(GroupList)
+    GroupTargetCell{iFun}=[];
+    GroupTargetCellTemp=[];
+    Cnum=0;
+    for iFOV = 1:length(Output.GroupTargetCellMeta)
+         GroupTargetCellTemp=[GroupTargetCellTemp;Output.GroupTargetCellMeta{iFOV}{iFun}(:)+Cnum];
+         Cnum = Cnum+sum(abs(Output.NeuroPos3DMeta(:,4)-iFOV)<0.1);
+    end
+    GroupTargetCell{iFun}=GroupTargetCellTemp;
+end
+GroupTargetCellAll=[];
+for iFun=1:length(GroupList)
+    GroupTargetCellAll=[GroupTargetCellAll;[GroupTargetCell{iFun}(:) zeros(size(GroupTargetCell{iFun}(:)))+iFun]];
+end
+GroupTargetCellMeta=[GroupTargetCell {[]}];
+
+Output.GroupTargetCellMerge=GroupTargetCell;
+Output.GroupTargetCellAll=GroupTargetCellAll;
 
 
 

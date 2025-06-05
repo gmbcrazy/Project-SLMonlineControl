@@ -24,10 +24,12 @@ elseif nargin==5
 else
 
 end
-for iGroup=1:length(dataGroup)
+for iGroup=1:length(unique(dataGroup))
     temp1=find(dataGroup==iGroup);
     if ~isempty(temp1)
-       scatter(data1(temp1),data2(temp1),Param.MarkerSize,Param.Color(iGroup,:),'filled',Param.Marker);
+       h=scatter(data1(temp1),data2(temp1),Param.MarkerSize,'MarkerEdgeColor',Param.Color(iGroup,:),'MarkerFaceColor',Param.Color(iGroup,:));
+       % scatter(data1(temp1),data2(temp1),Param.MarkerSize,'MarkerFaceColor',Param.Color(iGroup,:),Param.Marker);
+       set(h, 'Marker', Param.Marker); 
     end
 hold on;
 end

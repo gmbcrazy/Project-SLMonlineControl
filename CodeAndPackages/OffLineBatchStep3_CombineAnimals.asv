@@ -126,13 +126,13 @@ ParamAllCell.yLim=[-0.2 0.5];
 ParamAllCell.Rtype='spearman';
 figure;
 for iwisk=1:length(OutResult)
-    for iFun=1:length(ProcessPar.GroupList)+1
-        subplotLU(length(OutResult),length(ProcessPar.GroupList)+1,iwisk,iFun)
-        iNonTarget=setdiff([1:CellN],Output.GroupTargetCellAll(:,1));
-        % [~,~,~]=LuPairRegressPlot_Group(Output.rStim(iNonTarget,1,1), OutResult(iwisk).delta(iNonTarget,iFun),Output.NeuroPos3DMeta(iNonTarget,4),ParamAllCell,[OutResult(iwisk).delta(iNonTarget,4) COVfov(iNonTarget,:)]);
-        [~,~,~]=LuPairRegressPlot_Group(Output.rStim(iNonTarget,1,1), OutResult(iwisk).delta(iNonTarget,iFun),Output.NeuroPos3DMeta(iNonTarget,4),ParamAllCell,[OutResult(iwisk).delta(iNonTarget,4)]);
+for iFun=1:length(ProcessPar.GroupList)
+    subplot(2,length(ProcessPar.GroupList),iFun)
+    iNonTarget=setdiff([1:CellN],Output.GroupTargetCellAll(:,1));
+    % iNonTarget=[1:CellN];
+    [~,~,~]=LuPairRegressPlot_Group(Output.rStim(iNonTarget,1,1), OutResult(iwisk).delta(iNonTarget,iFun),Output.NeuroPos3DMeta(iNonTarget,4),ParamAllCell,[OutResult(1).delta(iNonTarget,4) COVfov(iNonTarget,:)]);
 
-    end
+end
 end
 
 
