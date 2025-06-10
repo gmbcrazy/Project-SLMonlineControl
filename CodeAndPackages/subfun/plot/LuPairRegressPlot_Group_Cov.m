@@ -1,4 +1,4 @@
-function [OutPut,r,p]=LuPairRegressPlot_Group_Cov(data1,data2,Cov,dataGroup,varargin)    
+function [OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(data1,data2,Cov,dataGroup,varargin)    
 
 data1=data1(:);
 data2=data2(:);
@@ -23,10 +23,9 @@ else
 
 end
 
-figure;
-subplot(1,2,1)
+h(1)=subplot(1,2,1);
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,data2,dataGroup,Param)
-subplot(1,2,2)
+h(2)=subplot(1,2,2);
 [B,BINT,R,RINT,STATS]=regress(data2,[ones(length(Cov),1) Cov]);
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,R,dataGroup,Param);
 
