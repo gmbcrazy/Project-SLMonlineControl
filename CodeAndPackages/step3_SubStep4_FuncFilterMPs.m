@@ -36,11 +36,11 @@ end
 [~, ~, ~, cellBoundary] = Suite2pCellIDMapFromStat(CaData.statCell, [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
 [~,cellPlane]=ismember(Pos3D(:,3),PlaneZ);
 
-rSpeed
+rSpeed;
 ClimRspeed=[-0.3 0.3];
 ClimRstim=[-0.1 0.1];
-CellSpeedColors = valueToColor(rSpeed, ClimRspeed, slanCM('wildfire',64));
-CellStimColors = valueToColor(rStim, ClimRstim, slanCM('wildfire',64));
+% CellSpeedColors = valueToColor(rSpeed, ClimRspeed, slanCM('wildfire',64));
+% CellStimColors = valueToColor(rStim, ClimRstim, slanCM('wildfire',64));
 
 CellSpeedColors = valueToColor(rSpeed, ClimRspeed, parula(64));
 CellStimColors = valueToColor(rStim, ClimRstim, parula(64));
@@ -71,7 +71,7 @@ print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
 
 
 
-SaveCorrFigure(NeuroData, rSpeed, nanmean(fSpeed,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Speed');
+% SaveCorrFigure(NeuroData, rSpeed, nanmean(fSpeed,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Speed');
 close all
 
 figure
@@ -88,7 +88,7 @@ saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
 print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
 
-SaveCorrFigure(NeuroData, rSpeed, nanmean(fStim,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Stim');
+% SaveCorrFigure(NeuroData, rSpeed, nanmean(fStim,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Stim');
 close all
 
 
