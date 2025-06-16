@@ -10,16 +10,17 @@ mkdir(DataSavePath);
 SaveFunCon=[DataSavePath 'FunCon\'];
 mkdir(SaveFunCon)
 
-
+VolEventLabel={}
 
 PSTHparam.PreSLMCal = 10; 
-PSTHparam.PostSLMCal = 3;
+PSTHparam.PostSLMCal = 10;
 PSTHparam.pTh = 0.05; 
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
 PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
 PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
 
+ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 
@@ -29,6 +30,7 @@ IndexFOVNeed=[1 2 3 4 7 8];
 Output=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPathLocal(IndexFOVNeed),PSTHparam);
 
 CellN=size(Output.NeuroPos3DMeta,1);
+CellNNonTarget=size(Output.NeuroPos3DMeta,1)-size(Output.GroupTargetCellAll,1);
 
 
 SaveFunCon='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM6Sessions\';
@@ -87,19 +89,19 @@ rSpeedScoreTargetCell=zeros(size(Output.NeuroPos3DMeta,1),length(ProcessPar.Grou
 
 
 DeltaAll=[];CovCellSubj=[];CovCellSpeedR=[];CovCellStimR=[];CovSubj=[];CovSess=[];CovTargetSpeedR=[];CovTargetStimR=[];CovSpeedDelta=[];CovStim=[];CovGroup=[];CovWhiskStim=[];CovSLM=[];
-
+NonTargetIAll=setdiff(1:CellN,Output.GroupTargetCellAll(:,1));
 
 for iWisk=1:length(OutResult)
     % temp1=OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList));
     DeltaAll=[DeltaAll;OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList))]; 
-    CovCellSubj=[CovCellSubj;repmat([1:CellN]',1,length(ProcessPar.GroupList))];
+    CovCellSubj=[CovCellSubj;repmat(NonTargetIAll',1,length(ProcessPar.GroupList))];
     CovCellSpeedR=[CovCellSpeedR;repmat(Output.rSpeed(:,1,1),1,length(ProcessPar.GroupList))];
     CovCellStimR=[CovCellStimR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList))];
     CovSess=[CovSess;repmat(Output.NeuroPos3DMeta(:,4),1,length(ProcessPar.GroupList))];
     CovSpeedDelta=[CovSpeedDelta;OutResult(iWisk).speeddelta(:,1:length(ProcessPar.GroupList))];
-    CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList),CellN,1)];
-    CovWhiskStim=[CovWhiskStim;zeros(CellN,length(ProcessPar.GroupList))+iWisk];
-    CovSLM=[CovSLM;zeros(CellN,length(ProcessPar.GroupList))+1];
+    CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList),CellNNonTarget,1)];
+    CovWhiskStim=[CovWhiskStim;zeros(CellNNonTarget,length(ProcessPar.GroupList))+iWisk];
+    CovSLM=[CovSLM;zeros(CellNNonTarget,length(ProcessPar.GroupList))+1];
 
 
     for iFOV =1:length(Output.AlignedNData)
@@ -110,6 +112,8 @@ for iWisk=1:length(OutResult)
         for iFun=1:length(ProcessPar.GroupList)
             iTarget=intersect(iNeuro,Output.GroupTargetCellMerge{iFun});
             rSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');
+            % CellDeltaSpeed(iFOV,iFun) = nanmean(OutResult(1).delta(iNonTarget,iFun));
+            
             % rParSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');        
             rGroup(iFOV,iFun)=iFun;
             rSpeedScore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
@@ -120,6 +124,7 @@ for iWisk=1:length(OutResult)
             % rStimcore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
             rStimScore(iFOV,iFun)=mean(Output.rStim(iTarget,1,1));
             % rStimCov(iFOV,iFun)= mean(OutResult(2).delta(iNonTarget,4));
+            % CellDeltaStim(iFOV,iFun) = nanmean(OutResult(2).delta(iNonTarget,iFun));
 
         end
 
@@ -137,6 +142,94 @@ tbl = table(DeltaAll(:), CovCellSpeedR(:), CovCellStimR(:), ...
     CovTargetSpeedR(:), CovTargetStimR(:), CovSpeedDelta(:),CovGroup(:),CovWhiskStim(:),CovCellSubj(:), CovSess(:),...
     'VariableNames', {'Response', 'SpeedR','StimR','TargetSpeedR','TargetStimR','Speed','Group','Whisk','Cell','Session'});
 
+
+
+
+figure;
+for iWisk=1:2
+    clear TempData;
+    if iWisk==1
+       [~,rankI]=sort(Output.rSpeed(:,1,1),'descend');
+    else
+       [~,rankI]=sort(Output.rStim(:,1,1),'descend');
+    end
+    for iGroup=1:4
+        subplotLU(2,4,iWisk,iGroup)
+        imagesc(OutResult(iWisk).GroupResponse(rankI,:,iGroup));colormap(ResponseMap);set(gca,'clim',[-0.2 0.2])
+    end
+
+end
+close all
+
+
+figure;
+
+for iWisk=1:2
+
+    subplot(1,2,iWisk)
+    for iGroup=1:4
+    TempData{iGroup}=OutResult(iWisk).delta(NonTargetCell,iGroup)
+    [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData{iGroup},0);
+    [pRFromZero(iWisk,iGroup),~,RFromZero(iWisk,iGroup)]=signrank(TempData{iGroup},0);
+
+    end
+    stats=ErrorViolinHalf([1 2 3 4],TempData,Param.Color,1,[],GroupPair,[1 1 1 1]);
+    hold on;
+plot([0 4],[0 0],'k:')
+set(gca,'ylim',[-0.05 0.2],'xlim',[0 5])
+
+end
+ 
+  olinplot_half(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1),'ShowData',false,'X')
+
+  violinplot_half(TempData,1:3,'ShowData',false,'X')
+figure;
+stats=ErrorViolinHalf([0.9 1.1 1.9 2.1 2.9 3.1],TempData,Param.Color,1,[],GroupPair,[1 1 1 1 1 1]);
+   GroupPair.CorrName='fdr';
+   GroupPair.Test='Ttest';
+   GroupPair.Q=0.1;
+   P1=[1 1 3;3 5 5];
+   P1=[P1 P1+1];
+   P2=[1 3 5;2 4 6];
+   GroupPair.Pair=[];
+   GroupPair.SignY=0.12;
+   GroupPair.Plot=1;
+   GroupPair.Std=0;      %%%%%%%%%using standard deviation as errorbar
+   GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+   GroupPair.SamplePairedPlot=1; %%%%%%%%%Dash line for paired comparison sample
+   GroupPair.LimY=[0 GroupPair.SignY*1.2];
+   GroupPair.Marker={'o'};
+   GroupPair.ViolinLR=[0 0 0 0];
+
+Param.Color=[1.0000    0.2000    0.6000;0.3569    0.0784    0.8314;0.4745    0.9686    0.4353;0.6 0.6 0.6];
+
+
+hold on;
+plot([0 4],[0 0],'k:')
+set(gca,'ylim',[-0.05 0.15],'xlim',[0 4])
+
+
+figure;
+stats=ErrorViolinHalf(1:3,TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
+
+
+figure;
+stats=ErrorViolinHalf(1:3,(TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
+
+
+
+
+figure;
+Violin_halfLeft(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1))
+
+figure;
+Violin_halfLeft(TempData,1:3)
+
+Violin_half(tbl.Response(tbl.Whisk==1),1:3,tbl.Group(tbl.Whisk==1))
+
+[violins,plotinfo] = violinplot_half(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1), 'GroupOrder',{1 2 3})
+
+Violin_halfLeft(tbl.Response(tbl.Whisk==1), 1:3,tbl.Group(tbl.Whisk==1))
 % % 
 % % 
 % % % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
@@ -219,7 +312,7 @@ writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 
 
 
-clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rStimSore rStimCov rParStim rStimSpeedCov
+clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rStimSore rStimCov rParStim rStimSpeedCov responseSpeedTrial responseStimTrial
 
 for iFOV =1:length(Output.AlignedNData)
     iNeuro=find(Output.NeuroPos3DMeta(:,4)==iFOV);
@@ -229,6 +322,8 @@ for iFOV =1:length(Output.AlignedNData)
         rSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');
         % rParSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');        
         % rGroup(iFOV,iFun)=iFun;
+        responseSpeedTrial(iFOV,iFun) = nanmean(OutResult(1).delta(iNonTarget,iFun));
+
         rSpeedScore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
         rSpeedCov(iFOV,iFun)= mean(OutResult(1).speeddelta(iNonTarget,iFun));
         rSpeedScoreTargetCell(iNeuro,iFun) =  rSpeedScore(iFOV,iFun);
@@ -236,10 +331,13 @@ for iFOV =1:length(Output.AlignedNData)
 
         rStim(iFOV,iFun) = corr(OutResult(2).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),'rows','complete','type','Pearson');
         rParrStim(iFOV,iFun) = partialcorr(OutResult(2).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),OutResult(2).delta(iNonTarget,4),'rows','complete','type','Pearson');
+        responseStimTrial(iFOV,iFun) = nanmean(OutResult(2).delta(iNonTarget,iFun));
+
         rGroup(iFOV,iFun)=iFun;
         rStimScore(iFOV,iFun)=mean(Output.rStim(iTarget,1,1));
         rStimCov(iFOV,iFun)= mean(OutResult(2).delta(iNonTarget,4));
         rStimSpeedCov(iFOV,iFun)= mean(OutResult(2).speeddelta(iNonTarget,4));
+
 
     end
 end
@@ -247,8 +345,25 @@ end
 
 
 Param.xLim=[-0.2 0.4];
-Param.yLim=[-0.2 0.5];
+Param.yLim=[-0.02 0.02];
 % [~,~,~]=LuPairRegressPlot_Group(r(:),rSpeedScore(:), rGroup(:), Param, rSpeedCov(:))    
+figure;
+[~,r,p,h]=LuPairRegressPlot_Group_Cov(rSpeedScore(:),responseSpeedTrial(:), rSpeedCov(:),rGroup(:),Param);    
+ylabel(h(1),'Response (NonTarget-Speed)')
+xlabel(h(1),'Corr (Target-Speed)')
+xlabel(h(2),'Corr (Target-Speed)')
+title(h(2),'Speed Change Regressed out')
+papersizePX=[0 0 15 8];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+print(gcf, [SaveP1 'ResponseNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 'ResponseNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
+
+
+
+
+
+
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rSpeedScore(:),rSpeed(:), rSpeedCov(:),rGroup(:),Param);    
 ylabel(h(1),'Corr (NonTarget-Speed)')
@@ -264,6 +379,18 @@ print(gcf, [SaveP1 'rNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters
 
 
 
+Param.xLim=[-0.2 0.3];
+Param.yLim=[-0.04 0.04];
+figure;
+[~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:), responseStimTrial(:),rStimSpeedCov(:),rGroup(:),Param);   
+ylabel(h(1),'Response (NonTarget-WhiskStim | SLM = 0)')
+xlabel(h(1),'Corr (Target-WhiskStim)')
+xlabel(h(2),'Corr (Target-WhiskStim)')
+title(h(2),'Speed Change Regressed out')
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
 
 
 Param.xLim=[-0.2 0.3];

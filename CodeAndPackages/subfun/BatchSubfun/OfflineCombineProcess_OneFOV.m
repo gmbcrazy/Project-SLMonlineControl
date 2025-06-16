@@ -174,6 +174,8 @@ crit_p=min([crit_p 0.05]);
 
 PowerTargetI=zeros(length(TargetCellList),1);
 SuccTarget=PowerTargetI;
+SuccAmp=PowerTargetI;
+
 for iCell=1:length(TargetCellList)
     for iPower=1:length(PVpower)
         if TargetCellResP(iCell,iPower)<=crit_p&&TargetCellResR(iCell,iPower)>0&&CellSampleN(iCell,iPower)>=TrialThNum
