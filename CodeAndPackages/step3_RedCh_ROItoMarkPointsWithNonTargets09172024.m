@@ -54,7 +54,7 @@ hist(RedSignal,60);
 subplot(1,2,2)
 hist(RegRed(:),400)
 
-RedTh=0.21*0.001;
+RedTh=0.22*0.001;
 
 
 %%
@@ -90,7 +90,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=15;  
+TopCellN=13;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 

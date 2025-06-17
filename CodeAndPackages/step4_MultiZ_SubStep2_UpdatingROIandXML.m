@@ -12,6 +12,8 @@ SLMTrialInfo.Laser=PVpower2xmlPower(SLMTrialInfo.UncagingLaserPower);
 FileIDrange=[];
 [SLMRes,sampleN]=SLMResponse_ROIMultiZ(ROIall,SLMTrialInfo,ROIparam,SLMTestParam.TerminalTrialN,SumDataFolder,FileIDrange);
 % close all
-SLMRes([8 23 24],2)=0;
+SLMRes([1 9],1)=0;
+% SLMRes([3 7 32 35],2)=0;
+
 % sampleN([2 6 9],:)=10;
 step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.
