@@ -1,9 +1,11 @@
 clear all
+
+
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath 'FOV.mat'])
+load([BatchSavePath '03-Jul-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
-DataSavePath='D:\Project1-LocalProcessing\Step3\';
+DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\';
 mkdir(DataSavePath);
 DataSavePath=[DataSavePath Suite2pDataKeywords '\'];
 mkdir(DataSavePath);
@@ -13,7 +15,7 @@ mkdir(SaveFunCon)
 VolEventLabel={}
 
 PSTHparam.PreSLMCal = 10; 
-PSTHparam.PostSLMCal = 10;
+PSTHparam.PostSLMCal = 15;
 PSTHparam.pTh = 0.05; 
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
@@ -24,21 +26,61 @@ ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 
-IndexFOVNeed=[1 2 3 4 7 8];
+IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12];
 
 
-Output=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPathLocal(IndexFOVNeed),PSTHparam);
+% Output=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPathLocal(IndexFOVNeed),PSTHparam);
+[Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+
+
 
 CellN=size(Output.NeuroPos3DMeta,1);
 CellNNonTarget=size(Output.NeuroPos3DMeta,1)-size(Output.GroupTargetCellAll,1);
 
 
-SaveFunCon='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM6Sessions\';
+
+SaveFunCon=['\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
+
 % SaveFunCon=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
 mkdir(SaveFunCon)
 
 PostPreDiffSpeedTh=[1 2 10000];
+% PostPreDiffSpeedTh=[1 2 10000];
 
+% %%Making table for mixed linear models
+% [tbl,InfoTable]=OfflineSLM_FOVmeta2NeuroDeltaTrial(Output,ProcessPar,PSTHparam);
+
+% SLMGroupTableTrial=[tbl InfoTable];
+
+% NeedInfo={'Group','VolOut','PowerZero','AwakeState'}
+% 
+% SLMGroupTableTrial = [tbl InfoTable(:,NeedInfo)];
+% SLMGroupTableTrial(isnan(SLMGroupTableTrial.Group),:)=[];
+% SLMGroupTableTrial=removevars(SLMGroupTableTrial,{'PointSpeedR','PointSensoryR'});
+% 
+% SLMGroupTableTrial.Properties.VariableNames{'VolOut'} = 'Sensory';
+% 
+% SLMGroupTrialID=SLMGroupTableTrial.TrialID;
+% EndSessInd=[find(diff(SLMGroupTrialID)<0);length(SLMGroupTrialID)];
+% StartSessInd=[1;find(diff(SLMGroupTrialID)<0)+1];
+% Time=[];
+% for iT=1:length(EndSessInd)
+%     TempSeq=StartSessInd(iT):EndSessInd(iT);
+%     TempSeq=(TempSeq-min(TempSeq))/(max(TempSeq)-min(TempSeq));
+%     Time=[Time;TempSeq(:)];
+% end
+% SLMGroupTableTrial.Time=Time;
+% 
+% 
+% writetable(SLMGroupTableTrial,[SaveFunCon 'SLMGroupResTrial.csv']);
+
+Ind=(SLMGroupTableTrial.Sensory==0&SLMGroupTableTrial.TargetCell==0);
+plot(SLMGroupTableTrial.SpeedR(Ind).*SLMGroupTableTrial.TargetSpeedR(Ind),SLMGroupTableTrial.Response(Ind),'r.')
+
+plot(SLMGroupTableTrial.Time(Ind),SLMGroupTableTrial.Response(Ind),'r.')
+
+
+PostPreDiffSpeedTh=[1 2 10000]
 
 for iSpeedTh=1:length(PostPreDiffSpeedTh)
 SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
@@ -53,14 +95,16 @@ ProcessPar.PowerZeroColor=[0.5 0.5 0.5];
 ProcessPar.PowerZero=[0 1];
 ProcessPar.PowerZeroLabel={'SLM','FakeSLM'};
 ProcessPar.VolOut=[0 1];
-ProcessPar.VolOutLabel={'NoWhisk','Whisk'}
+ProcessPar.VolOutLabel={'NoSensory','Sensory'}
 ProcessPar.AwakeState=[1];
 ProcessPar.AwakeStateLabel={'Awake'};
 % % GroupMetaName=[ProcessPar.GroupLabel {'FakeSLM'}];
 % % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
 % % 
 
-OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
+% OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
+OutResult=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControlZeroPower(Output,ProcessPar,PSTHparam, SaveFunCon)
+
 NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
 
 
@@ -88,20 +132,394 @@ rSpeedScoreTargetCell=zeros(size(Output.NeuroPos3DMeta,1),length(ProcessPar.Grou
 
 
 
-DeltaAll=[];CovCellSubj=[];CovCellSpeedR=[];CovCellStimR=[];CovSubj=[];CovSess=[];CovTargetSpeedR=[];CovTargetStimR=[];CovSpeedDelta=[];CovStim=[];CovGroup=[];CovWhiskStim=[];CovSLM=[];
+DeltaAll=[];DeltaNormAll=[];CovCellSubj=[];CovCellSpeedR=[];CovCellSensoryR=[];CovSubj=[];CovSess=[];CovTargetSpeedR=[];CovTargetSensoryR=[];CovSpeedDelta=[];CovStim=[];CovGroup=[];CovSensoryStim=[];CovSLM=[];CovShamOpto=[];
 NonTargetIAll=setdiff(1:CellN,Output.GroupTargetCellAll(:,1));
+CovTarget=zeros(CellN,length(ProcessPar.GroupList));
+CovTarget(Output.GroupTargetCellAll(:,1),:)=1;
+CovTarget=[CovTarget;CovTarget];
+for iWisk=1:length(OutResult)
+    % temp1=OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList));
+    DeltaAll=[DeltaAll;OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList))-repmat(OutResult(iWisk).delta(:,4),1,3)];            %%<<<<-----------------------------PowerZero were substract for normalization
+    % DeltaAll=[DeltaAll;OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList))];                                                  %%<<<<-----------------------------PowerZero were notsubstract for normalization
 
+    DeltaNormAll=[DeltaNormAll;OutResult(iWisk).deltaNorm(:,1:length(ProcessPar.GroupList))];
+    CovCellSubj=[CovCellSubj;repmat([1:CellN]',1,length(ProcessPar.GroupList))];
+    CovCellSpeedR=[CovCellSpeedR;repmat(Output.rSpeed(:,1,1),1,length(ProcessPar.GroupList))];
+    CovCellSensoryR=[CovCellSensoryR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList))];
+    CovSess=[CovSess;repmat(Output.NeuroPos3DMeta(:,4),1,length(ProcessPar.GroupList))];
+    CovSpeedDelta=[CovSpeedDelta;OutResult(iWisk).speeddelta(:,1:length(ProcessPar.GroupList))];
+    CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList),CellN,1)];
+    CovSensoryStim=[CovSensoryStim;zeros(CellN,length(ProcessPar.GroupList))+iWisk];
+    CovSLM=[CovSLM;zeros(CellN,length(ProcessPar.GroupList))+1];
+    % CovTarget=[CovTarget;CovTarget];
+
+    CovShamOpto=[CovShamOpto;repmat(OutResult(iWisk).delta(:,4),1,length(ProcessPar.GroupList))]; 
+
+    for iFOV =1:length(Output.AlignedNData)
+        iNeuro=find(Output.NeuroPos3DMeta(:,4)==iFOV);
+        iNonTarget=setdiff(iNeuro,Output.GroupTargetCellAll(:,1));
+
+
+        for iFun=1:length(ProcessPar.GroupList)
+            iTarget=intersect(iNeuro,Output.GroupTargetCellMerge{iFun});
+            rSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');
+            % CellDeltaSpeed(iFOV,iFun) = nanmean(OutResult(1).delta(iNonTarget,iFun));
+            
+            % rParSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');        
+            rGroup(iFOV,iFun)=iFun;
+            rSpeedScore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
+            % rSpeedCov(iFOV,iFun)= mean(OutResult(1).speeddelta(iNonTarget,iFun));
+            % rSpeedScoreTargetCell(iNeuro,iFun) =  rSpeedScore(iFOV,iFun);
+
+
+            % rStimcore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
+            rStimScore(iFOV,iFun)=mean(Output.rStim(iTarget,1,1));
+            % rStimCov(iFOV,iFun)= mean(OutResult(2).delta(iNonTarget,4));
+            % CellDeltaStim(iFOV,iFun) = nanmean(OutResult(2).delta(iNonTarget,iFun));
+
+        end
+
+        CovTargetSpeedR = [CovTargetSpeedR;repmat(rSpeedScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
+        CovTargetSensoryR = [CovTargetSensoryR;repmat(rStimScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
+
+    end
+
+
+
+
+
+end
+
+
+
+tbl = table(DeltaAll(:), DeltaNormAll(:),CovCellSpeedR(:), CovCellSensoryR(:), ...
+    CovTargetSpeedR(:), CovTargetSensoryR(:), CovSpeedDelta(:),CovGroup(:),CovSensoryStim(:),CovCellSubj(:), CovSess(:),CovTarget(:),CovShamOpto(:),...
+    'VariableNames', {'Response','ResponseNorm','SpeedR','SensoryR','TargetSpeedR','TargetSensoryR','Speed','Group','Sensory','Cell','Session','TargetCell','ShamOpto'});
+
+
+% writetable(tbl,[SaveP1 'SLMGroupResponse.csv']);                            %%<<<<-----------------------------PowerZero were notsubstract for normalization
+
+% writetable(tbl,[SaveP1 'SLMGroupResponseMinusPowerZero.csv']);                %%<<<<-----------------------------PowerZero were substract for normalization
+writetable(tbl,[SaveP1 'SLMGroupResponseMinusPowerZero_PowerZeroNoSpeedTh.csv']);                %%<<<<-----------------------------PowerZero were substract for normalization
+
+
+
+end
+
+
+PostPreDiffSpeedTh=2;
+
+%%Plot distributions
+for iSpeedTh=1:length(PostPreDiffSpeedTh)
+SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
+mkdir(SaveP1);
+
+ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
+ProcessPar.PlotFigure=0;
+ProcessPar.GroupLabel={'L','S','N'};
+ProcessPar.GroupList=[1 2 3];
+ProcessPar.GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+ProcessPar.PowerZeroColor=[0.5 0.5 0.5];
+ProcessPar.PowerZero=[0 1];
+ProcessPar.PowerZeroLabel={'SLM','FakeSLM'};
+ProcessPar.VolOut=[0 1];
+ProcessPar.VolOutLabel={'NoSensory','Sensory'}
+ProcessPar.AwakeState=[1];
+ProcessPar.AwakeStateLabel={'Awake'};
+% % GroupMetaName=[ProcessPar.GroupLabel {'FakeSLM'}];
+% % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
+% % 
+
+OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
+NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
+% TargetCell=Output.GroupTargetCellAll(:,1);
+
+
+% data1=OutResult(1).delta(:,4);
+% data2=Output.rSpeed(:,1,1);
+   Param.Color=ProcessPar.GroupColor;
+   Param.Marker='o';
+   Param.MarkerSize=12;
+   Param.Rtype='pearson';
+   % Param.xLim=[min(data1) max(data1)];
+   % Param.yLim=[min(data2) max(data2)];
+   Param.xLabel=[];
+   Param.yLabel=[];
+   Param.ExcludeColor=[0.5 0.5 0.5];
+   Param.PlotExclude=0;
+% [~,r,p]=LuPairRegressPlotGroup_ExcludeDots(data1,data2,Output.NeuroPos3DMeta(:,4),Output.GroupTargetCellAll(:,1), Param)    
+
+
+
+
+
+
+
+% figure;
+% for iWisk=1:2
+%     clear TempData;
+%     if iWisk==1
+%        [~,rankI]=sort(Output.rSpeed(:,1,1),'descend');
+%     else
+%        [~,rankI]=sort(Output.rStim(:,1,1),'descend');
+%     end
+%     for iGroup=1:4
+%         subplotLU(2,4,iWisk,iGroup)
+%         imagesc(OutResult(iWisk).GroupResponse(rankI,:,iGroup));colormap(ResponseMap);set(gca,'clim',[-0.2 0.2])
+%     end
+% 
+% end
+% close all
+   P1=[1 1 3;3 5 5];
+   P1=[P1 P1+1];
+   P2=[1 3 5;2 4 6];
+   GroupPair.Pair=[];
+   GroupPair.SignY=0.12;
+   GroupPair.Plot=1;
+   GroupPair.Std=0;      %%%%%%%%%using standard deviation as errorbar
+   GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+   GroupPair.SamplePairedPlot=1; %%%%%%%%%Dash line for paired comparison sample
+   GroupPair.LimY=[0 GroupPair.SignY*1.2];
+   GroupPair.Marker={'o'};
+   GroupPair.ViolinLR=[0 0 0 0];
+   GroupPair.GroupName=ProcessPar.GroupLabel;
+   GroupPair.Q=0.1;
+
+   GroupPair.CorrName='fdr';
+   GroupPair.SignY=0.12;
+   GroupPair.Plot=1;
+   GroupPair.Std=0;      %%%%%%%%%using standard deviation as errorbar
+   GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+   GroupPair.SamplePairedPlot=1; %%%%%%%%%Dash line for paired comparison sample
+   GroupPair.LimY=[0 GroupPair.SignY*1.2];
+   GroupPair.Marker={'o'};
+   GroupPair.ViolinLR=[0 0 0 0];
+   GroupPair.Test='Ttest';
+   Param.Color=[1.0000    0.2000    0.6000;0.3569    0.0784    0.8314;0.4745    0.9686    0.4353;0.6 0.6 0.6];
+
+
+   GroupPair.GroupName={'L','S','N','0'}
+
+
+
+
+
+for iWisk=1:2
+
+    % subplot(1,2,iWisk)
+    figure;
+    for iGroup=1:3
+    TempData{iGroup}=OutResult(iWisk).delta(NonTargetCell,iGroup)
+    [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData{iGroup},0);
+    [pRFromZero(iWisk,iGroup),~,RFromZero(iWisk,iGroup)]=signrank(TempData{iGroup},0);
+
+    end
+    % stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[SaveP1 ProcessPar.VolOutLabel{iWisk} '.txt'],GroupPair,[1 1 1]);
+    stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[],GroupPair,[1 1 1]);
+    ylabel('Cell response (Post-Pre ΔF)');
+    xlabel('Stim group')
+    hold on;
+    plot([0 4],[0 0],'k:')
+    set(gca,'ylim',[-0.05 0.1],'xlim',[0 4],'xtick',1:3,'XTickLabel',GroupPair.GroupName)
+    papersizePX=[0 0 12 12];
+    set(gcf, 'PaperUnits', 'centimeters');
+    set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+    print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'DisNonTargetCellResponse.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveP1  ProcessPar.VolOutLabel{iWisk} 'DisNonTargetCellResponse.tif'], '-dtiffn', '-painters');
+
+
+
+
+    % GroupPairSpeed=GroupPair;
+    % GroupPairSpeed=[]
+    % GroupPairSpeed.GroupName={'Pre','Post','Pre','Post','Pre','Post'}
+    % GroupPairSpeed.ViolinLR=[0 1 0 1 0 1]
+    % 
+    % figure;
+    % clear TempData TempData2;
+    % for iGroup=1:3
+    % TempData2{(iGroup-1)*2+1}=OutResult(iWisk).GroupSpeedTrial{iGroup}(:,1);
+    % TempData2{(iGroup-1)*2+2}=OutResult(iWisk).GroupSpeedTrial{iGroup}(:,2);
+    % TempData{iGroup}=OutResult(iWisk).GroupSpeedTrial{iGroup}(:,2)-OutResult(iWisk).GroupSpeedTrial{iGroup}(:,1);
+    % 
+    % [~,pTFromZeroSpeed(iWisk,iGroup),~,tFromZeroSpeed(iWisk,iGroup)]=ttest(OutResult(iWisk).GroupSpeedTrial{iGroup}(:,1),OutResult(iWisk).GroupSpeedTrial{iGroup}(:,2));
+    % [pRFromZeroSpeed(iWisk,iGroup),~,RFromZeroSpeed(iWisk,iGroup)]=signrank(OutResult(iWisk).GroupSpeedTrial{iGroup}(:,1),OutResult(iWisk).GroupSpeedTrial{iGroup}(:,2));
+    % end
+    % % TempColor=[1.0000    0.2000    0.6000;1.0000    0.2000    0.6000;0.3569    0.0784    0.8314;0.3569    0.0784    0.8314;0.4745    0.9686    0.4353;0.4745    0.9686    0.4353];
+    % % stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[SaveP1 ProcessPar.VolOutLabel{iWisk} '.txt'],GroupPair,[1 1 1]);
+    % stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[],GroupPair,[1 2 3]);
+    % 
+    % 
+    % 
+    % GroupPairSpeed.SamplePlot=0;
+    % GroupPairSpeed.SamplePairedPlot=0;
+    % GroupPairSpeed.Pair=[]
+    % GroupPairSpeed.LimY=[-0.005 0.005];
+    % 
+    % stats=ErrorBoxPlotLU([1 2 3],TempData,Param.Color,[], GroupPairSpeed,[1 2 3]);
+    % set(gca,'ylim',[-0.001 0.001]);
+    % hold on;
+    % plot([0 4],[0 0],':');
+    % 
+    % stats=ErrorBarPlotLU([1 2 3],TempData,[],Param.Color,2,0,[], GroupPairSpeed,[1 2 3]);
+    % set(gca,'ylim',[-0.01 0.01]);
+    % hold on;
+    % plot([0 4],[0 0],':');
+    % 
+    % 
+    % GroupPairSpeed.Pair=[1 3 5;2 4 6]
+    % stats=ErrorBarPlotLU([1 1.2 2 2.2 3 3.2],TempData2,[],TempColor,2,1,[], GroupPairSpeed,[1 1 2 2 3 3]);
+    % 
+    % 
+    % GroupPairSpeed.SamplePlot=0;
+    % GroupPairSpeed.SamplePairedPlot=0;
+    % GroupPairSpeed.Pair=[1 3 5;2 4 6]
+    % GroupPairSpeed.LimY=[0 0.05];
+    % stats=ErrorBoxPlotLU([1 1.2 2 2.2 3 3.2],TempData,TempColor,[], GroupPairSpeed,[1 1 2 2 3 3]);
+    % set(gca,'ylim',[0.005 0.01])
+    % 
+
+    % stats=ErrorViolinHalf([1 1.2 2 2.2 3 3.2],TempData,TempColor,1,[], GroupPairSpeed,[1 1 2 2 3 3])
+
+
+    % ylabel('SLM response');
+    % xlabel('SLM Group')
+    % hold on;
+    % plot([0 4],[0 0],'k:')
+    % set(gca,'ylim',[-0.05 0.2],'xlim',[0 4],'xtick',1:3,'XTickLabel',GroupPair.GroupName)
+    % papersizePX=[0 0 12 12];
+    % set(gcf, 'PaperUnits', 'centimeters');
+    % set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+    % print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'DisNonTargetCellResponse.svg'], '-dsvg', '-painters');
+    % print(gcf, [SaveP1  ProcessPar.VolOutLabel{iWisk} 'DisNonTargetCellResponse.tif'], '-dtiffn', '-painters');
+
+
+
+
+
+    GroupPairTarget=GroupPair;
+    GroupPairTarget.SamplePairedPlot=0;
+    figure;
+    for iGroup=1:3
+    TempData2{iGroup}=OutResult(iWisk).delta(Output.GroupTargetCellMerge{iGroup},iGroup);
+    % pTemp=OutResult(iWisk).p(Output.GroupTargetCellMerge{iGroup},iGroup);
+    % TempData2{iGroup}(pTemp>0.05)=[];
+    % Temp
+    [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData2{iGroup},0);
+    [pRFromZero(iWisk,iGroup),~,RFromZero(iWisk,iGroup)]=signrank(TempData2{iGroup},0);
+    end
+    % stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[SaveP1 ProcessPar.VolOutLabel{iWisk} '.txt'],GroupPair,[1 1 1]);
+    stats=ErrorViolinHalf([1 2 3],TempData2(1:3),Param.Color,0,[],GroupPair,[1 2 3]);
+    ylabel('Cell response (Post-Pre ΔF)');
+    xlabel('Stim group')
+    hold on;
+    plot([0 4],[0 0],'k:')
+    set(gca,'ylim',[-0.05 1],'xlim',[0 4],'xtick',1:3,'XTickLabel',GroupPair.GroupName)
+    papersizePX=[0 0 12 12];
+    set(gcf, 'PaperUnits', 'centimeters');
+    set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+    print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'DisTargetCellResponse.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveP1  ProcessPar.VolOutLabel{iWisk} 'DisTargetCellResponse.tif'], '-dtiffn', '-painters');
+
+
+
+
+    
+
+
+
+    % print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'DisCellResponse.svg'], '-dsvg', '-painters');
+    % print(gcf, [SaveP1  ProcessPar.VolOutLabel{iWisk} 'DisCellResponse.tif'], '-dtiffn', '-painters');
+    % close all
+    % figure;
+    % hold on;
+    % for iGroup=1:4
+    %     figure;
+    %     histPlotLU(TempData2{iGroup},[-0.3:0.005:0.4],Param.Color(iGroup,:),0.3);
+    % end
+
+
+
+
+
+end
+ 
+
+
+
+
+end
+
+
+
+
+
+
+for iSpeedTh=1:length(PostPreDiffSpeedTh)
+SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
+mkdir(SaveP1);
+
+ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
+ProcessPar.PlotFigure=0;
+ProcessPar.GroupLabel={'L','S','N'};
+ProcessPar.GroupList=[1 2 3];
+ProcessPar.GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+ProcessPar.PowerZeroColor=[0.5 0.5 0.5];
+ProcessPar.PowerZero=[0 1];
+ProcessPar.PowerZeroLabel={'SLM','FakeSLM'};
+ProcessPar.VolOut=[0 1];
+ProcessPar.VolOutLabel={'NoSensory','Sensory'}
+ProcessPar.AwakeState=[1];
+ProcessPar.AwakeStateLabel={'Awake'};
+% % GroupMetaName=[ProcessPar.GroupLabel {'FakeSLM'}];
+% % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
+% % 
+
+OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon);
+NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
+
+
+% data1=OutResult(1).delta(:,4);
+% data2=Output.rSpeed(:,1,1);
+   Param.Color=ProcessPar.GroupColor;
+   Param.Marker='o';
+   Param.MarkerSize=12;
+   Param.Rtype='pearson';
+   % Param.xLim=[min(data1) max(data1)];
+   % Param.yLim=[min(data2) max(data2)];
+   Param.xLabel=[];
+   Param.yLabel=[];
+   Param.ExcludeColor=[0.5 0.5 0.5];
+   Param.PlotExclude=0;
+% [~,r,p]=LuPairRegressPlotGroup_ExcludeDots(data1,data2,Output.NeuroPos3DMeta(:,4),Output.GroupTargetCellAll(:,1), Param)    
+
+
+
+clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rStimSore rStimCov rParStim
+
+
+
+rSpeedScoreTargetCell=zeros(size(Output.NeuroPos3DMeta,1),length(ProcessPar.GroupList));
+
+
+
+DeltaAll=[];CovCellSubj=[];CovCellSpeedR=[];CovCellSensoryR=[];CovSubj=[];CovSess=[];CovTargetSpeedR=[];CovTargetSensoryR=[];CovSpeedDelta=[];CovStim=[];CovGroup=[];CovSensoryStim=[];CovSLM=[];
+NonTargetIAll=setdiff(1:CellN,Output.GroupTargetCellAll(:,1));
+CovTarget=zeros(CellN,length(ProcessPar.GroupList));
+CovTarget(Output.GroupTargetCellAll(:,1),:)=1;
+CovTarget=[CovTarget;CovTarget];
 for iWisk=1:length(OutResult)
     % temp1=OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList));
     DeltaAll=[DeltaAll;OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList))]; 
-    CovCellSubj=[CovCellSubj;repmat(NonTargetIAll',1,length(ProcessPar.GroupList))];
+    CovCellSubj=[CovCellSubj;repmat([1:CellN]',1,length(ProcessPar.GroupList))];
     CovCellSpeedR=[CovCellSpeedR;repmat(Output.rSpeed(:,1,1),1,length(ProcessPar.GroupList))];
-    CovCellStimR=[CovCellStimR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList))];
+    CovCellSensoryR=[CovCellSensoryR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList))];
     CovSess=[CovSess;repmat(Output.NeuroPos3DMeta(:,4),1,length(ProcessPar.GroupList))];
     CovSpeedDelta=[CovSpeedDelta;OutResult(iWisk).speeddelta(:,1:length(ProcessPar.GroupList))];
-    CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList),CellNNonTarget,1)];
-    CovWhiskStim=[CovWhiskStim;zeros(CellNNonTarget,length(ProcessPar.GroupList))+iWisk];
-    CovSLM=[CovSLM;zeros(CellNNonTarget,length(ProcessPar.GroupList))+1];
+    CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList),CellN,1)];
+    CovSensoryStim=[CovSensoryStim;zeros(CellN,length(ProcessPar.GroupList))+iWisk];
+    CovSLM=[CovSLM;zeros(CellN,length(ProcessPar.GroupList))+1];
+    % CovTarget=[CovTarget;CovTarget];
 
 
     for iFOV =1:length(Output.AlignedNData)
@@ -129,7 +547,7 @@ for iWisk=1:length(OutResult)
         end
 
         CovTargetSpeedR = [CovTargetSpeedR;repmat(rSpeedScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
-        CovTargetStimR = [CovTargetStimR;repmat(rStimScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
+        CovTargetSensoryR = [CovTargetSensoryR;repmat(rStimScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
 
     end
 
@@ -138,10 +556,14 @@ for iWisk=1:length(OutResult)
 
 
 end
-tbl = table(DeltaAll(:), CovCellSpeedR(:), CovCellStimR(:), ...
-    CovTargetSpeedR(:), CovTargetStimR(:), CovSpeedDelta(:),CovGroup(:),CovWhiskStim(:),CovCellSubj(:), CovSess(:),...
-    'VariableNames', {'Response', 'SpeedR','StimR','TargetSpeedR','TargetStimR','Speed','Group','Whisk','Cell','Session'});
 
+
+
+tbl = table(DeltaAll(:), CovCellSpeedR(:), CovCellSensoryR(:), ...
+    CovTargetSpeedR(:), CovTargetSensoryR(:), CovSpeedDelta(:),CovGroup(:),CovSensoryStim(:),CovCellSubj(:), CovSess(:),CovTarget(:),...
+    'VariableNames', {'Response', 'SpeedR','SensoryR','TargetSpeedR','TargetSensoryR','Speed','Group','Sensory','Cell','Session','TargetCell'});
+
+writetable(tbl,[SaveP1 'SLMGroupResponse.csv']);
 
 
 
@@ -162,90 +584,87 @@ end
 close all
 
 
-figure;
-
-for iWisk=1:2
-
-    subplot(1,2,iWisk)
-    for iGroup=1:4
-    TempData{iGroup}=OutResult(iWisk).delta(NonTargetCell,iGroup)
-    [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData{iGroup},0);
-    [pRFromZero(iWisk,iGroup),~,RFromZero(iWisk,iGroup)]=signrank(TempData{iGroup},0);
-
-    end
-    stats=ErrorViolinHalf([1 2 3 4],TempData,Param.Color,1,[],GroupPair,[1 1 1 1]);
-    hold on;
-plot([0 4],[0 0],'k:')
-set(gca,'ylim',[-0.05 0.2],'xlim',[0 5])
-
-end
+% figure;
+% 
+% for iWisk=1:2
+% 
+%     subplot(1,2,iWisk)
+%     for iGroup=1:4
+%     TempData{iGroup}=OutResult(iWisk).delta(NonTargetCell,iGroup)
+%     [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData{iGroup},0);
+%     [pRFromZero(iWisk,iGroup),~,RFromZero(iWisk,iGroup)]=signrank(TempData{iGroup},0);
+% 
+%     end
+%     stats=ErrorViolinHalf([1 2 3 4],TempData,Param.Color,1,[],GroupPair,[1 1 1 1]);
+%     hold on;
+% plot([0 4],[0 0],'k:')
+% set(gca,'ylim',[-0.05 0.2],'xlim',[0 5])
+% 
+% end
  
-  olinplot_half(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1),'ShowData',false,'X')
 
-  violinplot_half(TempData,1:3,'ShowData',false,'X')
-figure;
-stats=ErrorViolinHalf([0.9 1.1 1.9 2.1 2.9 3.1],TempData,Param.Color,1,[],GroupPair,[1 1 1 1 1 1]);
-   GroupPair.CorrName='fdr';
-   GroupPair.Test='Ttest';
-   GroupPair.Q=0.1;
-   P1=[1 1 3;3 5 5];
-   P1=[P1 P1+1];
-   P2=[1 3 5;2 4 6];
-   GroupPair.Pair=[];
-   GroupPair.SignY=0.12;
-   GroupPair.Plot=1;
-   GroupPair.Std=0;      %%%%%%%%%using standard deviation as errorbar
-   GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
-   GroupPair.SamplePairedPlot=1; %%%%%%%%%Dash line for paired comparison sample
-   GroupPair.LimY=[0 GroupPair.SignY*1.2];
-   GroupPair.Marker={'o'};
-   GroupPair.ViolinLR=[0 0 0 0];
+% figure;
+% stats=ErrorViolinHalf([0.9 1.1 1.9 2.1 2.9 3.1],TempData,Param.Color,1,[],GroupPair,[1 1 1 1 1 1]);
+%    GroupPair.CorrName='fdr';
+%    GroupPair.Test='Ttest';
+%    GroupPair.Q=0.1;
+%    P1=[1 1 3;3 5 5];
+%    P1=[P1 P1+1];
+%    P2=[1 3 5;2 4 6];
+%    GroupPair.Pair=[];
+%    GroupPair.SignY=0.12;
+%    GroupPair.Plot=1;
+%    GroupPair.Std=0;      %%%%%%%%%using standard deviation as errorbar
+%    GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+%    GroupPair.SamplePairedPlot=1; %%%%%%%%%Dash line for paired comparison sample
+%    GroupPair.LimY=[0 GroupPair.SignY*1.2];
+%    GroupPair.Marker={'o'};
+%    GroupPair.ViolinLR=[0 0 0 0];
+% 
+% Param.Color=[1.0000    0.2000    0.6000;0.3569    0.0784    0.8314;0.4745    0.9686    0.4353;0.6 0.6 0.6];
+% 
 
-Param.Color=[1.0000    0.2000    0.6000;0.3569    0.0784    0.8314;0.4745    0.9686    0.4353;0.6 0.6 0.6];
-
-
-hold on;
-plot([0 4],[0 0],'k:')
-set(gca,'ylim',[-0.05 0.15],'xlim',[0 4])
-
-
-figure;
-stats=ErrorViolinHalf(1:3,TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
-
-
-figure;
-stats=ErrorViolinHalf(1:3,(TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
-
-
+% hold on;
+% plot([0 4],[0 0],'k:')
+% set(gca,'ylim',[-0.05 0.15],'xlim',[0 4])
+% 
+% 
+% figure;
+% stats=ErrorViolinHalf(1:3,TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
+% 
+% 
+% figure;
+% stats=ErrorViolinHalf(1:3,(TempData(:,2),Param.Color,1,[],GroupPair,[1 1 1]);
+% 
+% 
 
 
-figure;
-Violin_halfLeft(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1))
-
-figure;
-Violin_halfLeft(TempData,1:3)
-
-Violin_half(tbl.Response(tbl.Whisk==1),1:3,tbl.Group(tbl.Whisk==1))
-
-[violins,plotinfo] = violinplot_half(tbl.Response(tbl.Whisk==1), tbl.Group(tbl.Whisk==1), 'GroupOrder',{1 2 3})
-
-Violin_halfLeft(tbl.Response(tbl.Whisk==1), 1:3,tbl.Group(tbl.Whisk==1))
-% % 
+% figure;
+% Violin_halfLeft(tbl.Response(tbl.Sensory==1), tbl.Group(tbl.Sensory==1))
+% 
+% figure;
+% Violin_halfLeft(TempData,1:3)
+% 
+% Violin_half(tbl.Response(tbl.Sensory==1),1:3,tbl.Group(tbl.Sensory==1))
+% 
+% [violins,plotinfo] = violinplot_half(tbl.Response(tbl.Sensory==1), tbl.Group(tbl.Sensory==1), 'GroupOrder',{1 2 3})
+% 
+% Violin_halfLeft(tbl.Response(tbl.Sensory==1), 1:3,tbl.Group(tbl.Sensory==1))
+% % % 
 % % 
 % % % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
 % % writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
-writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 % % for iWisk=1:length(OutResult)
 % %     % temp1=OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList));
 % %     DeltaAll=[DeltaAll;OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList)+1)]; 
 % %     CovCellSubj=[CovCellSubj;repmat([1:CellN]',1,length(ProcessPar.GroupList)+1)];
 % %     CovCellSpeedR=[CovCellSpeedR;repmat(Output.rSpeed(:,1,1),1,length(ProcessPar.GroupList)+1)];
-% %     CovCellStimR=[CovCellStimR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList)+1)];
+% %     CovCellSensoryR=[CovCellSensoryR;repmat(Output.rStim(:,1,1),1,length(ProcessPar.GroupList)+1)];
 % %     CovSess=[CovSess;repmat(Output.NeuroPos3DMeta(:,4),1,length(ProcessPar.GroupList)+1)];
 % %     CovSpeedDelta=[CovSpeedDelta;OutResult(iWisk).speeddelta(:,1:length(ProcessPar.GroupList)+1)];
 % %     CovGroup=[CovGroup;repmat(1:length(ProcessPar.GroupList)+1,CellN,1)];
-% %     CovWhiskStim=[CovWhiskStim;zeros(CellN,length(ProcessPar.GroupList)+1)+iWisk];
+% %     CovSensoryStim=[CovSensoryStim;zeros(CellN,length(ProcessPar.GroupList)+1)+iWisk];
 % %     CovSLM=[CovSLM;[zeros(CellN,length(ProcessPar.GroupList))+1 zeros(CellN,1)+2]];
 % % 
 % % 
@@ -287,7 +706,7 @@ writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 % % 
 % % 
 % %         CovTargetSpeedR = [CovTargetSpeedR;repmat(rSpeedScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
-% %         CovTargetStimR = [CovTargetStimR;repmat(rStimScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
+% %         CovTargetSensoryR = [CovTargetSensoryR;repmat(rStimScore(iFOV,1:length(ProcessPar.GroupList)),length(iNeuro),1)];
 % % 
 % %     end
 % % 
@@ -298,9 +717,9 @@ writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 % % end
 % % 
 % % 
-% % tbl = table(DeltaAll(:), CovCellSpeedR(:), CovCellStimR(:), ...
-% %     CovTargetSpeedR(:), CovTargetStimR(:), CovSpeedDelta(:),CovGroup(:),CovWhiskStim(:),CovCellSubj(:), CovSess(:),...
-% %     'VariableNames', {'Response', 'SpeedR','StimR','TargetSpeedR','TargetStimR','Speed','Group','Whisk','Cell','Session'});
+% % tbl = table(DeltaAll(:), CovCellSpeedR(:), CovCellSensoryR(:), ...
+% %     CovTargetSpeedR(:), CovTargetSensoryR(:), CovSpeedDelta(:),CovGroup(:),CovSensoryStim(:),CovCellSubj(:), CovSess(:),...
+% %     'VariableNames', {'Response', 'SpeedR','SensoryR','TargetSpeedR','TargetSensoryR','Speed','Group','Sensory','Cell','Session'});
 % % 
 % % 
 % % 
@@ -313,6 +732,7 @@ writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
 
 
 clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rStimSore rStimCov rParStim rStimSpeedCov responseSpeedTrial responseStimTrial
+clear rSpeedScoreMax rStimScoreMax
 
 for iFOV =1:length(Output.AlignedNData)
     iNeuro=find(Output.NeuroPos3DMeta(:,4)==iFOV);
@@ -325,6 +745,8 @@ for iFOV =1:length(Output.AlignedNData)
         responseSpeedTrial(iFOV,iFun) = nanmean(OutResult(1).delta(iNonTarget,iFun));
 
         rSpeedScore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
+        rSpeedScoreMax(iFOV,iFun)=min(Output.rSpeed(iTarget,1,1));
+
         rSpeedCov(iFOV,iFun)= mean(OutResult(1).speeddelta(iNonTarget,iFun));
         rSpeedScoreTargetCell(iNeuro,iFun) =  rSpeedScore(iFOV,iFun);
 
@@ -335,6 +757,8 @@ for iFOV =1:length(Output.AlignedNData)
 
         rGroup(iFOV,iFun)=iFun;
         rStimScore(iFOV,iFun)=mean(Output.rStim(iTarget,1,1));
+        rStimScoreMax(iFOV,iFun)=max(Output.rStim(iTarget,1,1));
+        
         rStimCov(iFOV,iFun)= mean(OutResult(2).delta(iNonTarget,4));
         rStimSpeedCov(iFOV,iFun)= mean(OutResult(2).speeddelta(iNonTarget,4));
 
@@ -363,6 +787,8 @@ print(gcf, [SaveP1 'ResponseNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-p
 
 
 
+Param.xLim=[-0.2 0.4];
+Param.yLim=[-0.2 0.5];
 
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rSpeedScore(:),rSpeed(:), rSpeedCov(:),rGroup(:),Param);    
@@ -376,6 +802,8 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 print(gcf, [SaveP1 'rNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
 print(gcf, [SaveP1 'rNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
 
+Param.xLim=[-0.2 0.8];
+Param.yLim=[-0.2 0.5];
 
 
 
@@ -383,23 +811,23 @@ Param.xLim=[-0.2 0.3];
 Param.yLim=[-0.04 0.04];
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:), responseStimTrial(:),rStimSpeedCov(:),rGroup(:),Param);   
-ylabel(h(1),'Response (NonTarget-WhiskStim | SLM = 0)')
-xlabel(h(1),'Corr (Target-WhiskStim)')
-xlabel(h(2),'Corr (Target-WhiskStim)')
+ylabel(h(1),'Response (NonTarget-SensoryStim | SLM = 0)')
+xlabel(h(1),'Corr (Target-SensoryStim)')
+xlabel(h(2),'Corr (Target-SensoryStim)')
 title(h(2),'Speed Change Regressed out')
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
-print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
+print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
 
 
 Param.xLim=[-0.2 0.3];
 Param.yLim=[-0.2 0.8];
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:), rParrStim(:),rStimSpeedCov(:),rGroup(:),Param);   
-ylabel(h(1),'Corr (NonTarget-WhiskStim | SLM = 0)')
-xlabel(h(1),'Corr (Target-WhiskStim)')
-xlabel(h(2),'Corr (Target-WhiskStim)')
+ylabel(h(1),'Corr (NonTarget-SensoryStim | SLM = 0)')
+xlabel(h(1),'Corr (Target-SensoryStim)')
+xlabel(h(2),'Corr (Target-SensoryStim)')
 title(h(2),'Speed Change Regressed out')
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -407,6 +835,25 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 print(gcf, [SaveP1 'rNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
 print(gcf, [SaveP1 'rNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
     close all
+
+
+
+
+% Param.xLim=[-0.4 0.4];
+% Param.yLim=[-0.2 0.8];
+% for iGroup=1:3
+%     figure;
+% 
+% [~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:,iGroup), rParrStim(:,iGroup),rStimSpeedCov(:,iGroup),rGroup(:,iGroup),Param);   
+% ylabel(h(1),'Corr (NonTarget-SensoryStim | SLM = 0)')
+% xlabel(h(1),'Corr (Target-SensoryStim)')
+% xlabel(h(2),'Corr (Target-SensoryStim)')
+% title(h(2),'Speed Change Regressed out')
+% end
+% set(gcf, 'PaperUnits', 'centimeters');
+% set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+
+
 
 
 end
@@ -471,7 +918,7 @@ end
 close all
 for iwisk=1:length(OutResult)
     for iFun=1:length(ProcessPar.GroupList)+1
-        % figure;
+        figure;
         iNonTarget=setdiff([1:CellN],Output.GroupTargetCellAll(:,1));
         % [~,~,~]=LuPairRegressPlot_Group(Output.rStim(iNonTarget,1,1), OutResult(iwisk).delta(iNonTarget,iFun),Output.NeuroPos3DMeta(iNonTarget,4),ParamAllCell,[OutResult(iwisk).delta(iNonTarget,4) COVfov(iNonTarget,:)]);
         % [~,~,~]=LuPairRegressPlot_Group(Output.rStim(iNonTarget,1,1), OutResult(iwisk).delta(iNonTarget,iFun),Output.NeuroPos3DMeta(iNonTarget,4),ParamAllCell,[OutResult(iwisk).delta(iNonTarget,4)]);
@@ -605,7 +1052,7 @@ PowerZeroColor=[0.5 0.5 0.5];
 PowerZero=[0 1];
 PowerZeroLabel={'SLM','FakeSLM'};
 VolOut=[0 1];
-VolOutLabel={'NoWhisk','Whisk'}
+VolOutLabel={'NoSensory','Sensory'}
 AwakeState=[1];
 AwakeStateLabel={'Awake'}
 GroupMetaName=[GroupLabel {'FakeSLM'}];
@@ -622,7 +1069,7 @@ AlignedtempNData=Output.AlignedNData;
 PSTHparam.TestStepFrame=3;
 TestStepFrame=PSTHparam.TestStepFrame;
 
-PostPreDiffSpeedTh=[1];
+PostPreDiffSpeedTh=[1 2 10000];
 
 NCell=size(Output.NeuroPos3DMeta,1);
 RateParam.PlotType=3
@@ -954,11 +1401,11 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             % saveas(gcf,[TempResultFolder GroupLabel{iFun} 'CellGroupSLMVsSpeed'],'tif');
                             % saveas(gcf,[TempResultFolder GroupLabel{iFun} 'CellGroupSLMVsSpeed.eps'],'epsc');
                             % saveas(gcf,[TempResultFolder GroupLabel{iFun} 'CellGroupSLMVsSpeed'],'fig');
-                            print(gcf, [TempResultFolder GroupMetaName{iFun} 'CellGroupSLMVsSpeed.svg'], '-dsvg', '-painters');
+                            % print(gcf, [TempResultFolder GroupMetaName{iFun} 'CellGroupSLMVsSpeed.svg'], '-dsvg', '-painters');
                             % print(gcf, [TempResultFolder GroupMetaName{iFun} 'CellGroupSLMVsSpeed.eps'], '-depsc', '-painters');
-                            saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'CellGroupSLMVsSpeed'], 'tif');
+                            % saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'CellGroupSLMVsSpeed'], 'tif');
                     
-                            close all
+                            % close all
         
                            ResParam.Color=GroupParamNet.FOVMap;
                            ResParam.Marker='o';
@@ -1015,9 +1462,9 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             set(gcf, 'PaperUnits', 'centimeters');
                             set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
                             LuFontStandard
-                            print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSpeedRegress.svg'], '-dsvg', '-painters');
+                            % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSpeedRegress.svg'], '-dsvg', '-painters');
                             % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSpeedRegress.eps'], '-depsc', '-painters');
-                            saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSpeedRegress'], 'tif');
+                            % saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSpeedRegress'], 'tif');
                     % print(gcf, [TempResultFolder 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
                     
                     end
@@ -1134,9 +1581,9 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         set(gcf, 'PaperUnits', 'centimeters');
                         set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
                         LuFontStandard
-                        % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsStimRegress.svg'], '-dsvg', '-painters');
-                        % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsStimRegress.eps'], '-depsc', '-painters');
-                        % saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsStimRegress'], 'tif');
+                        % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSensoryRegress.svg'], '-dsvg', '-painters');
+                        % print(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSensoryRegress.eps'], '-depsc', '-painters');
+                        % saveas(gcf, [TempResultFolder GroupMetaName{iFun} 'SLMVsSensoryRegress'], 'tif');
                 % print(gcf, [TempResultFolder 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
                 % close all
                 end

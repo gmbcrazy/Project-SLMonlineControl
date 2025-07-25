@@ -1,6 +1,8 @@
 clear all
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath 'FOV.mat'])
+
+
+load([BatchSavePath '03-Jul-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step2\';
@@ -13,7 +15,7 @@ mkdir(SaveFunCon)
 
 
 PSTHparam.PreSLMCal = 10; 
-PSTHparam.PostSLMCal = 10;
+PSTHparam.PostSLMCal = 15;
 PSTHparam.pTh = 0.05; 
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
@@ -21,10 +23,12 @@ PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
 PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
 
 %% Initial align behaviors with imaging, identify SLM target cells
-for iFOV=4:length(FOVUpdate)
+for iFOV=1:length(FOVUpdate)
 % iFOV=3;
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
+    suite2pFOVPathLocalTemp=suite2pFOVPath{iFOV};
+    
     OfflineCombineProcess_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam);
 end
 GroupLabel={'L','S','N'};
@@ -33,11 +37,17 @@ GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 % NodeColor=repmat([0.9 0.9 0.9],length(iscell),1);
 
 %% Power test data
-for iFOV=4:length(FOVUpdate)
+SaveFunCon=[DataSavePath 'FunCon\'];
+mkdir(SaveFunCon)
+
+for iFOV=12:length(FOVUpdate)
 % iFOV=3;
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
     OfflinePowerTest_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
+    % OfflinePowerTest_OneFOVTempForSoohyun(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
+
+    % OfflinePowerTest_OneFOVTempForSoohyun
 end
 
 

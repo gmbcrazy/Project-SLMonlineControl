@@ -1,5 +1,6 @@
 % Load or define your table (TBL)
 % Assuming TBL is already loaded in MATLAB workspace
+clear all
 TseriesMultiZFolder='C:\Users\User\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
 TseriesMultiZFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\PreGenerateTseriesMultiZ\';
 
@@ -38,15 +39,16 @@ Xwidth=TBL.Reps;
 Ystart=0;
 Ywidth=1;
 Color=[247 150 111;239 109 249;121 247 111]/255;
+Color=[255 51 153;91 20 212;121 247 111]/255;
 
 TimeBarPlot(TBL.SynMPFunGroup,Color,1,Ystart,Xwidth,Ywidth,TBL.VolOut,TBL.PowerZero)
 
 papersizePX=[0 0 20 2];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-saveas(gcf,[SaveFolder 'T' num2str(iT)],'png'); 
+saveas(gcf,[SaveFolder date 'T' num2str(iT)],'png'); 
 % saveas(gcf,[SaveFolder num2str(PSTHparam.PostSLMCal) 'FramePostSLMresponse'],'fig'); 
-print(gcf, [SaveFolder 'T' num2str(iT) '.svg'], '-dsvg', '-painters');
+print(gcf, [SaveFolder date 'T' num2str(iT) '.svg'], '-dsvg', '-painters');
 
 close all
 end

@@ -165,7 +165,7 @@ XYZtoMarkPointFunGroup_MultiZ(ProcessFolder,FinalPos3D,Group,yaml,confSetFinal);
 
 GroupLabel={'L','S','N'};
 % nGroup=length(SLMPosInfo.Group);
-GroupColor=[247 150 111;239 109 249;121 247 111]/255;
+GroupColor=[255 51 153;91 20 212;121 247 111]/255;
         PlotParam.RowPlot=1;
         PlotParam.RowColNum=1;
         PlotParam.RowColID=1;

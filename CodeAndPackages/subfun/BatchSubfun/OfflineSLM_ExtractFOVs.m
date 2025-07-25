@@ -1,4 +1,4 @@
-function Output=OfflineSLM_ExtractFOVs(FOV, Suite2pDataKeywords,suite2pFOVPathLocal,PSTHparam)
+function [Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOV, Suite2pDataKeywords,suite2pFOVPathLocal,PSTHparam)
 
 
 
@@ -27,6 +27,8 @@ TestStepFrame=PSTHparam.TestStepFrame;
 resultPaths = findAllFoldersKeyWords(suite2pFOVPathLocalTemp, Suite2pDataKeywords);
 metaDataPath=Get_ExpDataFolder(resultPaths{1},'Step1Basic',{'Step1Meta.mat','BehAll.mat','.png'});
 load([metaDataPath 'Step1Meta.mat'])
+load([metaDataPath 'BehAll.mat'])
+
 confSet=SLMPosInfo.confSetFinal;
 rSpeedMeta=cat(1,rSpeedMeta,CorrResults.rSpeed);
 rStimMeta=cat(1,rStimMeta,CorrResults.rStim);
@@ -46,6 +48,13 @@ iData=PSTHparam.iData;
 % PSTHparam.TestStepFrame=3;
 PVpower=xmlPower2PVpower(SLMTestInfo.confSet.UncagingLaserPower);
 PVpower=intersect(round(PVpower),SLMInfoTable.UncagingLaserPower);
+
+NeuroTrace{iFOV}=NData;
+BehTrace(iFOV).Speed=SpeedAll;
+BehTrace(iFOV).Stim=StimAll;
+BehTrace(iFOV).AlignedSpeed=AlignedSpeed;
+BehTrace(iFOV).AlignedStim=AlignedStim;
+
 
 
 GroupTargetCellMeta{iFOV}=GroupTargetCell;

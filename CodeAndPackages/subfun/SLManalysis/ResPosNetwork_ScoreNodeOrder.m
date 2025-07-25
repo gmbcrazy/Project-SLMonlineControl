@@ -90,6 +90,8 @@ a=abs(b);
 PosRate=sum(AdjM.*(AdjM>0))';
 NegRate=sum(AdjM.*(AdjM<0))';
 
+AllRate=sum(AdjM)';
+
 t3=subplotPosLu(xMat,yMat,1,3,P)
 [GgraphOut.G,GgraphOut.p]=MarkovState_HeatStrPlot(a,PowerTestNode(rankI)~=0,b,PosRate(rankI),NodeColorSorted,ResponseMap,ResponseLim);
 GgraphOut.p.NodeColor=NodeColorSorted;
@@ -167,4 +169,18 @@ else
 [Res(2),r(2),p(2)]=LuPairRegressPlot(ScoreCell(NegRate<0),NegRate(NegRate<0),ResParam);
 end
 set(gca,'ytick',ResParam.yLim,'xtick',union(0,ResParam.xLim))
+
+
+   ResParam.Color=[0.1 0.1 0.1];
+   ResParam.yLabel='TotalResponse';
+   ResParam.yLim=[ResponseLim(1) ResponseLim(2)];
+
+t6=subplotPosLu(xMat,yMat,1,6,P);
+if ParamNet.AllCellRes
+[Res(2),r(2),p(2)]=LuPairRegressPlot(ScoreCell(:),AllRate(:),ResParam);
+else
+[Res(2),r(2),p(2)]=LuPairRegressPlot(ScoreCell(AllRate~=0),AllRate(AllRate~=0),ResParam);
+end
+set(gca,'ytick',union(0,ResParam.yLim),'xtick',union(0,ResParam.xLim))
+
 

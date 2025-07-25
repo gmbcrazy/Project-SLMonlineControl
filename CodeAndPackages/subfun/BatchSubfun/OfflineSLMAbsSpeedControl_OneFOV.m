@@ -364,8 +364,9 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         PSTHstruct=PSTHparam;
                         PSTHstruct.Data=GroupResponse{iFun};
                         PSTHstruct.TimeBinFrame=TimBinFrame;
+                       [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rSpeed(:,1,1))
                 
-                       [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(SLMPosInfo,PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rSpeed(:,1,1))
+                       % [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(SLMPosInfo,PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rSpeed(:,1,1))
                        if isempty(GroupParamNet.GroupTargetCell)
                           GgraphOut.p.MarkerSize(end)=0.1;
                           GgraphOut.p.LineStyle='none';
@@ -481,8 +482,10 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         PSTHstruct=PSTHparam;
                         PSTHstruct.Data=GroupResponse{iFun};
                         PSTHstruct.TimeBinFrame=TimBinFrame;
-                
-                       [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(SLMPosInfo,PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rStim(:,1,1))
+  
+                       [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rStim(:,1,1))
+
+                       % [GgraphOut,Res,r,p,tempFig]=ResSLMFunNetwork_ScoreNodeOrder(SLMPosInfo,PSTHstruct,PowerTestAdj,PowerTestNode,GroupParamNet,rStim(:,1,1))
                        if isempty(GroupParamNet.GroupTargetCell)
                           GgraphOut.p.MarkerSize(end)=0.1;
                           GgraphOut.p.LineStyle='none';

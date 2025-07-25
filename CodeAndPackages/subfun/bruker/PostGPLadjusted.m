@@ -40,9 +40,22 @@ ImgClim=[0 400];
         PlotParam.EdgeParam=[0.06 0.1 0.1 0.06 0.06 0.06];
         PlotParam.CellCenterWith=1;
         PlotParam.CellBoundaryWidth=1;
+        PlotParam.PlotCenter=1;
 CellSpeedColors = valueToColor(FunScore(:,2), ClimRspeed, jet(64));
 CellStimColors = valueToColor(FunScore(:,3), ClimRstim, jet(64));
+GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 PlaneZ=confSet.ETL+confSet.scan_Z(1);
+
+ImgClim=[0 800];
+figure;
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), [], Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim,PlotParam);
+papersizePX=[0 0 10*numPlanes 9];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+saveas(gcf,[IncludePath 'TargetCell'],'fig')
+saveas(gcf,[IncludePath 'TargetCell.png'],'png')
+close all
+
 % for iGroup=1:length(TempGroup)
 % figure;      
 % H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary(TempGroup{iGroup}), Pos3Dneed(TempGroup{iGroup},:), [], PlaneZ, CellSpeedColors(TempGroup{iGroup},:), ImgClim,PlotParam);

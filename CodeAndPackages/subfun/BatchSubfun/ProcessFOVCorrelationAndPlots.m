@@ -53,8 +53,8 @@ for iData = 1:length(NData)
         rStim(iCell, 1,iData) = c(PostI(i1),iCell);
     end
     % --- Plotting ---
-    SaveCorrFigure(NData{iData}, rStim(:, 1,iData), mean(StimAllT(InitialInd,:),2)>0.1,InitialInd, Nlabel{iData}, ResultFolder,'Stim');
-    SaveCorrFigure(NData{iData}, rSpeed(:, 1,iData), mean(SpeedAll(InitialInd,:),2), InitialInd, Nlabel{iData}, ResultFolder,'Speed');
+    SaveCorrFigure(NData{iData}, rStim(:, 1,iData), mean(StimAllT(InitialInd,:),2)>0.1,InitialInd, Nlabel{iData}, ResultFolder,'Stim',[91 20 212]/255);
+    SaveCorrFigure(NData{iData}, rSpeed(:, 1,iData), mean(SpeedAll(InitialInd,:),2), InitialInd, Nlabel{iData}, ResultFolder,'Speed',[255 51 153]/255);
 
     %later spontonouse behavior + SLM group stimuli period
     %Stim TTL for during awake

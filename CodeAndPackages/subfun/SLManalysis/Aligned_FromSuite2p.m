@@ -34,11 +34,28 @@ for iCell=1:length(TargetCellList)
         % else
            preSLMdata=squeeze(AlignedneuralData(:,1:PSTHparam.PreSLMCal,I1));
            postSLMdata=squeeze(AlignedneuralData(:,PSTHparam.PreSLMCal+[1:PSTHparam.TestStepFrame],I1));
+
+           preSLMdata1=squeeze(nanmean(squeeze(AlignedneuralData(:,1:PSTHparam.PreSLMCal,I1)),2));
+           postSLMdata1=squeeze(nanmean(squeeze(AlignedneuralData(:,PSTHparam.PreSLMCal+[1:PSTHparam.TestStepFrame],I1)),2));
+
+           preSLMdata2=permute(repmat(preSLMdata1,1,1,PSTHparam.TestStepFrame),[1 3 2]);
+           postSLMdata2=postSLMdata-preSLMdata2;
+
            for jCell=1:size(neuralData,1)
                temp1=preSLMdata(jCell,:,:);
                temp2=postSLMdata(jCell,:,:);
                [~,p(jCell,1),~,t(jCell)]=ttest2(temp2(:),temp1(:));
                temp3(jCell)=mean(temp2(:))-mean(temp1(:));
+
+               % temp1=preSLMdata1(jCell,:);
+               % temp2=postSLMdata1(jCell,:);
+               % [~,p(jCell,1),~,t(jCell)]=ttest(temp2(:),temp1(:));
+               % temp3(jCell)=mean(temp2(:))-mean(temp1(:));
+               % 
+               % temp2=postSLMdata2(jCell,:,:);
+               % [~,p(jCell,1),~,t(jCell)]=ttest(temp2(:),0);
+               % temp3(jCell)=mean(temp2(:))-mean(temp1(:));
+
            end
            statCellRes(iCell,iPower).p=p;
            statCellRes(iCell,iPower).t=t;

@@ -169,7 +169,7 @@ if iData==1
 
 FDR=0.1;
 [h, crit_p, adj_p]=fdr_bh(TargetCellResP((~isnan(TargetCellResP))&CellSampleN>=TrialThNum),FDR,'pdep');
-crit_p=min([crit_p 0.05]);
+% crit_p=min([crit_p 0.05]);
 
 
 PowerTargetI=zeros(length(TargetCellList),1);

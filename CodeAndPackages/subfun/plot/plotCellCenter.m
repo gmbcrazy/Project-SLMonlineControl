@@ -31,7 +31,7 @@ function plotCellCenter(cellCenter, Radius, varargin)
         y = cellCenter(i, 1);
 
         % Plot a circle around the center with the specified radius, color, and line width
-        viscircles([x, y], Radius(i), 'Color', colorCell(i, :), 'LineWidth', LineWidth,'EnhanceVisibility',0,'LineStyle',':');
+        viscircles([x, y], Radius(i), 'Color', colorCell(i, :), 'LineWidth', LineWidth,'EnhanceVisibility',0,'LineStyle','-');
 
         % Hold on to overlay circles on the same plot
         hold on;

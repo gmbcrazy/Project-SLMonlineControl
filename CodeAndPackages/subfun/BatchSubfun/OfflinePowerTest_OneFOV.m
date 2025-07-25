@@ -70,8 +70,8 @@ ParamNet.PowerTargetI=PowerTargetI;
 ParamNet.statCellRes=statCellRes;
 ParamNet.crit_pAll=crit_pAll;
 ParamNet.SuccAmp=SuccAmp;
-ParamNet.xMat=[0.01 0.2 0.2 0.2 0.2];
-ParamNet.yMat=[0.7 0.7 0.7 0.7 0.7];
+ParamNet.xMat=[0.01 0.15 0.15 0.15 0.15 0.15];
+ParamNet.yMat=[0.7 0.7 0.7 0.7 0.7 0.7];
 
 
 PowerTestAdj=zeros(length(iscell))+NaN;
@@ -192,8 +192,8 @@ GgraphOut.p.LineWidth=0.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-saveas(gcf,[SaveP1 'SingleSLMVsDist'],'tif');
-print(gcf, [SaveP1 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
+% saveas(gcf,[SaveP1 'SingleSLMVsDist'],'tif');
+% print(gcf, [SaveP1 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
 
 
 ParamNetDist.AllCellRes=0; 
@@ -212,9 +212,9 @@ GgraphOut.p.LineWidth=0.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
+% print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.eps'], '-depsc', '-painters');
-print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.tif'], '-dtiffn', '-painters');
+% print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.tif'], '-dtiffn', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
 end
 
@@ -238,7 +238,7 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 % saveas(gcf,[SaveP1 'SingleSLMVsSpeed.eps'],'epsc');
 % saveas(gcf,[SaveP1 'SingleSLMVsSpeed'],'fig');
 LuFontStandard
-print(gcf, [SaveP1 'SingleSLMVsSpeed.svg'], '-dsvg', '-painters');
+% print(gcf, [SaveP1 'SingleSLMVsSpeed.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.eps'], '-depsc', '-painters');
 print(gcf, [SaveP1 'SingleSLMVsSpeed.tif'], '-dtiffn', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
@@ -259,7 +259,7 @@ GgraphOut.p.LineWidth=0.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.svg'], '-dsvg', '-painters');
+% print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.eps'], '-depsc', '-painters');
 print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.tif'], '-dtiffn', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
@@ -298,7 +298,7 @@ print(gcf, [SaveP1 'SingleSLMVsStim.tif'], '-dtiffn', '-painters');
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-print(gcf, [SaveP1 'SepFunSingleSLMVsStimRegress.svg'], '-dsvg', '-painters');
+% print(gcf, [SaveP1 'SepFunSingleSLMVsStimRegress.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 'SepFunSingleSLMVsSpeedRegress.eps'], '-depsc', '-painters');
 print(gcf, [SaveP1 'SepFunSingleSLMVsStimRegress.tif'], '-dtiffn', '-painters');
 % % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');

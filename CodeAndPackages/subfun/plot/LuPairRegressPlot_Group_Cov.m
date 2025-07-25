@@ -27,6 +27,8 @@ h(1)=subplot(1,2,1);
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,data2,dataGroup,Param)
 h(2)=subplot(1,2,2);
 [B,BINT,R,RINT,STATS]=regress(data2,[ones(length(Cov),1) Cov]);
+
+Param.yLim=[min(R) max(R)];
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,R,dataGroup,Param);
 
 
