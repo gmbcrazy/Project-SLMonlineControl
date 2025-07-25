@@ -1,6 +1,6 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL0910\06172025\'
+WorkingFolder='E:\LuSLMOnlineTest\SL1972\07252025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
@@ -99,7 +99,7 @@ RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 RegImg=RegImg(:,:,4:6);
 
-RefFile=[WorkingFolder 'RegRef3Ch2\'];
+RefFile=[WorkingFolder 'RegRef2Ch2\'];
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 
 % MultiMatrix3DHeatmap(RegImg)
@@ -126,9 +126,9 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[24 28 32 33 36 24 28 32 33 36];
+XMLparam.PointList=[19 23 28  32 40 19 23 28  32 40 ];
 % % % % % % % % XMLparam.PointList(10)=[29]
-XMLparam.Laser(1:10)=repmat(1.5,1,10);
+% XMLparam.Laser(1:10)=repmat(1.5,1,10);
 % % 
 pause(10)
 
@@ -150,7 +150,7 @@ FalsePositiveID=input('Mannual correction: index in SLMTable with false positive
 SLMTable(FalsePositiveID,2)=nan;
 
 % SLMTable([1 9],2)=1.42;
-SLMTable([26 27 28 34],2)=1.5;
+% SLMTable([26 27 28 34],2)=1.5;
 
 
 SMLTablePowerPV=xmlPower2PVpower(SLMTable(:,2));

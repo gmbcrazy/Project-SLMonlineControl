@@ -56,7 +56,7 @@ ImgClim=[0 800];
         PlotParam.CellBoundaryWidth=1;
 GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 figure;      
-H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), [], Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim,PlotParam);
+H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
 subplot('position',[0.95 0.3 0.01 0.3])
 MultibarPlot(1:64,gray(64),0,0,1,1);
 set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
@@ -68,7 +68,7 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
 print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
-
+% 
 
 
 % SaveCorrFigure(NeuroData, rSpeed, nanmean(fSpeed,2), 1:size(NeuroData,1), 'DeltaF', SavePathAllPoint ,'Speed');

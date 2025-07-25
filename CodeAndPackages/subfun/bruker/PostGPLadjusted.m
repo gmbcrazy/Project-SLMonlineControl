@@ -26,7 +26,7 @@ SLMIncludedIndFromIscell=IncludeCellFinal;
 [XYPosPixel,Z]=gplXYtoPixel(EditedTable,yaml);
 Pos3Dneed=[XYPosPixel Z(:,1)];
 
-save([IncludePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
+% save([IncludePath 'SLMIncludedIndFromIscell.mat'],'SLMIncludedIndFromIscell','Pos3Dneed','yaml','confSet','NonTargets','IndexNonTargetTrial','Cellstat','FunScore');
 
 [~, ~, MedCenter, cellBoundary] = Suite2pCellIDMapFromStat(Cellstat(SLMIncludedIndFromIscell), [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
 GroupName={'L cell','S cell','Non-LS cell'};
@@ -49,6 +49,9 @@ PlaneZ=confSet.ETL+confSet.scan_Z(1);
 ImgClim=[0 800];
 figure;
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), [], Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim,PlotParam);
+% H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim);
+% H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
+
 papersizePX=[0 0 10*numPlanes 9];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));

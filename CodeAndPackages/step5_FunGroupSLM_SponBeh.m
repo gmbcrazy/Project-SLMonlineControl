@@ -91,7 +91,7 @@ FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
 
 % RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
-RefFile=[WorkingFolder 'RegRef3Ch2\'];
+RefFile=[WorkingFolder 'RegRef2Ch2\'];
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 % RegImg=RegImg(:,:,4:6);% 
 
@@ -117,7 +117,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:5
+for TseriesID=5:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);

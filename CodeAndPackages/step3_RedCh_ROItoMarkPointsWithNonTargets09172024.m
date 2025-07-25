@@ -90,7 +90,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
-TopCellN=13;  
+TopCellN=14;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
 
@@ -100,7 +100,7 @@ step3_SubStep4_FuncFilterMPs;
 
 
 %% After Mannual Adjust Generated Functional Filtered MarkPoints in PV
-PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, FunScore, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial);
+PostGPLadjusted(SavePathStimSpeed,IncludeCellFunFilter, FunScore, yaml, confSet,CaData.statCell,NonTargetPath,NonTargets, IndexNonTargetTrial,CaData);
 %%
 mkdir(IncludePath)
 %%
