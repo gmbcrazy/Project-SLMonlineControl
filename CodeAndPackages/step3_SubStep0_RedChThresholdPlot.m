@@ -19,8 +19,8 @@ set(b,'position',[0.95 0.3 0.01 0.5],'ticks',ImgClim);b.Label.String='Amplitude 
 papersizePX=[0 0 21 7]*1.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-% saveas(gcf,[SavePath 'Red'],'fig')
-% saveas(gcf,[SavePath 'Red.png'],'png')
+saveas(gcf,[SavePath 'Red'],'fig')
+saveas(gcf,[SavePath 'Red.png'],'png')
 
 figure;      
 H=MultiPlanes2DShow(permute(RegRed, [1, 2, 3]), cellBoundary, Pos3D, [], PlaneZ, CellColors, ImgClim,PlotParam);
@@ -28,6 +28,6 @@ b=colorbar;
 set(b,'position',[0.95 0.3 0.01 0.5],'ticks',ImgClim);b.Label.String='Amplitude GreenCh';
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-% saveas(gcf,[SavePath 'Green'],'fig')
-% saveas(gcf,[SavePath 'Green.png'],'png')
+saveas(gcf,[SavePath 'Green'],'fig')
+saveas(gcf,[SavePath 'Green.png'],'png')
 

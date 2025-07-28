@@ -15,7 +15,7 @@ NeuroData=NeuroData(1:L,:);
 NeuroDataCell=NeuroData(:,iscell);
 
 TopCellNRaw=TopCellN;
-fStim=fStim>0.5;
+
 
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
@@ -28,44 +28,44 @@ for iCell = 1:size(iscell, 1)
     iPlane=CaData.CellPlaneID(iCell);
     
     tempNeuro=AmpNormalize(NeuroData(:,iscell(iCell)),[0 100]);
-    tempStim=AmpNormalize(fStim(:,iPlane),[0 100]);
+    tempStim=AmpNormalize(fStim(:,iPlane),[0 100])
 
-    [c(:,iCell), lags] = xcorr(tempNeuro, tempStim, maxLag, 'coeff');
+    [c(:,iCell), lags] = xcorr(tempNeuro, fStim(:,iPlane), maxLag, 'coeff');
 
     PostI = find(lags >= 0);
 %     PostI = find(lags >= 0&lags <= 10);
     PreI=find(lags<0);
 
     %%Previous used before July 28
-%     [~, i1] = max(abs(c(PostI,iCell)));
-%     rStim(iCell, 1) = c(PostI(i1),iCell);
+    [~, i1] = max(abs(c(PostI,iCell)));
+    rStim(iCell, 1) = c(PostI(i1),iCell);
     %%Previous used before July 28
 
-    [~, i1] = max(abs(c(PostI,iCell))-mean(c(PreI,iCell)));
-    rStim(iCell, 1) = c(PostI(i1),iCell)-mean(tempNeuro);
+    [~, i1] = max(abs(c(PostI,PCI))-mean(c(PreI,PCI)));
+    rStim(PCI, 1) = c(PostI(i1),PCI)-mean(AmpNormalize(HH(SponInd,PCI)));
 
 end
 
-% clear rStim c rStim_sub c_sub
-% 
-% 
-% for PCI = 1:pcaN
-%     [c(:,PCI), lags] = xcorr(AmpNormalize(HH(SponInd,PCI),[0 100]), AmpNormalize(nanmean(BehTrace(iFOV).Stim(SponInd,:),2),[0 100]), maxLag, 'coeff');
-%    
-%     PostI = find(lags >= 0&lags <= 10);
-%     PreI=find(lags<0);
-%     % rStim(PCI, 1)=max(c(PostI,PCI));
-%     % [~, i1] = max(c(PostI,PCI));
-%     
-%     % [~, i1] = max(abs(c(PostI,PCI)-mean(c(PreI,PCI))));
-% 
-%     %%Current used
-%     [~, i1] = max(abs(c(PostI,PCI))-mean(c(PreI,PCI)));
-%     rStim(PCI, 1) = c(PostI(i1),PCI)-mean(AmpNormalize(HH(SponInd,PCI)));
-%     %%Current used
-% 
-% 
-% end
+clear rStim c rStim_sub c_sub
+
+
+for PCI = 1:pcaN
+    [c(:,PCI), lags] = xcorr(AmpNormalize(HH(SponInd,PCI),[0 100]), AmpNormalize(nanmean(BehTrace(iFOV).Stim(SponInd,:),2),[0 100]), maxLag, 'coeff');
+   
+    PostI = find(lags >= 0&lags <= 10);
+    PreI=find(lags<0);
+    % rStim(PCI, 1)=max(c(PostI,PCI));
+    % [~, i1] = max(c(PostI,PCI));
+    
+    % [~, i1] = max(abs(c(PostI,PCI)-mean(c(PreI,PCI))));
+
+    %%Current used
+    [~, i1] = max(abs(c(PostI,PCI))-mean(c(PreI,PCI)));
+    rStim(PCI, 1) = c(PostI(i1),PCI)-mean(AmpNormalize(HH(SponInd,PCI)));
+    %%Current used
+
+
+end
 
 
 
@@ -124,7 +124,7 @@ saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
 saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
 print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
 
-SaveCorrFigure(NeuroData(:,iscell)', rStim, nanmean(fStim,2), 1:max(ExcludeStimInd), 'DeltaF', SavePathAllPoint ,'Stim');
+SaveCorrFigure(NeuroData(:,iscell)', rSpeed, nanmean(fStim,2), 1:max(ExcludeStimInd), 'DeltaF', SavePathAllPoint ,'Stim');
 close all
 
 
