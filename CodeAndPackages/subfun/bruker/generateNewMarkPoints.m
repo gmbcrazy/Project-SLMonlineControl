@@ -57,7 +57,7 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
             % Create a circular mask
             [X, Y] = meshgrid(xRange, yRange);
             distances = sqrt((X - x).^2 + (Y - y).^2);
-            mask = distances <= newPointRadius;
+            mask = distances <= newPointRadius*2;
             
             % Update the nonNeighbourhood to exclude the new point's neighbourhood
             nonNeighbourhood(yRange, xRange, z) = nonNeighbourhood(yRange, xRange, z) & ~mask;

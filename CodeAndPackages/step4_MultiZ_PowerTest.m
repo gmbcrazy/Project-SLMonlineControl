@@ -209,7 +209,17 @@ text(0,6,['Save the xml into SavedMarkPoints in Bruker!'],'color','r','fontsize'
 
 
 
+%% Copy all power test .xml and .gpl files to a new folder 'PowerTest'
+PowerTestFolder=[ProcessFolder 'PowerTest\'];
+mkdir(PowerTestFolder);
 
+PowerTestList=SearchFile(ProcessFolder,'GPoint*',0);
+for i=1:length(PowerTestList)
+    copyfile([ProcessFolder PowerTestList(i).name], PowerTestFolder);
+end
 
+for i=1:length(PowerTestList)
+    delete([ProcessFolder '\*GPoint*']);
+end
 
 

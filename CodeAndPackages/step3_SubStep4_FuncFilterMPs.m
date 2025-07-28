@@ -91,38 +91,46 @@ ImgClim=[0 800];
         PlotParam.CellCenterWith=1;
         PlotParam.CellBoundaryWidth=1;
 GroupColor=[255 51 153;91 20 212;121 247 111]/255;
-figure;      
-H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
-subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,gray(64),0,0,1,1);
-set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
-xlabel('Speed-Corr')
-camroll(90);
-papersizePX=[0 0 10*numPlanes 10];
-set(gcf, 'PaperUnits', 'centimeters');
-set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
-saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
-print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
+
+
+Online2DFunMapSave(CaData,cellBoundary, Pos3D, PlaneZ, CellSpeedColors, ImgClim, PlotParam, SavePathAllPoint, 'SpeedCorr')
+
+% figure;      
+% H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellSpeedColors, ImgClim,PlotParam);
+% subplot('position',[0.95 0.3 0.01 0.3])
+% MultibarPlot(1:64,gray(64),0,0,1,1);
+% set(gca,'xlim',[0 64],'xtick',[0 32 64],'xticklabel',sort([ClimRspeed 0]),'ytick',[]);
+% xlabel('Speed-Corr')
+% camroll(90);
+% papersizePX=[0 0 10*numPlanes 10];
+% set(gcf, 'PaperUnits', 'centimeters');
+% set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+% saveas(gcf,[SavePathAllPoint 'SpeedCorr'],'fig')
+% saveas(gcf,[SavePathAllPoint 'SpeedCorr.png'],'png')
+% print(gcf,[SavePathAllPoint 'SpeedCorr.svg'], '-dsvg', '-painters')
 % 
 
 
 SaveCorrFigure(NeuroData(:,iscell)', rSpeed, nanmean(fSpeed,2), 1:max(ExcludeStimInd), 'DeltaF', SavePathAllPoint ,'Speed');
 close all
 
-figure
-H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
-subplot('position',[0.95 0.3 0.01 0.3])
-MultibarPlot(1:64,parula(64),0,0,1,1);
-set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
-xlabel('Speed-Corr')
-camroll(90);
-papersizePX=[0 0 10*numPlanes 10];
-set(gcf, 'PaperUnits', 'centimeters');
-set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
-saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
-print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
+
+
+Online2DFunMapSave(CaData,cellBoundary, Pos3D, PlaneZ, CellStimColors, ImgClim, PlotParam, SavePathAllPoint, 'StimCorr')
+
+% figure
+% H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3D, [], PlaneZ, CellStimColors, ImgClim,PlotParam);
+% subplot('position',[0.95 0.3 0.01 0.3])
+% MultibarPlot(1:64,parula(64),0,0,1,1);
+% set(gca,'xlim',[0 64],'xtick',[0 64],'xticklabel',sort([ClimRstim]),'ytick',[]);
+% xlabel('Speed-Corr')
+% camroll(90);
+% papersizePX=[0 0 10*numPlanes 10];
+% set(gcf, 'PaperUnits', 'centimeters');
+% set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+% saveas(gcf,[SavePathAllPoint 'StimCorr'],'fig')
+% saveas(gcf,[SavePathAllPoint 'StimCorr.png'],'png')
+% print(gcf,[SavePathAllPoint 'StimCorr.svg'], '-dsvg', '-painters')
 
 SaveCorrFigure(NeuroData(:,iscell)', rStim, nanmean(fStim,2), 1:max(ExcludeStimInd), 'DeltaF', SavePathAllPoint ,'Stim');
 close all
@@ -225,6 +233,8 @@ IncludeInfo=IncludeInfo(sortI,:);
 
 IncludeCellFunFilter=IncludeInfo(:,1);
 FunScore=IncludeInfo(:,2:end);
+
+
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\']
 mkdir(SavePathStimSpeed)
 
@@ -270,6 +280,9 @@ saveas(gcf,[IncludePathOri GroupName{iGroup} 'StimCorr'],'fig')
 saveas(gcf,[IncludePathOri GroupName{iGroup} 'StimCorr.png'],'png')
 end
 close all
+
+
+
 
 
 XYZtoMarkPoint(IncludePathOri,Pos3D,IncludeCellFunFilter,yaml,confSet,CaData.statCell,FunScore);
