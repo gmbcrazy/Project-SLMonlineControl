@@ -36,13 +36,13 @@ for iCell = 1:size(iscell, 1)
 %     PostI = find(lags >= 0&lags <= 10);
     PreI=find(lags<0);
 
-    %%Previous used before July 28
-%     [~, i1] = max(abs(c(PostI,iCell)));
-%     rStim(iCell, 1) = c(PostI(i1),iCell);
-    %%Previous used before July 28
+    %Previous used before July 28
+    [~, i1] = max(abs(c(PostI,iCell)));
+    rStim(iCell, 1) = c(PostI(i1),iCell);
+    %Previous used before July 28
 
-    [~, i1] = max(abs(c(PostI,iCell))-mean(c(PreI,iCell)));
-    rStim(iCell, 1) = c(PostI(i1),iCell)-mean(tempNeuro);
+%     [~, i1] = max(abs(c(PostI,iCell))-mean(c(PreI,iCell)));
+%     rStim(iCell, 1) = c(PostI(i1),iCell)-mean(tempNeuro);
 
 end
 
