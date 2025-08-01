@@ -90,10 +90,13 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
 
-RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
-% RefFile=[WorkingFolder 'RegRef2Ch2\'];
+% RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+% RegImg=RegImg(:,:,4:6);% 
+
+
+RefFile=[WorkingFolder 'RegRef2Ch2\'];
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
-RegImg=RegImg(:,:,4:6);% 
 
 % FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
 % RefFile=[WorkingFolder 'suite2p\'];
@@ -117,7 +120,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=1:5
+for TseriesID=5:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);
