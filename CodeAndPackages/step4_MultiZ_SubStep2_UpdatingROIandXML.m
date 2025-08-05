@@ -15,5 +15,5 @@ FileIDrange=[];
 % SLMRes([1 9],1)=0;
 % SLMRes([3 7 32 35],2)=0;
 
-sampleN([10],:)=10;
+% sampleN([10],:)=10;
 step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml parameters.

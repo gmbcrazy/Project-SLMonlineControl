@@ -1,6 +1,9 @@
 clear all
 % TestFile='TSeries-04222024-0926-040'
-WorkingFolder='E:\LuSLMOnlineTest\SL1968\07312025\'
+ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
+
+
+WorkingFolder='E:\LuSLMOnlineTest\SL1968\08052025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
@@ -25,6 +28,9 @@ PowerTestPVPar.Ziteration=confSet.Ziteration;                        %%NumOfZser
 PowerTestPVPar.InterMPRepetition=repmat(PowerTestPVPar.ZRepetition,1,PowerTestPVPar.Ziteration);
 frameRepetition=PowerTestPVPar.ZRepetition*PowerTestPVPar.Ziteration;
 PowerTestPVPar.maxFrame=nPlane*frameRepetition;
+
+PowerTestTseries=dir([ConfigFolder 'PowerTest' num2str(confSet.Ziteration) 'Z' num2str(confSet.ZRepetition) '.env']);
+LoadTSeriestoBruker(PowerTestTseries);
 
 
 umPerPixel=mean([yaml.umPerlPixelX yaml.umPerlPixelY]);
@@ -126,7 +132,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[18 23 27 28 29 30 32 35 36 37];
+XMLparam.PointList=[2 3 27 14 30 2 3 27 14 30];
 % % % % % % % % % XMLparam.PointList(10)=[29]
 XMLparam.Laser(1:10)=repmat(1.52,1,10);
 % % 
@@ -149,7 +155,7 @@ SLMTableOrigin=SLMTable;
 FalsePositiveID=input('Mannual correction: index in SLMTable with false positive error: ');
 SLMTable(FalsePositiveID,2)=nan;
 
-% SLMTable([1 9],2)=1.42;
+SLMTable([22],2)=1.52;
 % SLMTable([26 27 28 34],2)=1.5;
 
 

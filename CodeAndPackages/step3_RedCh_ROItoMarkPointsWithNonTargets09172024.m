@@ -90,6 +90,7 @@ step3_SubStep3_AfterMannualSelectedNonTargetsInPV
 
 
 %% Including top cells highly correlated associated with speed.
+close all
 TopCellN=14;  
 SavePathStimSpeed=[SavePath 'Top' num2str(TopCellN) 'SpeedStimEdgeExc\'];
 mkdir(SavePathStimSpeed);
