@@ -2,7 +2,7 @@ clear all
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
 
 
-load([BatchSavePath '03-Jul-2025FOV.mat'])
+load([BatchSavePath '11-Aug-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step2\';
@@ -24,6 +24,8 @@ PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
 
 %% Initial align behaviors with imaging, identify SLM target cells
 for iFOV=1:length(FOVUpdate)
+% for iFOV=1:3
+   
 % iFOV=3;
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
@@ -40,10 +42,14 @@ GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 SaveFunCon=[DataSavePath 'FunCon\'];
 mkdir(SaveFunCon)
 
-for iFOV=12:length(FOVUpdate)
+% for iFOV=1:length(FOVUpdate)
+for iFOV=1:17
+
 % iFOV=3;
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
+    suite2pFOVPathLocalTemp=suite2pFOVPath{iFOV};
+
     OfflinePowerTest_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
     % OfflinePowerTest_OneFOVTempForSoohyun(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
 
@@ -56,14 +62,15 @@ end
 %% Group SLM data
 SaveFunCon=[DataSavePath 'GroupSLM\'];
 mkdir(SaveFunCon)
-for iFOV=1:length(FOVUpdate)
+% for iFOV=1:length(FOVUpdate)
+for iFOV=1:16
     FOVtemp=FOVUpdate(iFOV);
-    suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
+    suite2pFOVPathLocalTemp=suite2pFOVPath{iFOV};
     OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
 end
 
 
-
+%%
 
 
 

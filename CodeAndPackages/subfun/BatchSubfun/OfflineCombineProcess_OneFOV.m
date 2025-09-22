@@ -63,6 +63,7 @@ Suite2pTable.suite2pInd = suite2pInd;
 
 if ~exist([ResultFolder 'BehAll.mat'])
     for i = 1:length(FileIDList)
+        FileIDList(i)
         [fSpeed{i}, fStim{i}, timeStampCa{i}, FrameTS{i}, fVideo{i}, VideoStartFrameTime{i}] = PV_VolExtract_MultiCyc(confSet, FileIDList(i));
     end
     SpeedAll = [];
@@ -104,7 +105,7 @@ TempconfSet = confSet; TempconfSet.save_path0 = WorkFolder;
 CorrResults = ProcessFOVCorrelationAndPlots(CaData, SpeedAll, StimAll, Suite2pTable, SessFileTable, ResultFolder);
 
 %% --- 2. SLM/Cell Mapping ---
-DistTh = 6;
+DistTh = 8;
 [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ...
     ProcessFOVSLMTargetMapping(CaData, SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh);
 
@@ -117,11 +118,16 @@ ProcessFOVGroupComparison(CorrResults.rSpeed, CorrResults.rStim, TargetCellList,
 % Example placeholders below:
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 iscell = find(CaData.iscell(:,1)>0.99);
+
+[DeltaF,DeltaF1]=F2deltaFoF(CaData.F, CaData.Fneu, CaData.ops.fs);
+
 NData = {
-    double(F2deltaFoF(CaData.F, CaData.Fneu, CaData.ops.fs));
+    double(DeltaF);
+    % double(DeltaF1);
     double(CaData.spks)
 };
 NData{1} = NData{1}(:, iscell)';   % deltaFoF: (frames, cells) -> (cells, frames)
+% NData{2} = NData{2}(:, iscell)';
 NData{2} = NData{2}(iscell, :);    % spks: (cells, frames)
 
 SLMInfoTable=Suite2pTable(Suite2pTable.suite2pInd>0,:);
@@ -169,13 +175,14 @@ if iData==1
 
 FDR=0.1;
 [h, crit_p, adj_p]=fdr_bh(TargetCellResP((~isnan(TargetCellResP))&CellSampleN>=TrialThNum),FDR,'pdep');
+crit_p=0.05;
 % crit_p=min([crit_p 0.05]);
-
+% crit_p=0.1;
 
 PowerTargetI=zeros(length(TargetCellList),1);
 SuccTarget=PowerTargetI;
 SuccAmp=PowerTargetI;
-
+% SuccTargetPvalue=ones(length(TargetCellList),length(PVpower));
 for iCell=1:length(TargetCellList)
     for iPower=1:length(PVpower)
         if TargetCellResP(iCell,iPower)<=crit_p&&TargetCellResR(iCell,iPower)>0&&CellSampleN(iCell,iPower)>=TrialThNum
@@ -183,6 +190,10 @@ for iCell=1:length(TargetCellList)
            SuccTarget(iCell)=1;
            SuccAmp(iCell)=TargetCellResR(iCell,iPower);
         end
+        % if TargetCellResR(iCell,iPower)>0&&CellSampleN(iCell,iPower)>=TrialThNum
+        %    SuccTargetPvalue(iCell,iPower)=TargetCellResP(iCell,iPower);
+        % end
+
     end
 end
 sum(SuccTarget)
@@ -211,25 +222,132 @@ Param.Legend=[]
 
 
 
+[~,~,ip]=intersect(TargetCellList,SLMtarget);
+if length(ip)~=length(TargetCellList)
+   disp(['Check TargetCellList and PointList, not match']);
+   return 
 
-
+end
 
 
 AlignedNData{iData}=AlignedtempNData;
 
+ProcessFOVCellResponsePlots(TargetCellList, ip ,iscell, PVpower, PSTHparam, TargetCellResP,TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel{iData});
 
 
 
 end
 
 close all
+% save([ResultFolder 'Step1Meta.mat'],'Suite2pTable','CaData','CorrResults','SLMPosInfo','SLMTestInfo','SLMInfoTable','SessFileTable',...
+%     'NData','Neuronstat','NeuronPos3D','NeuronPos3DRaw','SuccAmp','SuccTarget','PowerTargetI',...
+%     'SuccAmp','TargetCellList','TargetCellListFunGroup','GroupTargetCell','AlignedSpeed','AlignedStim');
+
+
+    tempTargetList=TargetCellList;
+    tempPowerI=PowerTargetI;
+    tempPower=unique(SLMInfoTable.UncagingLaserPower);
+    tempPower=tempPower(2:end);
+    tempGroup=TargetCellListFunGroup;
+
+    % targetListLabel={};
+    % for i=1:length(TargetCellList)
+    %     targetListLabel
+    % 
+    % end
+
+        finalTargetList=[];
+        finalTargetListGroup=[];
+        for igroup=1:length(GroupTargetCell)
+            finalTargetList=[finalTargetList;GroupTargetCell{igroup}(:)];
+            finalTargetListGroup=[finalTargetListGroup;zeros(length(GroupTargetCell{igroup}),1)+igroup];
+        end
+        [finalTargetList,i1]=sort(finalTargetList);
+        finalTargetListGroup=finalTargetListGroup(i1);
+
+        i1=ismember(TargetCellList,finalTargetList);
+        validI=find(tempPowerI>0&i1>0);
+        tempTargetList=tempTargetList(validI);
+        tempPowerI=tempPowerI(validI);
+        tempPower=tempPower(tempPowerI);
+        tempGroup=tempGroup(validI);
+
+        NeuronPos3D(tempTargetList,:)
+
+    FinalActCellList=tempTargetList;
+    FinalActPowerI=tempPowerI;
+    FinalActCellFunGroup=tempGroup;
+    FinalActPower=tempPower;
+
+
 save([ResultFolder 'Step1Meta.mat'],'Suite2pTable','CaData','CorrResults','SLMPosInfo','SLMTestInfo','SLMInfoTable','SessFileTable',...
     'NData','Neuronstat','NeuronPos3D','NeuronPos3DRaw','SuccAmp','SuccTarget','PowerTargetI',...
-    'SuccAmp','TargetCellList','TargetCellListFunGroup','GroupTargetCell','AlignedSpeed','AlignedStim');
+    'SuccAmp','TargetCellList','TargetCellListFunGroup','GroupTargetCell','AlignedSpeed','AlignedStim',...
+    'FinalActCellList','FinalActPowerI','FinalActCellFunGroup','FinalActPower');
+
+ProcessFOVGroupComparison(CorrResults.rSpeed, CorrResults.rStim, FinalActCellList, FinalActCellFunGroup, SLMPosInfo, Nlabel, [ResultFolder 'Act']);
 
 
-ProcessFOVCellResponsePlots(NData{1}, TargetCellList, iscell, Suite2pTable, PVpower, PSTHparam, GroupTargetCell, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel{1});
-ProcessFOVCellResponsePlots(NData{2}, TargetCellList, iscell, Suite2pTable, PVpower, PSTHparam, GroupTargetCell, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel{2});
+colorCell=repmat([1 1 0],length(tempTargetList),1);
+colorCellIncluded=repmat([1 1 0],length(finalTargetList),1);
+
+GroupLabel={'L','S','N'};
+nGroup=length(GroupLabel);
+GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+% NodeColor=repmat([0.9 0.9 0.9],length(iscell),1);
+for iGroup=1:length(Group)
+    I1=find(tempGroup==iGroup);
+    colorCell(I1,:)=repmat(GroupColor(iGroup,:),length(I1),1);
+
+    I1=find(finalTargetListGroup==iGroup);
+    colorCellIncluded(I1,:)=repmat(GroupColor(iGroup,:),length(I1),1);
+end
+MeanImg=AmpNormalizeDim(double(CaData.PlaneMeanImg),3,[0.5 99.5]);
+ImgClim=[0 1];
+
+finalTargetListLabel={};
+for iCell=1:length(finalTargetList)
+    finalTargetListLabel{iCell}=num2str(finalTargetList(iCell));
+end
+
+figure;
+H=MultiPlanes2DShow(permute(MeanImg,[2 1 3]), cellBoundary(finalTargetList), NeuronPos3D(finalTargetList,:), finalTargetListLabel, SLMPosInfo.confSetFinal.ETL+SLMPosInfo.confSetFinal.scan_Z(1), colorCellIncluded, ImgClim);
+bar=colorbar(H(3));
+bar.Location='eastoutside';
+bar.Position=[0.95,0.3,0.01,0.3];
+bar.Label.String='F.';
+bar.Ticks=[0 1];
+papersizePX=[0 0 30 9];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+
+print(gcf, [ResultFolder 'FinalUsedSLMtarget.svg'], '-dsvg', '-painters');
+print(gcf, [ResultFolder 'FinalUsedSLMtarget.tif'], '-dtiffn', '-painters');          
+% close all
+
+tempTargetListLabel={};
+for iCell=1:length(tempTargetList)
+    tempTargetListLabel{iCell}=num2str(tempTargetList(iCell));
+end
+
+figure;
+H=MultiPlanes2DShow(permute(MeanImg,[2 1 3]), cellBoundary(tempTargetList), NeuronPos3D(tempTargetList,:), tempTargetListLabel, SLMPosInfo.confSetFinal.ETL+SLMPosInfo.confSetFinal.scan_Z(1), colorCell, ImgClim);
+bar=colorbar(H(3));
+bar.Location='eastoutside';
+bar.Position=[0.95,0.3,0.01,0.3];
+bar.Label.String='F.';
+bar.Ticks=[0 1];
+papersizePX=[0 0 30 9];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+
+print(gcf, [ResultFolder 'FinalActSLMtarget.svg'], '-dsvg', '-painters');
+print(gcf, [ResultFolder 'FinalActSLMtarget.tif'], '-dtiffn', '-painters');          
+close all
+
+[AlignedtempNData,TargetInfoTable,CellResponse,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
+
+% ProcessFOVCellResponsePlots(NData{2}, TargetCellList, iscell, Suite2pTable, PVpower, PSTHparam, GroupTargetCell, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel{2});
 
 close all
 

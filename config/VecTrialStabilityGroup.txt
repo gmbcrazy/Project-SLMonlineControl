@@ -1,0 +1,15 @@
+
+One Way ANOVA
+Session Effect:F2,234=0.69095 P=0.50212
+
+Pairwise Comparison
+L-S ,t156=-0.93107,p=0.35325
+L-N ,t177=-1.0983,p=0.27358
+S-N ,t135=-0.016651,p=0.98674
+Multi-Compairson fdr
+Q Pth
+0.1 0
+mean ± sd
+L 0.016972 ± 0.038878 n=100
+S 0.023679 ± 0.050874 n=58
+N 0.023815 ± 0.044381 n=79

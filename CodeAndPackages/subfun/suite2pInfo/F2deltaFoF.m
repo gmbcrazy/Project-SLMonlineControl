@@ -1,4 +1,4 @@
-function deltaFoF=F2deltaFoF(F,Fneu,fR)
+function [deltaFoF,deltaFoF2]=F2deltaFoF(F,Fneu,fR)
 
         F = F'; Fneu = Fneu';
         Fsubtracted = F - 0.7*Fneu;
@@ -99,4 +99,4 @@ function deltaFoF=F2deltaFoF(F,Fneu,fR)
         % Norm - option 2 - From suite2p
         % normalize signal
         sd         = 1/sqrt(2) * std(deltaFoF(2:end, :) - deltaFoF(1:end-1, :), [], 1);
-        deltaFoF   = bsxfun(@rdivide, deltaFoF , 1e-12 + sd); % THIS IS NOT deltaFoF; I JUST DID NOT WANT TO CHANGE ALL MY CODES
+        deltaFoF2   = bsxfun(@rdivide, deltaFoF , 1e-12 + sd); % THIS IS NOT deltaFoF; I JUST DID NOT WANT TO CHANGE ALL MY CODES

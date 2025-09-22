@@ -29,6 +29,11 @@ else
 
     end
 end
+CaData.F=double(CaData.F);
+CaData.spks=double(CaData.spks);
+CaData.Fneu=double(CaData.Fneu);
+
+CaData.dF=CaData.F - CaData.ops.neucoeff * CaData.Fneu;
 
 
 Lx=CaDataPlane(1).ops.Lx;
@@ -42,8 +47,8 @@ CellPlaneID=[];
 for i=1:PlaneN
     statTemp=[statTemp CaDataPlane(i).stat];
     CellPlaneID=[CellPlaneID;zeros(length(CaDataPlane(i).stat),1)+i];
-    CaData.PlaneMeanImg(:,:,i)=CaDataPlane(i).ops.meanImg;
-    CaData.PlaneMeanImgE(:,:,i)=CaDataPlane(i).ops.meanImgE;
+    CaData.PlaneMeanImg(:,:,i)=double(CaDataPlane(i).ops.meanImg);
+    CaData.PlaneMeanImgE(:,:,i)=double(CaDataPlane(i).ops.meanImgE);
 
 end
 

@@ -45,7 +45,17 @@ for iCell=1:length(TargetCellList)
                temp1=preSLMdata(jCell,:,:);
                temp2=postSLMdata(jCell,:,:);
                [~,p(jCell,1),~,t(jCell)]=ttest2(temp2(:),temp1(:));
+               [pRank(jCell,1),~,statRank(jCell)]=ranksum(temp2(:),temp1(:));
+
                temp3(jCell)=mean(temp2(:))-mean(temp1(:));
+               temp4(jCell)=median(temp2(:))-median(temp1(:));
+
+                % if strcmpi(PSTHparam.TestMethod, 'ranksum')
+                %     [p(jCell,1), ~, statsTmp(jCell)] = ranksum(temp2(:),temp1(:));
+                % else
+                %     [~, p(jCell,1), ~, statsTmp(jCell)] = ttest2(temp2(:),temp1(:));
+                % end
+
 
                % temp1=preSLMdata1(jCell,:);
                % temp2=postSLMdata1(jCell,:);
@@ -61,9 +71,17 @@ for iCell=1:length(TargetCellList)
            statCellRes(iCell,iPower).t=t;
            statCellRes(iCell,iPower).delta=temp3;
 
+           statCellRes(iCell,iPower).pRank=pRank;
+           statCellRes(iCell,iPower).RankStat=statRank;
+         
+           
            TargetCellResP(iCell,iPower)=p(TargetCellList(iCell));
            TargetCellResR(iCell,iPower)=temp3(TargetCellList(iCell));
-           clear p t temp3;
+           % TargetCellResP(iCell,iPower,2)=pRank(TargetCellList(iCell));
+           % TargetCellResR(iCell,iPower,2)=temp4(TargetCellList(iCell));
+
+
+           clear p temp3 statsTmp;
         end
         
     end

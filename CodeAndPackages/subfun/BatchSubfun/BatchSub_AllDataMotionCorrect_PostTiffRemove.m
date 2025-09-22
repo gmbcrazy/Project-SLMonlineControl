@@ -127,6 +127,8 @@ if isempty(setdiff(fileIDCurrent,FileID))&&isempty(setdiff(FileID,fileIDCurrent)
     subT1=Suite2pTable(i1,:);
 
     FOVUpdate.subT1=subT1;
+    FOVUpdate.CSVName=[]
+    save([DataFolder 'FOVUpdate.mat'],'FOVUpdate');
 
     disp(['Total of ' num2str(sum(subT1.Suite2pTiffNum)) ' tif files required to processed in suite2p']);
 else

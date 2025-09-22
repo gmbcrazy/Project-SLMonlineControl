@@ -9,9 +9,12 @@ rootData='E:\LuSLMOnlineTest\';
 AnimalPath=dir([rootData 'SL????']);
 ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
-if exist([BatchSavePath 'FOV.mat'])
-   load([BatchSavePath 'FOV.mat']);
+existFOV=dir([BatchSavePath '*FOV.mat'])
+if ~isempty(existFOV)
+    [~, idx] = max([existFOV.datenum])    %%latest file is chosen
+    load([BatchSavePath existFOV(idx).name]);
 end
+
 
 
 
@@ -33,6 +36,9 @@ for i = 1:length(AnimalPath)
     FOVsession=[FOVsession;fullPaths(:)];
 end
 
+for i = 1:length(FOVsession)
+    [animalIDs{i}, sessionDates{i}] = extractAnimalIDandDate(FOVsession{i})
+end
 
 load([ConfigFolder 'PreGenerateTseriesMultiZ\SpontBeh5T_Z11Frame550.mat'],'TSeriesBrukerTBL');
 TSeriesBrukerTBL1=TSeriesBrukerTBL;
@@ -49,10 +55,15 @@ else
    clear FOV;
 end
 
+
+
+
 FOV=struct([]);
 UpdateIn=[];
 clear FOV;
-for i=1:length(FOVsession)
+% for i=1:length(FOVsession)
+for i=13:13
+
     WorkFolder=[FOVsession{i} '\'];
     if exist('FOVExistName')
        [~,~,I1]=intersect(FOVsession{i},FOVExistName)
@@ -118,12 +129,13 @@ end
 
 RemoveFrame=2;
 iTemp=1;
-for i=1:length(FOV)
+for i=1:13
+    % for i=1:length(FOV)
     if ~isempty(FOV(i).MatFile)
-       FOVUpdate(i)=BatchSub_AllDataMotionCorrect_PostTiffRemove(FOV(i),TSeriesBrukerTBL,UniversalMotionTh,RemoveFrame);
+       FOVUpdate3(i)=BatchSub_AllDataMotionCorrect_PostTiffRemove(FOV(i),TSeriesBrukerTBL,UniversalMotionTh,RemoveFrame);
     else
        disp([FOVsession(i) ' previously processed']);
-       FOVupdate(i)=FOVExist(UpdateIn(iTemp));
+       FOVUpdate(i)=FOVExist(UpdateIn(iTemp));
        iTemp=iTemp+1;
     end
 end
@@ -159,8 +171,9 @@ end
 
 
 
-for i=1:length(FOV)
+for i=1:length(FOVUpdate)
     writetable(FOVUpdate(i).subT1,[BatchSavePath 'FOV' num2str(i) animalIDs{i} sessionDates{i} '.csv']);
+    FOVUpdate(i).CSVName=[BatchSavePath 'FOV' num2str(i) animalIDs{i} sessionDates{i} '.csv'];
 end
 
 save([BatchSavePath date 'FOV.mat'],'FOVUpdate','suite2pFOVPath','suite2pFOVPathLocal');

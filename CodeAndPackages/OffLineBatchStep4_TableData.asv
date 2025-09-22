@@ -2,7 +2,7 @@ clear all
 
 
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '03-Jul-2025FOV.mat'])
+load([BatchSavePath '11-Aug-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step4\';
@@ -12,7 +12,7 @@ mkdir(DataSavePath);
 SaveFunCon=[DataSavePath 'FunCon\'];
 mkdir(SaveFunCon)
 
-VolEventLabel={}
+% VolEventLabel={}
 
 PSTHparam.PreSLMCal = 10; 
 PSTHparam.PostSLMCal = 15;
@@ -20,29 +20,37 @@ PSTHparam.pTh = 0.05;
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
 PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
-PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
+PSTHparam.iData = 2;    %%post-slm frames for Test whether SLM works
 
 ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 
-IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12];
+IndexFOVNeed=[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
 
+for iData=1:2
+    PSTHparam.iData = iData;    %%post-slm frames for Test whether SLM works
+    [Output(iData),NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+end
 
-[Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
-
-
-
-CellN=size(Output.NeuroPos3DMeta,1);
-CellNNonTarget=size(Output.NeuroPos3DMeta,1)-size(Output.GroupTargetCellAll,1);
+CellN=size(Output(1).NeuroPos3DMeta,1);
+CellNNonTarget=size(Output(1).NeuroPos3DMeta,1)-size(Output(1).GroupTargetCellAll,1);
 
 
 SaveFunCon=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
-% SaveFunCon=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
 mkdir(SaveFunCon)
+
+% SaveFunCon=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
+
+
+% save([SaveFunCon 'FOVoutputs.mat'])
+
+load([SaveFunCon 'FOVoutputs.mat'])
+
+
 PostPreDiffSpeedTh=[1 2 10000];
 iSpeedTh=2;
-ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
+ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);    %%noticed that this speed threshold is not applied when use OfflineSLM_FOVmeta2NeuroDeltaTrial.
 ProcessPar.PlotFigure=0;
 ProcessPar.GroupLabel={'L','S','N'};
 ProcessPar.GroupList=[1 2 3];
@@ -55,15 +63,21 @@ ProcessPar.VolOutLabel={'NoWhisk','Whisk'}
 ProcessPar.AwakeState=[1];
 ProcessPar.AwakeStateLabel={'Awake'};
 %%Making table for mixed linear models with cell and trial as sample
+NDataName={'deltaF','spks'};
+
+for iData=1:2
+
+    PSTHparam.iData=iData;
 
 PSTHparam.TestWinNum=5;
 tblResponse=[];
 for iWin=1:PSTHparam.TestWinNum
     PSTHparam.PostWinN=iWin;
-    [tbl,InfoTable]=OfflineSLM_FOVmeta2NeuroDeltaTrial(Output,ProcessPar,PSTHparam);
+    [tbl,InfoTable]=OfflineSLM_FOVmeta2NeuroDeltaTrial(Output(iData),ProcessPar,PSTHparam);
 
     % SLMGroupTableTrial=[tbl InfoTable];
     NeedInfo={'Group','VolOut','PowerZero','AwakeState'};
+
     SLMGroupTableTrial = [tbl InfoTable(:,NeedInfo)];
     SLMGroupTableTrial(isnan(SLMGroupTableTrial.Group),:)=[];
     SLMGroupTableTrial=removevars(SLMGroupTableTrial,{'PointSpeedR','PointStimR'});
@@ -80,14 +94,50 @@ for iWin=1:PSTHparam.TestWinNum
         Time=[Time;TempSeq(:)];
     end
     SLMGroupTableTrial.Time=Time;
-    writetable(SLMGroupTableTrial,[SaveFunCon 'SLMGroupResTrialDynWin' num2str(iWin) '.csv']);
+    writetable(SLMGroupTableTrial,[SaveFunCon NDataName{iData} 'SLMGroupResTrialDynWin' num2str(iWin) '.csv']);
     tblResponse(:,iWin)=tbl.Response;
+end
+
+end
+
+PSTHparam.TestWinNum=1;
+
+for iData=1:2
+
+    PSTHparam.iData=iData;
+
+tblResponse=[];
+for iWin=1:PSTHparam.TestWinNum
+    PSTHparam.PostWinN=iWin;
+    [tbl,InfoTable]=OfflineSLM_FOVmeta2NeuroDeltaTrial(Output(iData),ProcessPar,PSTHparam);
+    % SLMGroupTableTrial=[tbl InfoTable];
+    NeedInfo={'UncagingLaserPower','Point','PointTargetCell','PointTargetCellGroup'};
+
+    SLMPointTableTrial = [tbl InfoTable(:,NeedInfo)];
+    SLMPointTableTrial(isnan(SLMPointTableTrial.Point),:)=[];
+    % SLMPointTableTrial=removevars(SLMPointTableTrial,{'PointSpeedR','PointStimR'});
+    
+    % SLMPointTableTrial.Properties.VariableNames{'VolOut'} = 'Whisk';
+    
+    SLMPointTrialID=SLMPointTableTrial.TrialID;
+    EndSessInd=[find(diff(SLMPointTrialID)<0);length(SLMPointTrialID)];
+    StartSessInd=[1;find(diff(SLMPointTrialID)<0)+1];
+    Time=[];
+    for iT=1:length(EndSessInd)
+        TempSeq=StartSessInd(iT):EndSessInd(iT);
+        TempSeq=(TempSeq-min(TempSeq))/(max(TempSeq)-min(TempSeq));
+        Time=[Time;TempSeq(:)];
+    end
+    SLMPointTableTrial.Time=Time;
+    writetable(SLMPointTableTrial,[SaveFunCon NDataName{iData} 'SLMPointResTrialDynWin' num2str(iWin) '.csv']);
+    tblResponse(:,iWin)=tbl.Response;
+end
+
 end
 
 
 
-
-SLMGroupTableTrial=readtable([SaveFunCon 'SLMGroupResTrialDynWin1.csv'])
+SLMGroupTableTrial=readtable([SaveFunCon 'deltaFSLMGroupResTrialDynWin1.csv']);
 
 
 
@@ -100,19 +150,21 @@ SponInd=[1:8200];
 ExcludeStimInd=[1:2000 2800:4100];  
 ExcludeStimInd=union(ExcludeStimInd,ExcludeStimInd+4100);
 
-AddStimNoise=random('norm',0,0.1,length(SponInd),1);
+% AddStimNoise=random('norm',0,0.1,length(SponInd),1);
 
 SaveFunSub=[SaveFunConDim 'FOV\'];
 mkdir(SaveFunSub)
 % clear FOVres
 
 SaveFunConDim
-iData=1;
-pcaN=25;
+iData=2;
+pcaN=40;
 ScoreLabel={'SpeedScore','WhiskScore'}
-for iFOV=1:10
 
-% for iFOV=1:length(IndexFOVNeed)
+
+% for iFOV=3:3
+
+for iFOV=1:length(IndexFOVNeed)
     close all
 tblFOV=SLMGroupTableTrial(SLMGroupTableTrial.Session==iFOV,:);
 TrialID=unique(tblFOV.TrialID);
@@ -313,8 +365,8 @@ xlabel('Frames')
     papersizePX=[0 0 15 10];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    print(gcf, [SaveFunSub 'FOV' num2str(iFOV) 'NeuroComSpeed.svg'], '-dsvg', '-painters');
-    print(gcf, [SaveFunSub 'FOV' num2str(iFOV) 'NeuroComSpeed.tif'], '-dtiffn', '-painters');
+    print(gcf, [SaveFunSub  NDataName{iData} 'FOV' num2str(iFOV) 'NeuroComSpeed.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunSub  NDataName{iData} 'FOV' num2str(iFOV) 'NeuroComSpeed.tif'], '-dtiffn', '-painters');
 
 
 figure;
@@ -344,8 +396,8 @@ xlabel('Frames')
     papersizePX=[0 0 15 10];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    print(gcf, [SaveFunSub 'FOV' num2str(iFOV) 'NeuroComWhisker.svg'], '-dsvg', '-painters');
-    print(gcf, [SaveFunSub 'FOV' num2str(iFOV) 'NeuroComWhisker.tif'], '-dtiffn', '-painters');
+    print(gcf, [SaveFunSub NDataName{iData} 'FOV' num2str(iFOV) 'NeuroComWhisker.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunSub NDataName{iData} 'FOV' num2str(iFOV) 'NeuroComWhisker.tif'], '-dtiffn', '-painters');
 
 
 end
@@ -419,7 +471,7 @@ FOVres(iFOV).DataVecNonTarget=DataVecNontarget;
 
 
     pinvW = pinv(FOVres(iFOV).W(:,FOVres(iFOV).ComI));
-    % Score = (pinvW * FOVres(iFOV).DataVec)'; 
+    Score = (pinvW * FOVres(iFOV).DataVec)'; 
     Score(:,1) = Score(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedReg.B;
 
 
@@ -567,7 +619,7 @@ end
 
 
 
-save([SaveFunSub date 'nnmfResult.mat']);
+save([SaveFunSub NDataName{iData} date 'nnmfResult.mat']);
 
 
 
@@ -611,42 +663,42 @@ for iFOV=1:length(IndexFOVNeed)
             tempScore(iTrial,:)=[NaN NaN];
         end
         % 
-        %Keep Score positive
-        % Score(:,iTrial)=lsqnonneg(FOVres(iFOV).W(:,FOVres(iFOV).ComI), FOVres(iFOV).DataVec(:,iTrial));
-        % ScoreNontarget(:,iTrial)=lsqnonneg(FOVres(iFOV).WNontarget(:,FOVres(iFOV).ComI), FOVres(iFOV).DataVecNonTarget(:,iTrial));
-        % Score_sub(:,iTrial)=lsqnonneg(FOVres(iFOV).W_sub(:,FOVres(iFOV).ComI_sub), FOVres(iFOV).DataVecNonTarget(:,iTrial));
-        % 
-        % % %%Keep Score positive
+        % Keep Score positive
+        Score(:,iTrial)=lsqnonneg(FOVres(iFOV).W(:,FOVres(iFOV).ComI), FOVres(iFOV).DataVec(:,iTrial));
+        ScoreNontarget(:,iTrial)=lsqnonneg(FOVres(iFOV).WNontarget(:,FOVres(iFOV).ComI), FOVres(iFOV).DataVecNonTarget(:,iTrial));
+        Score_sub(:,iTrial)=lsqnonneg(FOVres(iFOV).W_sub(:,FOVres(iFOV).ComI_sub), FOVres(iFOV).DataVecNonTarget(:,iTrial));
+
+        % %%Keep Score positive
 
     end
 
     DataVecTBL=[DataVecTBL array2table(tempScore,"VariableNames",{'TargetSpeedScore','TargetWhiskerScore'})];
 
-    % Score=Score';
-    % ScoreNontarget=ScoreNontarget';
-    % Score_sub=Score_sub';
+    Score=Score';
+    ScoreNontarget=ScoreNontarget';
+    Score_sub=Score_sub';
     % 
     % Score=zscore(Score);
     % ScoreNontarget=zscore(ScoreNontarget);
     % Score_sub=zscore(Score_sub);
-
-    pinvW = pinv(FOVres(iFOV).W(:,FOVres(iFOV).ComI));
-    Score = (pinvW * FOVres(iFOV).DataVec)'; 
-    % Score(:,1) = Score(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedReg.B;
+    % 
+    % pinvW = pinv(FOVres(iFOV).W(:,FOVres(iFOV).ComI));
+    % Score = (pinvW * FOVres(iFOV).DataVec)'; 
+    Score(:,1) = Score(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedReg.B;
 
 % x=[min(data1(:)) max(data1(:))]';
 % y=[[1 1]' x]*B;
 % close all
 % plot(lags,c_sub(:,12))
-    subNonTargetData=FOVres(iFOV).DataVec;
-    subNonTargetData(Target,:)=0;
-    ScoreNontarget = (pinvW * subNonTargetData)'; 
+    % subNonTargetData=FOVres(iFOV).DataVec;
+    % subNonTargetData(Target,:)=0;
+    % ScoreNontarget = (pinvW * subNonTargetData)'; 
     ScoreNontarget(:,1) =  ScoreNontarget(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedRegNontarget.B;
 
-    pinvW_sub = pinv(FOVres(iFOV).W_sub(:,FOVres(iFOV).ComI_sub));
-    Score_sub = (pinvW_sub * FOVres(iFOV).DataVecNonTarget)'; 
+    % pinvW_sub = pinv(FOVres(iFOV).W_sub(:,FOVres(iFOV).ComI_sub));
+    % Score_sub = (pinvW_sub * FOVres(iFOV).DataVecNonTarget)'; 
     % 
-    % Score_sub(:,1) = Score_sub(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedReg_sub.B;
+    Score_sub(:,1) = Score_sub(:,1) - [ones(length(Score(:,1)),1) DataVecTBL.Speed]*FOVres(iFOV).SpeedReg_sub.B;
 
     % ScoreNontarget=array2table(ScoreNontarget,"VariableNames",{'SpeedScore','WhiskerScore'});
     % Score=array2table(Score,"VariableNames",{'SpeedScore','WhiskerScore'});
@@ -784,9 +836,9 @@ end
 
 
 GroupMethod='mean';
-
+SpeedTh=1000
 TBLallavg = groupsummary(TBLall(TBLall.Whisk==0&TBLall.PowerZero==0&abs(TBLall.Speed)<SpeedTh,:), {'Session', 'Group'}, GroupMethod);
-TBL_subavg= groupsummary(TBLall_sub(TBLall.Whisk==0&TBLall.PowerZero==0&abs(TBLall.Speed)<SpeedTh,:),{'Session', 'Group'}, GroupMethod);
+TBL_subavg= groupsummary(TBLall_sub(TBLall_sub.Whisk==0&TBLall_sub.PowerZero==0&abs(TBLall_sub.Speed)<SpeedTh,:),{'Session', 'Group'}, GroupMethod);
 % 
 % TBLallavg = groupsummary(TBLall(TBLall.Whisk==0&TBLall.PowerZero==0&TBLall.Group~=3&abs(TBLall.Speed)<SpeedTh,:), {'Session', 'Group'}, GroupMethod);
 % TBL_subavg= groupsummary(TBLall_sub(TBLall.Whisk==0&TBLall.PowerZero==0&TBLall.Group~=3&abs(TBLall.Speed)<SpeedTh,:),{'Session', 'Group'}, GroupMethod);
@@ -806,11 +858,11 @@ TBL_subavg.Properties.VariableNames=newNames;
 
 
 
-for igroup=1:3
-    tempData{igroup,1}=TBLallavg.mean_SpeedScore(TBLallavg.Group==igroup);
-end
-a=ErrorBarPlotLU(1:3,tempData,[],ProcessPar.GroupColor,2,1,[],GroupPair,[1 1 1])
-
+% for igroup=1:3
+%     tempData{igroup,1}=TBLallavg.mean_SpeedScore(TBLallavg.Group==igroup);
+% end
+% a=ErrorBarPlotLU(1:3,tempData,[],ProcessPar.GroupColor,2,1,[],GroupPair,[1 1 1])
+% 
 
 ProcessPar.GroupColor
 
@@ -874,7 +926,7 @@ figure;
 [OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBL_subavg.TargetSpeedScore,TBL_subavg.SpeedScore,TBL_subavg.Speed,TBL_subavg.Group,Param)
 
 
-GroupMethod='mean';
+GroupMethod='median';
 
 TBLallavg = groupsummary(TBLall(TBLall.Whisk==1&TBLall.Group<=3&TBLall.PowerZero==0&TBLall.Speed<SpeedTh,:), {'Session', 'Group'}, GroupMethod);
 TBL_subavg= groupsummary(TBLall_sub(TBLall.Whisk==1&TBLall.Group<=3&TBLall.PowerZero==0&TBLall.Speed<SpeedTh,:),{'Session', 'Group'}, GroupMethod);

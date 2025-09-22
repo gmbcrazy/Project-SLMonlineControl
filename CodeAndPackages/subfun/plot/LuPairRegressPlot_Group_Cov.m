@@ -5,8 +5,8 @@ data2=data2(:);
 
 if nargin==4
    Param.Color=[0.1 0.1 0.1];
-   Param.Marker='s';
-   Param.MarkerSize=2;
+   Param.Marker='c';
+   Param.MarkerSize=10;
    Param.Rtype='pearson';
    Param.xLim=[min(data1) max(data1)];
    Param.yLim=[min(data2) max(data2)];
@@ -22,6 +22,15 @@ elseif nargin==5
 else
 
 end
+
+if isempty(Param.xLim)
+    Param.xLim=[min(data1) max(data1)];
+end
+if isempty(Param.yLim)
+    Param.yLim=[min(data2) max(data2)];
+end
+
+
 
 h(1)=subplot(1,2,1);
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,data2,dataGroup,Param)

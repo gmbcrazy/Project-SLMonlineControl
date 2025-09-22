@@ -1,4 +1,4 @@
-function ProcessFOVCellResponsePlots(NData, TargetCellList, iscell, Suite2pTable, PVpower, PSTHparam, GroupTargetCell, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel)
+function ProcessFOVCellResponsePlots(TargetCellList, TargetPointList, iscell, PVpower, PSTHparam, SuccTargetPvalue, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel)
 % Cell response mapping and aligned plots (per target/per SLM power)
 
 TrialThNum = 3;
@@ -23,8 +23,9 @@ for iCell = 1:length(TargetCellList)
             subplotLU(length(TargetCellList), length(PVpower), iCell, iPower, P)
             RateHist_GroupPlot(TimBinFrame+0.5, TargetResponse(iCell, iPower), [0.1 0.1 0.1],Param);
             hold on;
-            text(-10,0.1,['C' num2str(iCell) 'n = ' num2str(CellSampleN(iCell, iPower))])
-            set(gca, 'xlim', [-PSTHparam.PreSLMCal PSTHparam.PostSLMCal], 'xtick', -PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal)
+            text(-10,0.1,['C' num2str(TargetCellList(iCell)) 'P' num2str(TargetPointList(iCell)) 'n = ' num2str(CellSampleN(iCell, iPower))]);      
+            text(-10,0.05,['p' showPvalue(SuccTargetPvalue(iCell,iPower),3)]);        
+            set(gca, 'xlim', [-PSTHparam.PreSLMCal PSTHparam.PostSLMCal], 'xtick', -PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal);
             ylabel(['Target' num2str(iCell)]);
         end
     end

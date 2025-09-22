@@ -164,7 +164,8 @@ mkdir(EGTestFolder)
 
 
 % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
-writetable(tbl,[SaveFunCon 'PowerTestResponse.csv']);
+% writetable(tbl,[SaveFunCon 'PowerTestResponse.csv']);
+writetable(tbl,[SaveP1 'PowerTestResponse.csv']);
 
 
 DistScoreTemp=sum(DistTarget)/sum(SuccTarget)*SLMPosInfo.yaml.umPerlPixelX;
@@ -201,7 +202,7 @@ for iFun=1:length(GroupLabel)
 
     tempAdj=PowerTestAdj;
     tempAdj(TargetCellList(TargetCellListFunGroup~=iFun),:)=NaN;
-
+    iFun
     tempNode=PowerTestNode;
     tempNode(TargetCellList(TargetCellListFunGroup~=iFun))=0;
     [GgraphOut,Res,r,p]=ResPosNetwork_ScoreNodeOrder(SLMPosInfo,tempAdj,tempNode,ParamNetDist,DistScoreTemp(:))
@@ -214,7 +215,7 @@ set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
 % print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.eps'], '-depsc', '-painters');
-% print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.tif'], '-dtiffn', '-painters');
+print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsDist.tif'], '-dtiffn', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
 end
 
@@ -322,7 +323,7 @@ GgraphOut.p.LineWidth=0.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsStim.svg'], '-dsvg', '-painters');
+%print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsStim.svg'], '-dsvg', '-painters');
 % print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVsSpeed.eps'], '-depsc', '-painters');
 print(gcf, [SaveP1 GroupLabel{iFun} 'SingleSLMVStim.tif'], '-dtiffn', '-painters');
 % print(gcf, [SaveP1 'SingleSLMVsSpeed.png'], '-dpng', '-painters');
@@ -657,7 +658,7 @@ for jCell=1:length(ExampleCell)
     papersizePX=[0 0 30 15];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    print(gcf, [EGTestFolder 'MapCellTarget' num2str(iCell) '.svg'], '-dsvg', '-painters');
+    % print(gcf, [EGTestFolder 'MapCellTarget' num2str(iCell) '.svg'], '-dsvg', '-painters');
     % print(gcf, [EGTestFolder 'MapCellTarget' num2str(iCell) '.eps'], '-depsc', '-painters');
     % saveas(gcf,[EGTestFolder 'MapCellTarget' num2str(iCell) '.eps'], 'epsc')
     saveas(gcf,[EGTestFolder 'MapCellTarget' num2str(iCell) ], 'tif')
@@ -712,7 +713,7 @@ for jCell=1:length(ExampleCell)
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
     % print(gcf, [EGTestFolder 'CellTarget' num2str(iCell) '.svg'], '-dsvg', '-painters');
-    print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) '.svg'], '-dsvg', '-painters');
+    % print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) '.svg'], '-dsvg', '-painters');
     print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) '.tif'], '-dtiffn', '-painters');
 
    
@@ -823,6 +824,7 @@ for jCell=1:length(ExampleCell)
       %   end
       % 
 % close all
+close all
 
       % 
 
@@ -897,7 +899,7 @@ for jCell=1:length(ExampleCell)
     papersizePX=[0 0 5 17];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) 'Vertical.svg'], '-dsvg', '-painters');
+    % print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) 'Vertical.svg'], '-dsvg', '-painters');
     print(gcf, [EGTestFolder 'ROICellTarget' num2str(iCell) 'Vertical.tif'], '-dtiffn', '-painters');
 
 
@@ -935,6 +937,7 @@ for jCell=1:length(ExampleCell)
 
 
       % 
+close all
 
 end
 
@@ -1070,7 +1073,7 @@ bar2.Ticks=union(rawPixelMapResponse,0);
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.tif'], '-dtiffn', '-painters');
     print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links0.tif'], '-dtiffn', '-painters');
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links0.svg'], '-dsvg', '-painters');
-    print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links0.eps'], '-depsc', '-painters');
+    % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links0.eps'], '-depsc', '-painters');
 
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.svg'], '-dsvg', '-painters');
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.eps'], '-depsc', '-painters');
@@ -1085,6 +1088,7 @@ bar2.Ticks=union(rawPixelMapResponse,0);
     % % bar2.Label.String='Responses';
     % % papersizePX=[0 0 30 15];
 
+close all
 
 end
 
@@ -1212,7 +1216,7 @@ bar2.Ticks=union(rawPixelMapResponse,0);
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.tif'], '-dtiffn', '-painters');
     print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links1.tif'], '-dtiffn', '-painters');
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links1.svg'], '-dsvg', '-painters');
-    print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links1.eps'], '-depsc', '-painters');
+    % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links1.eps'], '-depsc', '-painters');
 
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.svg'], '-dsvg', '-painters');
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'NoLinks.eps'], '-depsc', '-painters');
@@ -1226,6 +1230,7 @@ bar2.Ticks=union(rawPixelMapResponse,0);
     % % bar2.Position=[0.6 0.92 0.1 0.01];
     % % bar2.Label.String='Responses';
     % % papersizePX=[0 0 30 15];
+close all
 
 
 end
@@ -1421,7 +1426,7 @@ axis off
 
    print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links2.tif'], '-dtiffn', '-painters');
    % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links2.svg'], '-dsvg', '-painters');
-   print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links2.eps'], '-depsc', '-painters');
+   % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links2.eps'], '-depsc', '-painters');
 
     % print(gcf, [EGTestFolder 'FC' num2str(iCell) 'Links.eps'], '-depsc', '-painters');
 % 
@@ -1434,6 +1439,7 @@ axis off
     % % bar2.Position=[0.6 0.92 0.1 0.01];
     % % bar2.Label.String='Responses';
     % % papersizePX=[0 0 30 15];
+close all
 
 
 end

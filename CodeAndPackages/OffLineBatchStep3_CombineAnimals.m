@@ -2,7 +2,7 @@ clear all
 
 
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '03-Jul-2025FOV.mat'])
+load([BatchSavePath '11-Aug-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\';
@@ -26,11 +26,21 @@ ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 
+IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12 13 14 15 16 ];
 IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12];
 
 
 % Output=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPathLocal(IndexFOVNeed),PSTHparam);
 [Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+
+
+for iFOV=1:length(Output)
+    
+    
+    
+
+
+end
 
 
 
@@ -74,11 +84,11 @@ PostPreDiffSpeedTh=[1 2 10000];
 % 
 % writetable(SLMGroupTableTrial,[SaveFunCon 'SLMGroupResTrial.csv']);
 
-Ind=(SLMGroupTableTrial.Sensory==0&SLMGroupTableTrial.TargetCell==0);
-plot(SLMGroupTableTrial.SpeedR(Ind).*SLMGroupTableTrial.TargetSpeedR(Ind),SLMGroupTableTrial.Response(Ind),'r.')
-
-plot(SLMGroupTableTrial.Time(Ind),SLMGroupTableTrial.Response(Ind),'r.')
-
+% Ind=(SLMGroupTableTrial.Sensory==0&SLMGroupTableTrial.TargetCell==0);
+% plot(SLMGroupTableTrial.SpeedR(Ind).*SLMGroupTableTrial.TargetSpeedR(Ind),SLMGroupTableTrial.Response(Ind),'r.')
+% 
+% plot(SLMGroupTableTrial.Time(Ind),SLMGroupTableTrial.Response(Ind),'r.')
+% 
 
 PostPreDiffSpeedTh=[1 2 10000]
 
@@ -104,7 +114,6 @@ ProcessPar.AwakeStateLabel={'Awake'};
 
 % OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
 OutResult=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControlZeroPower(Output,ProcessPar,PSTHparam, SaveFunCon)
-
 NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
 
 
@@ -207,7 +216,7 @@ writetable(tbl,[SaveP1 'SLMGroupResponseMinusPowerZero_PowerZeroNoSpeedTh.csv'])
 end
 
 
-PostPreDiffSpeedTh=2;
+% PostPreDiffSpeedTh=2;
 
 %%Plot distributions
 for iSpeedTh=1:length(PostPreDiffSpeedTh)
@@ -449,9 +458,6 @@ end
 
 
 end
-
-
-
 
 
 
@@ -729,6 +735,7 @@ close all
 
 
 
+for iWisk=1:2
 
 
 clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rStimSore rStimCov rParStim rStimSpeedCov responseSpeedTrial responseStimTrial
@@ -739,28 +746,28 @@ for iFOV =1:length(Output.AlignedNData)
     iNonTarget=setdiff(iNeuro,Output.GroupTargetCellAll(:,1));
     for iFun=1:length(ProcessPar.GroupList)
         iTarget=intersect(iNeuro,Output.GroupTargetCellMerge{iFun});
-        rSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');
-        % rParSpeed(iFOV,iFun) = corr(OutResult(1).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');        
+        rSpeed(iFOV,iFun) = corr(OutResult(iWisk).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');
+        % rParSpeed(iFOV,iFun) = corr(OutResult(iWisk).delta(iNonTarget,iFun),Output.rSpeed(iNonTarget,1,1),'rows','complete','type','Pearson');        
         % rGroup(iFOV,iFun)=iFun;
-        responseSpeedTrial(iFOV,iFun) = nanmean(OutResult(1).delta(iNonTarget,iFun));
+        responseSpeedTrial(iFOV,iFun) = nanmean(OutResult(iWisk).delta(iNonTarget,iFun));
 
         rSpeedScore(iFOV,iFun)=mean(Output.rSpeed(iTarget,1,1));
         rSpeedScoreMax(iFOV,iFun)=min(Output.rSpeed(iTarget,1,1));
 
-        rSpeedCov(iFOV,iFun)= mean(OutResult(1).speeddelta(iNonTarget,iFun));
+        rSpeedCov(iFOV,iFun)= mean(OutResult(iWisk).speeddelta(iNonTarget,iFun));
         rSpeedScoreTargetCell(iNeuro,iFun) =  rSpeedScore(iFOV,iFun);
 
 
-        rStim(iFOV,iFun) = corr(OutResult(2).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),'rows','complete','type','Pearson');
-        rParrStim(iFOV,iFun) = partialcorr(OutResult(2).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),OutResult(2).delta(iNonTarget,4),'rows','complete','type','Pearson');
-        responseStimTrial(iFOV,iFun) = nanmean(OutResult(2).delta(iNonTarget,iFun));
+        rStim(iFOV,iFun) = corr(OutResult(iWisk).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),'rows','complete','type','Pearson');
+        rParrStim(iFOV,iFun) = partialcorr(OutResult(iWisk).delta(iNonTarget,iFun),Output.rStim(iNonTarget,1,1),OutResult(iWisk).delta(iNonTarget,4),'rows','complete','type','Pearson');
+        responseStimTrial(iFOV,iFun) = nanmean(OutResult(iWisk).delta(iNonTarget,iFun));
 
         rGroup(iFOV,iFun)=iFun;
         rStimScore(iFOV,iFun)=mean(Output.rStim(iTarget,1,1));
         rStimScoreMax(iFOV,iFun)=max(Output.rStim(iTarget,1,1));
         
-        rStimCov(iFOV,iFun)= mean(OutResult(2).delta(iNonTarget,4));
-        rStimSpeedCov(iFOV,iFun)= mean(OutResult(2).speeddelta(iNonTarget,4));
+        rStimCov(iFOV,iFun)= mean(OutResult(iWisk).delta(iNonTarget,4));
+        rStimSpeedCov(iFOV,iFun)= mean(OutResult(iWisk).speeddelta(iNonTarget,4));
 
 
     end
@@ -768,8 +775,8 @@ end
 
 
 
-Param.xLim=[-0.2 0.4];
-Param.yLim=[-0.02 0.02];
+Param.xLim=[-0.4 0.5];
+Param.yLim=[-0.04 0.04];
 % [~,~,~]=LuPairRegressPlot_Group(r(:),rSpeedScore(:), rGroup(:), Param, rSpeedCov(:))    
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rSpeedScore(:),responseSpeedTrial(:), rSpeedCov(:),rGroup(:),Param);    
@@ -777,18 +784,18 @@ ylabel(h(1),'Response (NonTarget-Speed)')
 xlabel(h(1),'Corr (Target-Speed)')
 xlabel(h(2),'Corr (Target-Speed)')
 title(h(2),'Speed Change Regressed out')
-papersizePX=[0 0 15 8];
+papersizePX=[0 0 17 8];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-print(gcf, [SaveP1 'ResponseNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
-print(gcf, [SaveP1 'ResponseNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'ResponseNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'ResponseNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
 
 
 
 
 
-Param.xLim=[-0.2 0.4];
-Param.yLim=[-0.2 0.5];
+Param.xLim=[-0.2 0.6];
+Param.yLim=[-0.2 0.6];
 
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rSpeedScore(:),rSpeed(:), rSpeedCov(:),rGroup(:),Param);    
@@ -796,18 +803,19 @@ ylabel(h(1),'Corr (NonTarget-Speed)')
 xlabel(h(1),'Corr (Target-Speed)')
 xlabel(h(2),'Corr (Target-Speed)')
 title(h(2),'Speed Change Regressed out')
-papersizePX=[0 0 15 8];
+% papersizePX=[0 0 15 8];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-print(gcf, [SaveP1 'rNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
-print(gcf, [SaveP1 'rNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
-
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'rNonTargetSpeed-Vs-rTargetSpeed.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'rNonTargetSpeed-Vs-rTargetSpeed.tif'], '-dtiffn', '-painters');
 Param.xLim=[-0.2 0.8];
 Param.yLim=[-0.2 0.5];
 
 
 
-Param.xLim=[-0.2 0.3];
+
+
+Param.xLim=[-0.3 0.4];
 Param.yLim=[-0.04 0.04];
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:), responseStimTrial(:),rStimSpeedCov(:),rGroup(:),Param);   
@@ -817,11 +825,11 @@ xlabel(h(2),'Corr (Target-SensoryStim)')
 title(h(2),'Speed Change Regressed out')
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
-print(gcf, [SaveP1 'ResponseNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'ResponseNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'ResponseNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
 
 
-Param.xLim=[-0.2 0.3];
+Param.xLim=[-0.3 0.4];
 Param.yLim=[-0.2 0.8];
 figure;
 [~,r,p,h]=LuPairRegressPlot_Group_Cov(rStimScore(:), rParrStim(:),rStimSpeedCov(:),rGroup(:),Param);   
@@ -832,13 +840,13 @@ title(h(2),'Speed Change Regressed out')
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 
-print(gcf, [SaveP1 'rNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
-print(gcf, [SaveP1 'rNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'rNonTargetStim-Vs-rTargetStim.svg'], '-dsvg', '-painters');
+print(gcf, [SaveP1 ProcessPar.VolOutLabel{iWisk} 'rNonTargetStim-Vs-rTargetStim.tif'], '-dtiffn', '-painters');
     close all
 
 
 
-
+end
 % Param.xLim=[-0.4 0.4];
 % Param.yLim=[-0.2 0.8];
 % for iGroup=1:3
@@ -860,7 +868,7 @@ end
 
 
 CellN=size(Output.NeuroPos3DMeta,1);
-
+%%
 
 % % clear rStim rGroup rStimSore rStimCov rParrStim
 % % 

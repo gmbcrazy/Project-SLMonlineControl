@@ -13,6 +13,7 @@ rSpeedMeta=[];
 rStimMeta=[];
 
 
+
 for iFOV=1:length(FOV)
 suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
 % GroupLabel={'L','S','N'};
@@ -28,6 +29,10 @@ resultPaths = findAllFoldersKeyWords(suite2pFOVPathLocalTemp, Suite2pDataKeyword
 metaDataPath=Get_ExpDataFolder(resultPaths{1},'Step1Basic',{'Step1Meta.mat','BehAll.mat','.png'});
 load([metaDataPath 'Step1Meta.mat'])
 load([metaDataPath 'BehAll.mat'])
+
+PowerTargetIFOV{iFOV}=PowerTargetI;
+PowerTestCellListFOV{iFOV}=TargetCellList;
+PowerTestCellListFunGroupFOV{iFOV}=TargetCellListFunGroup;
 
 confSet=SLMPosInfo.confSetFinal;
 rSpeedMeta=cat(1,rSpeedMeta,CorrResults.rSpeed);
@@ -48,6 +53,8 @@ iData=PSTHparam.iData;
 % PSTHparam.TestStepFrame=3;
 PVpower=xmlPower2PVpower(SLMTestInfo.confSet.UncagingLaserPower);
 PVpower=intersect(round(PVpower),SLMInfoTable.UncagingLaserPower);
+PowerFOV{iFOV}=PVpower;
+
 
 NeuroTrace{iFOV}=NData;
 BehTrace(iFOV).Speed=SpeedAll;
@@ -60,8 +67,15 @@ BehTrace(iFOV).AlignedStim=AlignedStim;
 GroupTargetCellMeta{iFOV}=GroupTargetCell;
 
 
-% [AlignedtempNData,AlignedInfoTable,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},TargetCellList,iscell,Suite2pTable,PVpower,PSTHparam);
-[AlignedNData{iFOV},AlignedInfoTableFOV{iFOV},CellResponseMeta{iFOV},statCellRes,TargetResponseMeta{iFOV},TargetCellResPMeta{iFOV},TargetCellResR{iFOV},CellSampleN{iFOV}]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
+ActCellListMeta{iFOV}=FinalActCellList;
+ActPowerIMeta{iFOV}=FinalActPowerI;
+ActCellFunGroupMeta{iFOV}=FinalActCellFunGroup;
+ActCellPowerMeta{iFOV}=FinalActPower;
+
+
+
+% [AlignedtempNData,AlignedInfoTable,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},PowerTestCellList,iscell,Suite2pTable,PVpower,PSTHparam);
+[AlignedNData{iFOV},AlignedInfoTableFOV{iFOV},CellResponseMeta{iFOV},statCellRes{iFOV},TargetResponseMeta{iFOV},TargetCellResPMeta{iFOV},TargetCellResR{iFOV},CellSampleN{iFOV}]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
 
 AlignedInfoTable=[AlignedInfoTable;AlignedInfoTableFOV{iFOV}];
 AlignedSpeedMeta=[AlignedSpeedMeta AlignedSpeed];
@@ -78,6 +92,7 @@ SLMTestInfoMeta(iFOV)=SLMTestInfo;
 SLMPosInfoMeta(iFOV)=SLMPosInfo;
 
 TableSessVec=[TableSessVec;zeros(size(AlignedInfoTableFOV{iFOV},1),1)+iFOV];
+
 end
 
 TableSessVec=table(TableSessVec,'VariableNames',{'iFOV'});
@@ -97,6 +112,14 @@ Output.SLMPosInfoMeta=SLMPosInfoMeta;
 Output.rSpeed=rSpeedMeta;
 Output.rStim=rStimMeta;
 Output.CellDistMeta=CellDistMeta;
+Output.TargetCellResR=TargetCellResR;
+Output.statCellRes=statCellRes;
+Output.TargetResponseMeta=TargetResponseMeta;
+Output.TargetCellResPMeta=TargetCellResPMeta;
+Output.CellSampleN=CellSampleN;
+Output.PowerTargetIFOV=PowerTargetIFOV;
+Output.PowerTestCellListFOV=PowerTestCellListFOV;
+Output.PowerTestCellListFunGroupFOV=PowerTestCellListFunGroupFOV;
 
 
 GroupList=1:length(GroupTargetCell);
@@ -120,5 +143,9 @@ GroupTargetCellMeta=[GroupTargetCell {[]}];
 Output.GroupTargetCellMerge=GroupTargetCell;
 Output.GroupTargetCellAll=GroupTargetCellAll;
 
+Output.ActCellListMeta=ActCellListMeta;
+Output.ActPowerIMeta=ActPowerIMeta;
+Output.ActCellFunGroupMeta=ActCellFunGroupMeta;
+Output.ActCellPowerMeta=ActCellPowerMeta;
 
 

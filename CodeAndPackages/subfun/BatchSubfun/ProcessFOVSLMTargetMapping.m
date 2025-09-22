@@ -11,6 +11,7 @@ PointList1 = find(SLMtarget > 0);
 SLMtargetTable = zeros(size(Suite2pTable,1),1);
 SLMtargetTableGroup = zeros(size(Suite2pTable,1),1);
 for iTarget = 1:length(SLMtarget)
+    % [iTarget sum(Suite2pTable.Point == iTarget)];
     SLMtargetTable(Suite2pTable.Point == iTarget) = SLMtarget(iTarget);
     SLMtargetTableGroup(Suite2pTable.Point == iTarget) = SLMGroup(iTarget);
 end

@@ -181,8 +181,8 @@ def _load_npy(fname):
 
 # ----------------------------------------
 
-def _load_npy(fname):
-    return np.load(fname, allow_pickle=True)
+#def _load_npy(fname):
+#    return np.load(fname, allow_pickle=True)
 
 def _as_float_array(x):
     """
@@ -197,7 +197,22 @@ def _as_float_array(x):
         return np.asarray(x, dtype=float)
 
 
+def extract_suite2pNoPlane(s2p_dir):
+    s2p_dir  = Path(s2p_dir)
+    #etls    = _as_float_array(confSet['ETL'])
+    #scan_Zs = _as_float_array(confSet['scan_Z'])
+    # -------- 1.  load COMBINED data --------
+    CaData = {
+        'F'     : _load_npy(s2p_dir / 'F.npy'),
+        'Fneu'  : _load_npy(s2p_dir / 'Fneu.npy'),
+        'spks'  : _load_npy(s2p_dir / 'spks.npy'),
+        'iscell': _load_npy(s2p_dir / 'iscell.npy'),
+        'stat'  : _load_npy(s2p_dir / 'stat.npy').tolist(),
+        'ops'   : _load_npy(s2p_dir / 'ops.npy' ).item(),
+    }
 
+    nPlanes = int(CaData['ops']['nplanes'])
+    return CaData
 
 def extract_suite2p(s2p_dir, confSet):
     s2p_dir  = Path(s2p_dir)
@@ -215,10 +230,12 @@ def extract_suite2p(s2p_dir, confSet):
     }
 
     nPlanes = int(CaData['ops']['nplanes'])
-
+    print(nPlanes)
     # -------- 2.  per‑plane loading --------
     plane_dirs = sorted(s2p_dir.glob('plane*'),
                         key=lambda p: int(p.name.replace('plane', '')))
+    print(plane_dirs)
+    print(nPlanes)
     if len(plane_dirs) != nPlanes:
         raise RuntimeError(f'Plane folder count ({len(plane_dirs)}) '
                            f'does not match ops[nplanes] ({nPlanes})')
