@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PVSavedMarkPointSeriesElements Iterations="1" IterationDelay="0.00" CalcFunctMap="False">
+  <PVMarkPointElement Repetitions="5" UncagingLaser="Satsuma" UncagingLaserPower="1.4" CustomLaserPercent="0.94,0.84,0.94,1,1,1,1,1,1,1" TriggerFrequency="None" TriggerSelection="None" TriggerCount="1" AsyncSyncFrequency="FirstRepetition" VoltageOutputCategoryName="None" VoltageRecCategoryName="None" parameterSet="CurrentSettings">
+    <PVGalvoPointElement InitialDelay="22.1" InterPointDelay="30" Duration="20" SpiralRevolutions="3" Points="Point 1" Indices="1" X="-0.0454764332485466" Y="0.439658789302326" IsSpiral="True" SpiralSize="1.12191153368798" />
+  </PVMarkPointElement>
+</PVSavedMarkPointSeriesElements>
