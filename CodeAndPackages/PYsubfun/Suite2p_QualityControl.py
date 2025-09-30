@@ -25,7 +25,7 @@ from scipy.signal import welch
 from scipy.stats import zscore
 from suite2p.extraction import dcnv as s2p_dcnv
 import math
-from typing import Iterable, Optional, Tuple, List, Any,Sequence
+from typing import Iterable, Optional, Tuple, List, Any,Sequence,Mapping
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 #import FastBin_Suite2p as FBS
@@ -447,6 +447,8 @@ def save_metric_distributions_pdf(
                 ylabel = "Probability" if probability else "Count"
                 ax.set_ylabel(ylabel)
                 ax.set_xlabel("")
+                if col == "LHR":
+                   ax.set_xlim(0, 20)   # adjust upper limit depending on your data spread
 
             # Remove unused axes
             for j in range(len(metrics_subset), len(axes)):
@@ -598,3 +600,94 @@ def save_pairwise_scatter_pdf(
             plt.close(fig)
 
     return str(pd.Series([pdf_path]).iloc[0])
+
+
+
+default_params = {
+    "nperseg": 512,
+    "low_band": (0.2, 1.6),
+    "high_band": (2.5, 3.3),
+    "amp_method": "sum",
+    "min_event_snr": 4,
+    "amp_percentile": 0.5,
+    "eps": 10,
+    "recompute_spks": True,
+}
+
+
+
+def suite2pMetric(suite2pdir: str,params: Optional[Mapping[str, Any]]) -> Tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+
+
+    """
+    Process a single Suite2p folder and return metrics.
+
+    Returns
+    -------
+    df_metrics : pandas.DataFrame
+    psd : np.ndarray (n_cells, n_freqs)
+    fre : np.ndarray (n_freqs,)
+    """
+    cfg = {**default_params, **(dict(params) if params else {})}
+
+    # --- Load Suite2p outputs ---
+    CaData = extract_suite2pNoPlane(suite2pdir)
+    iscell_manual = np.asarray(CaData["iscell"][:, 0])
+    stat_raw = CaData["stat"]
+
+    # --- Base metrics ---
+    df_metrics = extract_metrics_from_stat(stat_raw, iscell_manual, suite2pdir)
+
+    # --- SNR/PSD metrics ---
+    snr, sigma_psd, A_evt, psd, fre = compute_snr_with_suite2p_preprocess(
+        CaData,
+        nperseg=cfg["nperseg"],
+        fband=cfg["high_band"],
+        amp_method=cfg["amp_method"],
+        min_event_snr=cfg["min_event_snr"],
+        amp_percentile=cfg["amp_percentile"],
+        eps=cfg["eps"],
+        recompute_spks=cfg["recompute_spks"],
+    )
+
+    # Attach metrics
+    df_metrics["A_evt"] = A_evt
+    df_metrics["sigma_psd"] = sigma_psd
+    df_metrics["snr_oasis_evt"] = snr
+    
+
+    # --- Low/High Ratio (LHR) ---
+    # If shape mismatch, automatically interpolate PSD to match fre length
+    if psd.shape[1] != fre.shape[0]:
+        x_old = np.linspace(0, 1, psd.shape[1])
+        x_new = np.linspace(0, 1, fre.shape[0])
+        interp_func = interp1d(x_old, psd, kind="linear", axis=1, fill_value="extrapolate")
+        psd = interp_func(x_new)
+
+    df_metrics["LHR"] = low_high_ratio(psd, fre, cfg["low_band"], cfg["high_band"])
+
+    return df_metrics, psd, fre
+
+
+__all__ = ["process_one_folder", "default_params"]
+
+def extract_suite2pNoPlane(s2p_dir):
+    s2p_dir  = Path(s2p_dir)
+    #etls    = _as_float_array(confSet['ETL'])
+    #scan_Zs = _as_float_array(confSet['scan_Z'])
+    # -------- 1.  load COMBINED data --------
+    CaData = {
+        'F'     : _load_npy(s2p_dir / 'F.npy'),
+        'Fneu'  : _load_npy(s2p_dir / 'Fneu.npy'),
+        'spks'  : _load_npy(s2p_dir / 'spks.npy'),
+        'iscell': _load_npy(s2p_dir / 'iscell.npy'),
+        'stat'  : _load_npy(s2p_dir / 'stat.npy').tolist(),
+        'ops'   : _load_npy(s2p_dir / 'ops.npy' ).item(),
+    }
+
+    nPlanes = int(CaData['ops']['nplanes'])
+    return CaData
+
+def _load_npy(fname):
+    """Numpy loader with pickling enabled for dict / list objects."""
+    return np.load(fname, allow_pickle=True)

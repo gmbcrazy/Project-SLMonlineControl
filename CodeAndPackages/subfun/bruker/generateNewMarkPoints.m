@@ -57,11 +57,17 @@ function newMarkPoints = generateNewMarkPoints(MarkPoints, radius, numPlanes, nu
             % Create a circular mask
             [X, Y] = meshgrid(xRange, yRange);
             distances = sqrt((X - x).^2 + (Y - y).^2);
-            mask = distances <= newPointRadius*2;
+            mask = distances <= newPointRadius*3;
             
-            % Update the nonNeighbourhood to exclude the new point's neighbourhood
-            nonNeighbourhood(yRange, xRange, z) = nonNeighbourhood(yRange, xRange, z) & ~mask;
+            % % Update the nonNeighbourhood to exclude the new point's
+            % neighbourhood, only update the plane where the markpoint
+            % locates, before Sep 30, 2025
+            % nonNeighbourhood(yRange, xRange, z) = nonNeighbourhood(yRange, xRange, z) & ~mask;
             
+            % Update the nonNeighbourhood in all planes to exclude the new point's neighbourhood
+            for iplane=1:numPlanes
+                nonNeighbourhood(yRange, xRange, iplane) = nonNeighbourhood(yRange, xRange, iplane) & ~mask;
+            end
             % Save the new point
             count = count + 1;
             newMarkPoints(count, :) = gather([x, y, z]); % Gather data back to CPU

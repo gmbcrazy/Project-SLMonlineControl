@@ -951,16 +951,54 @@ def Pixel_Shift(rmg1,rmg2,nplanes):
 
 
 
-def find_all_folders_keywords(work_folder, folder_keyword):
+def find_all_folders_keywords(work_folder, folder_keyword, subdepth=None):
     """
-    Find all folders in 'work_folder' that contain 'folder_keyword' in their names.
+    Find all folders in 'work_folder' whose names contain 'folder_keyword'.
+
+    Parameters
+    ----------
+    work_folder : str
+        Base directory path to search (UNC/network paths OK).
+    folder_keyword : str
+        Substring to match in folder names (case-sensitive).
+    subdepth : int | None, optional
+        Maximum depth (in folder levels below 'work_folder') to traverse.
+        - 1 => only immediate subfolders of work_folder (e.g., 'SL0864', 'SL0893').
+        - 2 => immediate subfolders AND their children (e.g., the date folders under 'SL0864').
+        - None (default) => search all nested subfolders with no depth limit.
+
+    Returns
+    -------
+    list[str]
+        Full paths to matching folders.
+
+    Notes
+    -----
+    Depth is counted in directory levels below 'work_folder'. No files are returned.
     """
-    matching_folders = []
-    for root, dirs, _ in os.walk(work_folder):
+    if subdepth is not None:
+        if not isinstance(subdepth, int) or subdepth < 1:
+            raise ValueError("subdepth must be a positive integer or None")
+
+    matches = []
+    # topdown=True allows us to prune traversal by editing 'dirs' in-place
+    for root, dirs, _ in os.walk(work_folder, topdown=True):
+        # current depth of 'root' relative to base (0 at base)
+        rel = os.path.relpath(root, work_folder)
+        depth = 0 if rel == '.' else rel.count(os.sep) + 1
+
+        # Record matches among immediate children of 'root'
         for d in dirs:
             if folder_keyword in d:
-                matching_folders.append(os.path.join(root, d))
-    return matching_folders
+                matches.append(os.path.join(root, d))
+
+        # If we've reached the maximum allowed depth, stop descending further
+        if subdepth is not None and depth >= subdepth:
+            dirs[:] = []  # prune deeper traversal
+
+    return matches
+
+
 
 def get_exp_data_folder(work_folder, folder_keyword, included_list):
     """

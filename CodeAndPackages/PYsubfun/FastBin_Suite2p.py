@@ -4,6 +4,7 @@
 # 03252024, Lu Zhang for fast processing .bin data recorded from PrairieLink using Suite2p package without motion correction
 
 # Import necessary packages for data manipulation, plotting, file management, and more.
+#from __future__ import annotations
 import suite2p  # Suite2p for calcium imaging data analysis
 import numpy as np  # NumPy for numerical operations
 import os  # OS module for interacting with the file system
@@ -12,6 +13,12 @@ from pathlib import Path
 from natsort import natsorted  # Natsort for natural sorting
  # Explicit garbage collection to free memory
 
+from typing import Mapping, Any, Tuple
+import pandas as pd
+from scipy.interpolate import interp1d
+
+
+#import Suite2p_QualityControl as QC 
 
 
 
@@ -314,3 +321,5 @@ def load_ref_ch(data_folder, ChID=1):
     else:
         print("No valid channel data loaded.")
         return None
+
+
