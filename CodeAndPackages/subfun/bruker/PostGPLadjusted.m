@@ -46,7 +46,7 @@ CellStimColors = valueToColor(FunScore(:,3), ClimRstim, jet(64));
 GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 PlaneZ=confSet.ETL+confSet.scan_Z(1);
 
-ImgClim=[0 800];
+ImgClim=[0 1500];
 figure;
 H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), [], Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim,PlotParam);
 % H=MultiPlanes2DShow(permute(CaData.PlaneMeanImg, [2, 1, 3]), cellBoundary, Pos3Dneed, [], PlaneZ, GroupColor(FunScore(:,1),:), ImgClim);

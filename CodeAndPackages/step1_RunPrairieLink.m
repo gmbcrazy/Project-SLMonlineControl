@@ -1,3 +1,4 @@
+clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 
