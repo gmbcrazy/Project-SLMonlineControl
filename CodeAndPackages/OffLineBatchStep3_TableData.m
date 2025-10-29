@@ -397,8 +397,8 @@ for iWisk=1:2
     papersizePX=[0 0 20 12];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    print(gcf, [SaveP2 'CellResponse.svg'], '-dsvg', '-painters');
-    print(gcf, [SaveP2 'CellResponse.tif'], '-dtiffn', '-painters');
+    % print(gcf, [SaveP2 'CellResponse.svg'], '-dsvg', '-painters');
+    % print(gcf, [SaveP2 'CellResponse.tif'], '-dtiffn', '-painters');
 
     % tbl_whisktemp.Properties.VariableNames{'Session_tbl_whisktemp'}='Session';
 

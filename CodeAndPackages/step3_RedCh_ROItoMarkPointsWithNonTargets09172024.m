@@ -54,7 +54,7 @@ hist(RedSignal,60);
 subplot(1,2,2)
 hist(RegRed(:),400)
 
-RedTh=0.16*0.001;
+RedTh=0.18*0.001;
 
 
 %%
@@ -68,6 +68,7 @@ step3_SubStep1_FOVedgeExcludedROIMP;    %% CenterCloseI is generated at this ste
 
 
 %% Automatic generate Raw Non-Targets 
+close all
 step3_SubStep2_RawNonTarget
 
 
