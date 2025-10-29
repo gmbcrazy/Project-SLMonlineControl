@@ -2,7 +2,7 @@ clear all
 
 
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '11-Aug-2025FOV.mat'])
+load([BatchSavePath '07-Oct-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step4\';
@@ -20,12 +20,19 @@ PSTHparam.pTh = 0.05;
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
 PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
-PSTHparam.iData = 2;    %%post-slm frames for Test whether SLM works
+PSTHparam.PreTestFrame = 10; 
+PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
+umPerlPixel=700/512;
+offTargetum=15;
+PSTHparam.OffTargetPixel=ceil(offTargetum/umPerlPixel)
+
+ 
+
 
 ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
-IndexFOVNeed=[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
+IndexFOVNeed=[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20];
 
 
 

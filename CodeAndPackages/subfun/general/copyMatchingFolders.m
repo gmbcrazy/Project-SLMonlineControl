@@ -15,7 +15,11 @@ function copyMatchingFolders(sourceRoot, sourceFolder, targetRoot, keyword)
 
 
     % List session folders like SL0886xxxxx
-    sessionFolders = dir(fullfile(sourcePath, 'SL*'));
+    % sessionFolders = dir(fullfile(sourcePath, 'SL*'));
+    % List session folders like SL0886xxxx or L00121xxxxx
+    sessionFolders = [dir(fullfile(sourcePath, 'SL*')); dir(fullfile(sourcePath, 'L*'))];
+
+
     sessionFolders = sessionFolders([sessionFolders.isdir]);
 
     for i = 1:length(sessionFolders)

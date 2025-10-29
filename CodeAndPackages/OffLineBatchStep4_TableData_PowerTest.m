@@ -1,43 +1,5 @@
 clear all
 
-
-BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '11-Aug-2025FOV.mat'])
-Suite2pDataKeywords='awakeRefSpon';
-
-DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step4\';
-mkdir(DataSavePath);
-DataSavePath=[DataSavePath Suite2pDataKeywords '\'];
-mkdir(DataSavePath);
-
-% VolEventLabel={}
-FOVscalePerPixel=697.2/512;  %%um per pixel s
-
-CoActITh=0.0;   %%Threshold of possibility of a cell being activated in power test to get Activated Vector Population Analysis
-
-PSTHparam.PreSLMCal = 10; 
-PSTHparam.PostSLMCal = 15;
-PSTHparam.pTh = 0.05; 
-PSTHparam.TestMethod = 'ranksum';
-PSTHparam.MPFrameJump = 2;
-PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
-PSTHparam.iData = 2;    %%post-slm frames for Test whether SLM works
-
-ResponseMap=slanCM('seismic',64);
-
-TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
-
-IndexFOVNeed=[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
-
-% for iData=1:2
-%     PSTHparam.iData = iData;    %%post-slm frames for Test whether SLM works
-%     [Output(iData),NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
-% end
-
-CellN=size(Output(1).NeuroPos3DMeta,1);
-CellNNonTarget=size(Output(1).NeuroPos3DMeta,1)-size(Output(1).GroupTargetCellAll,1);
-
-
 SaveFunFOV=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
 mkdir(SaveFunFOV)
 
@@ -46,6 +8,7 @@ mkdir(SaveFunFOV)
 % save([SaveFunFOV 'FOVoutputs.mat'])
 load([SaveFunFOV 'FOVoutputs.mat'])
 
+load(['\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM23-Oct-2025\FOVoutputs.mat'])
 
 
 
@@ -181,8 +144,8 @@ tblFOVclean=[];   %%refers to remove trials with power test when the power is no
     for iFOV=1:length(IndexFOVNeed)
         close all
     tblFOV=SLMPointTableTrial(SLMPointTableTrial.Session==iFOV,:);
-    tempNeuroPos3D=Output(1).NeuroPos3DMeta(Output(1).NeuroPos3DMeta(:,4)==IndexFOVNeed(iFOV),1:3);
-    tempNeuroPos3D(:,1:3)=tempNeuroPos3D(:,1:3)*FOVscalePerPixel;
+    tempNeuroPos3D=Output(1).NeuroPos3DumMeta(Output(1).NeuroPos3DMeta(:,4)==IndexFOVNeed(iFOV),1:3);
+    % tempNeuroPos3D(:,1:3)=tempNeuroPos3D(:,1:3)*FOVscalePerPixel;
 
 
 

@@ -1,4 +1,4 @@
-function statGroupRes=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControZeroPower(InputFOVData, Par,PSTHparam,SaveP1)
+function statGroupRes=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControZeroPower(InputFOVData, Par,PSTHparam)
 
 StructToVars(Par);
 StructToVars(InputFOVData);
@@ -30,8 +30,12 @@ for iVol = 1:length(VolOut)
            I1All=find(AlignedInfoTable.Group==GroupList(iFun)&AlignedInfoTable.PowerZero==0&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
             % GroupSampleN(iFun)=length(I1);
 
-           preSLMSpeed=mean(squeeze(AlignedSpeedMeta(1:PSTHparam.PreSLMCal,I1All)),1);
+           % preSLMSpeed=mean(squeeze(AlignedSpeedMeta(1:PSTHparam.PreSLMCal,I1All)),1);
+           % postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1All)),1);
+
+           preSLMSpeed=mean(squeeze(AlignedSpeedMeta((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1All)),1);
            postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1All)),1);
+
 
            % if iAwake==1
            % I1All=I1All(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh));
@@ -50,8 +54,11 @@ for iVol = 1:length(VolOut)
                 iFOVEvent = find(AlignedInfoTable.iFOV==iFOV);
 
                 AlignedSpeedFOV=AlignedSpeedMeta(:,iFOVEvent);
-                preSLMSpeed=mean(squeeze(AlignedSpeedFOV(1:PSTHparam.PreSLMCal,I1)),1);
-                postSLMSpeed=mean(squeeze(AlignedSpeedFOV(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
+                % preSLMSpeed=mean(squeeze(AlignedSpeedFOV(1:PSTHparam.PreSLMCal,I1)),1);
+                % postSLMSpeed=mean(squeeze(AlignedSpeedFOV(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
+                
+                preSLMSpeed=mean(squeeze(AlignedSpeedMeta((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
+                postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
 
 
                 if iAwake==1
@@ -124,8 +131,12 @@ for iVol = 1:length(VolOut)
         iFun=iFun+1;
 %%Add Zero power as addtional group
         I1All=find(AlignedInfoTable.PowerZero==1&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
-        preSLMSpeed=mean(squeeze(AlignedSpeedMeta(1:PSTHparam.PreSLMCal,I1All)),1);
+        % preSLMSpeed=mean(squeeze(AlignedSpeedMeta(1:PSTHparam.PreSLMCal,I1All)),1);
+        % postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1All)),1);
+
+        preSLMSpeed=mean(squeeze(AlignedSpeedMeta((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1All)),1);
         postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1All)),1);
+
         % if iAwake==1
         %    I1All=I1All(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh));
         % end
@@ -142,9 +153,12 @@ for iVol = 1:length(VolOut)
 
                 iFOVEvent = find(AlignedInfoTable.iFOV==iFOV);
                 AlignedSpeedFOV=AlignedSpeedMeta(:,iFOVEvent);
-                preSLMSpeed=mean(squeeze(AlignedSpeedFOV(1:PSTHparam.PreSLMCal,I1)),1);
-                postSLMSpeed=mean(squeeze(AlignedSpeedFOV(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
+                % preSLMSpeed=mean(squeeze(AlignedSpeedFOV(1:PSTHparam.PreSLMCal,I1)),1);
+                % postSLMSpeed=mean(squeeze(AlignedSpeedFOV(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
 
+                preSLMSpeed=mean(squeeze(AlignedSpeedMeta((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
+                postSLMSpeed=mean(squeeze(AlignedSpeedMeta(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
+ 
 
                 I1temp=1:length(I1);
                 % if iAwake==1
@@ -185,6 +199,8 @@ for iVol = 1:length(VolOut)
 
                preSLMdata=squeeze(AlignedtempNData(:,1:PSTHparam.PreSLMCal,I1));
                postSLMdata=squeeze(AlignedtempNData(:,PSTHparam.PreSLMCal+[1:TestStepFrame],I1));
+
+
                for jCell=1:sum(InputFOVData.NeuroPos3DMeta(:,4)==iFOV)
 
                     temp1=squeeze(nanmean(preSLMdata(jCell,:,:),2));

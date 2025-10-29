@@ -98,7 +98,7 @@ NonWhiskT(NonWhiskT.TargetCell==1,:)
    Param.yLim=[-0.3 0.6];
   
 figure;
-[OutPut,r,p]=LuPairRegressPlot_Group_Cov(TargetX.mean_TargetStimR,NonTargetY.fun1_AvgResponse_StimR,Cov.mean_Speed,TargetX.Group,Param)    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TargetX.mean_TargetStimR,NonTargetY.fun1_AvgResponse_StimR,Cov.mean_Speed,TargetX.Group,Param)    
 
 
 % Data1=groupsummary(NonWhiskT,{'Session','Group'}, @(x,y) corr(x,y),{"mean_Response","SpeedR"});

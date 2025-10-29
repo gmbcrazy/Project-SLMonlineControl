@@ -583,6 +583,7 @@ def run_s2p_by_range(
     if refImg_init is not None:
         
         print('Load forced refImg')
+        print(refImg_init)
         if isinstance(refImg_init, (str, Path)):
             ops["refImg"] = _load_refs_from_folder(Path(refImg_init))
         elif isinstance(refImg_init, list):
@@ -605,3 +606,197 @@ def run_s2p_by_range(
     # 4. Launch Suite2p
     # ------------------------------------------------------------------
     run_s2p(ops=ops, db=db)
+
+
+
+
+
+
+
+# -------------------------
+# Helpers to handle FOV containers of different shapes
+# -------------------------
+
+def _n_fovs(arr):
+    """Return number of FOVs for inputs that can be 1D list/ndarray or shape (1, N)."""
+    if isinstance(arr, np.ndarray):
+        if arr.ndim == 2:
+            return arr.shape[1]
+        elif arr.ndim == 1:
+            return arr.shape[0]
+    # Fallback for list/tuple
+    try:
+        return len(arr)
+    except Exception as e:
+        raise TypeError("FOV-like input must be a 1D sequence or a (1, N) ndarray") from e
+
+
+def _get_fov_item(arr, i):
+    """Index into arr whether it's (1, N) ndarray, 1D ndarray, or list-like."""
+    if isinstance(arr, np.ndarray):
+        if arr.ndim == 2:
+            return arr[0, i]
+        elif arr.ndim == 1:
+            return arr[i]
+    # list/tuple
+    return arr[i]
+
+
+def Suite2p_process_FOVs(
+    FOV,
+    FOVsave,
+    FOVref,
+    dfs,
+    ops0,
+    Keyword='awake',
+    RefKeyword=None,
+    FunColorValue=[0.0, 0.0, 0.0],
+    DistTh=10,
+    MinThreshold=0.6,
+    Thstep=0.1,
+    MinROINum=450,
+    threshold_init=0.8,
+    max_iter=50,
+):
+    """Process all FOVs with automatic threshold adjustment and ROI matching.
+
+    Parameters
+    ----------
+    FOV, FOVsave, FOVref : array-like
+        Structures holding per-FOV dictionaries/paths. Accepts 1D list/ndarray or (1, N) ndarray.
+    dfs : list-like
+        List of per-FOV DataFrames.
+    ops0 : dict
+        Suite2p options dict; this function mutates 'threshold_scaling' and 'save_path0'.
+    Keyword : {'awake','spon','SLMall','SLMpower','SLMgroup'}
+        Chooses which subset of files to process and the folder suffix.
+    RefKeyword : list[str] | None
+        Reference keyword(s) for choosing a reference run; if None, no ref image is used.
+    FunColorValue : list[float]
+        Mapping for functional colors per unique label in FilteredFunScore.
+    DistTh : float
+        Distance threshold (µm) for SLM target/cell matching.
+    MinThreshold : float
+        Minimum allowed Suite2p threshold_scaling.
+    Thstep : float
+        Decrement applied to threshold_scaling after each iteration.
+    MinROINum : int
+        Minimum acceptable number of ROIs before stopping.
+    threshold_init : float
+        Initial threshold_scaling for each FOV.
+    max_iter : int
+        Safety cap on reprocessing iterations.
+    """
+
+    sucTable = []
+
+    n = _n_fovs(FOV)
+
+    for i in range(12,n):
+        # reset per-FOV
+        ops0['threshold_scaling'] = threshold_init
+        cellNum = 0
+        iter_count = 0
+
+        FOVtemp = _get_fov_item(FOV, i)
+        FOVtempSave = _get_fov_item(FOVsave, i)
+        FOVtempRef = _get_fov_item(FOVref, i)
+        dfTemp = dfs[i]
+
+        print(FOVtemp['DataFolder'])
+        ops0['data_path'] = FOVtemp['DataFolder']
+
+        # --- Select data subset based on Keyword ---
+        kw = Keyword.lower()
+        if kw == 'awake':
+            file_ids = dfTemp.loc[dfTemp['AwakeState'] < 2, 'FileID']
+            TiffNum = dfTemp.loc[dfTemp['AwakeState'] < 2, 'Suite2pTiffNum']
+            suffix = 'awake'
+        elif kw == 'spon':
+            file_ids = dfTemp.loc[(dfTemp['AwakeState'] == 0) & (pd.isna(dfTemp['markCycle'])), 'FileID']
+            TiffNum = dfTemp.loc[(dfTemp['AwakeState'] == 0) & (pd.isna(dfTemp['markCycle'])), 'Suite2pTiffNum']
+            suffix = 'Spon'
+        elif kw == 'slmall':
+            file_ids = dfTemp.loc[(dfTemp['AwakeState'] < 2) & (~pd.isna(dfTemp['markCycle'])), 'FileID']
+            TiffNum = dfTemp.loc[(dfTemp['AwakeState'] < 2) & (~pd.isna(dfTemp['markCycle'])), 'Suite2pTiffNum']
+            suffix = 'SLMall'
+        elif kw == 'slmpower':
+            file_ids = dfTemp.loc[(dfTemp['AwakeState'] == 0) & (~pd.isna(dfTemp['markCycle'])), 'FileID']
+            TiffNum = dfTemp.loc[(dfTemp['AwakeState'] == 0) & (~pd.isna(dfTemp['markCycle'])), 'Suite2pTiffNum']
+            suffix = 'SLMpower'
+        elif kw == 'slmgroup':
+            file_ids = dfTemp.loc[(dfTemp['AwakeState'] == 1) & (~pd.isna(dfTemp['markCycle'])), 'FileID']
+            TiffNum = dfTemp.loc[(dfTemp['AwakeState'] == 1) & (~pd.isna(dfTemp['markCycle'])), 'Suite2pTiffNum']
+            suffix = 'SLMgroup'
+        else:
+            raise ValueError(f"Unknown Keyword: {Keyword}")
+
+        print(TiffNum.sum(), 'tiff files')
+
+        subFileRange = (file_ids.min(), file_ids.max())
+        root = Path(ops0['data_path'][0])
+
+        # --- Folder naming: include Ref tag only if RefKeyword given ---
+        if RefKeyword is not None:
+            folder_name = f"sub{subFileRange[0]}-{subFileRange[1]}{suffix}Ref{RefKeyword[0]}"
+        else:
+            folder_name = f"sub{subFileRange[0]}-{subFileRange[1]}{suffix}"
+
+        full_save_path = os.path.join(FOVtempSave[0], folder_name)
+ 
+
+        confdir = root.parent.parent.parent
+        FilteredPos3D, FilteredFunScore, FilteredTestPos3D, FilteredTestTBL = load_slm_data(root.parent)
+        confSet = FBS.read_yaml(os.path.join(confdir, 'CurrentSLMsetting.yml'))
+
+        # --- Reference setup ---
+        if RefKeyword is not None:
+            names, pairs = subfolders_and_pairs(FOVtempRef[0], RefKeyword)
+            print(names)
+            print(pairs)
+            reffull_save_path = os.path.join(FOVtempRef[0], names[0])
+            refsuite2pdir = os.path.join(reffull_save_path, 'suite2p')
+            print(f"Using reference: {refsuite2pdir}")
+        else:
+            refsuite2pdir = None
+            print("No reference image used.")
+
+        os.makedirs(full_save_path, exist_ok=True)
+        suite2pdir = os.path.join(full_save_path, 'suite2p')
+        ops0['save_path0'] = full_save_path
+
+        # --- Automatic threshold adjustment loop ---
+        while (cellNum < MinROINum) and (ops0['threshold_scaling'] >= MinThreshold) and (iter_count < max_iter):
+            run_s2p_by_range(root, ops0, id_range=subFileRange, refImg_init=refsuite2pdir)
+            CellPos3D, CellPos3DRaw, CaData, CaDataPlane, stat = extract_suite2p(suite2pdir, confSet)
+            cellNum = CellPos3DRaw.shape[0]
+            iter_count += 1
+            print(f"cellNum={cellNum}, iter={iter_count}, threshold={ops0['threshold_scaling']:.2f}")
+
+            # Decrement after each attempt; clamp to MinThreshold
+            ops0['threshold_scaling'] = max(MinThreshold, ops0['threshold_scaling'] - Thstep)
+
+        # --- Assign colors and compute success metrics ---
+        if cellNum > 0:
+            AssignedSuite2bColor = np.random.permutation(cellNum) / cellNum * 0.6 + 0.2
+        else:
+            AssignedSuite2bColor = np.array([])
+
+        SLMTarget, SLMtargetCellDist = slm_target_match_cell(FilteredPos3D, CellPos3DRaw, DistTh)
+        succRate = np.sum(SLMTarget >= 0) / SLMTarget.shape[0]
+        Ind = SLMTarget >= 0
+        SuccSLMTarget = SLMTarget[Ind]
+
+        iscellRaw = CaData['iscell']
+        indices = np.where(iscellRaw[:, 0] > 0)[0]
+        updateiscellTmp = np.union1d(indices, SuccSLMTarget)
+
+        SuccSLMTargetFunI = FilteredFunScore[Ind, 0]
+        for iColor in range(len(np.unique(SuccSLMTargetFunI))):
+            AssignedSuite2bColor[SuccSLMTarget[SuccSLMTargetFunI == iColor]] = FunColorValue[iColor]
+
+        # Use canonical suite2p directory path
+        update_iscell(suite2pdir, updateiscellTmp, 3, AssignedSuite2bColor)
+        #sucTable.append({'full_save_path': full_save_path, 'sucRate': succRate})
+
+    return None

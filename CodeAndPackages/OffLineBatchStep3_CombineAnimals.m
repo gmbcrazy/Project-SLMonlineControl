@@ -2,57 +2,124 @@ clear all
 
 
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '11-Aug-2025FOV.mat'])
+load([BatchSavePath '07-Oct-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\';
 mkdir(DataSavePath);
 DataSavePath=[DataSavePath Suite2pDataKeywords '\'];
 mkdir(DataSavePath);
-SaveFunCon=[DataSavePath 'FunCon\'];
-mkdir(SaveFunCon)
+SaveFunDate=[DataSavePath 'GroupSLM' date '\'];
+mkdir(SaveFunDate)
 
 VolEventLabel={}
 
-PSTHparam.PreSLMCal = 10; 
+PSTHparam.PreSLMCal = 15; 
 PSTHparam.PostSLMCal = 15;
 PSTHparam.pTh = 0.05; 
 PSTHparam.TestMethod = 'ranksum';
 PSTHparam.MPFrameJump = 2;
-PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
+PSTHparam.TestStepFrame = 4;    %%post-slm frames for Test whether SLM works
 PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
-
+% PSTHGroupSLM.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
+% PSTHGroupSLM.PostSLMCal = 15;
+PSTHparam.PreTestFrame = 13;    %%post-slm frames for Test whether SLM works
+umPerlPixel=700/512;
+offTargetum=15;
+PSTHparam.OffTargetPixel=ceil(offTargetum/umPerlPixel);
 ResponseMap=slanCM('seismic',64);
 
 TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
 
 IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12 13 14 15 16 ];
 IndexFOVNeed=[1 2 3 4 7 8 9 10 11 12];
+IndexFOVNeed=1:length(FOVUpdate)
+IndexFOVNeed=1:2
+
 
 
 % Output=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPathLocal(IndexFOVNeed),PSTHparam);
-[Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+% [Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+% [Output,NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+
+for iData=1:2
+    PSTHparam.iData = iData;    %%post-slm frames for Test whether SLM works
+    [Output(iData),NeuroTrace,BehTrace]=OfflineSLM_ExtractFOVs(FOVUpdate(IndexFOVNeed), Suite2pDataKeywords,suite2pFOVPath(IndexFOVNeed),PSTHparam);
+end
 
 
-% for iFOV=1:length(Output)
-% 
-% 
-% 
-% 
-% 
-% end
-
-
-
-CellN=size(Output.NeuroPos3DMeta,1);
-CellNNonTarget=size(Output.NeuroPos3DMeta,1)-size(Output.GroupTargetCellAll,1);
+save([SaveFunDate 'FOVoutputs.mat'],'-v7.3');
+load([SaveFunDate 'FOVoutputs.mat'])
 
 
 
-SaveFunCon=['\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
 
-% SaveFunCon=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
-mkdir(SaveFunCon)
+iSpeedTh=2;
+ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);    %%noticed that this speed threshold is not applied when use OfflineSLM_FOVmeta2NeuroDeltaTrial.
+ProcessPar.PlotFigure=0;
+ProcessPar.GroupLabel={'L','S','N'};
+ProcessPar.GroupList=[1 2 3];
+ProcessPar.GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+ProcessPar.PowerZeroColor=[0.5 0.5 0.5];
+ProcessPar.PowerZero=[0 1];
+ProcessPar.PowerZeroLabel={'SLM','FakeSLM'};
+ProcessPar.VolOut=[0 1];
+ProcessPar.VolOutLabel={'NoWhisk','Whisk'}
+ProcessPar.AwakeState=[1];
+ProcessPar.AwakeStateLabel={'Awake'};
+%%Making table for mixed linear models with cell and trial as sample
+NDataName={'deltaF','spks'};
+
+for iData=1:2
+
+    PSTHparam.iData=iData;
+
+PSTHparam.TestWinNum=5;
+tblResponse=[];
+for iWin=1:PSTHparam.TestWinNum
+    PSTHparam.PostWinN=iWin;
+    [tbl,InfoTable]=OfflineSLM_FOVmeta2NeuroDeltaTrial(Output(iData),ProcessPar,PSTHparam);
+
+    % SLMGroupTableTrial=[tbl InfoTable];
+    NeedInfo={'Group','VolOut','PowerZero','AwakeState'};
+
+    SLMGroupTableTrial = [tbl InfoTable(:,NeedInfo)];
+    SLMGroupTableTrial(isnan(SLMGroupTableTrial.Group),:)=[];
+    SLMGroupTableTrial=removevars(SLMGroupTableTrial,{'PointSpeedR','PointStimR'});
+    
+    SLMGroupTableTrial.Properties.VariableNames{'VolOut'} = 'Whisk';
+    
+    SLMGroupTrialID=SLMGroupTableTrial.TrialID;
+    EndSessInd=[find(diff(SLMGroupTrialID)<0);length(SLMGroupTrialID)];
+    StartSessInd=[1;find(diff(SLMGroupTrialID)<0)+1];
+    Time=[];
+    for iT=1:length(EndSessInd)
+        TempSeq=StartSessInd(iT):EndSessInd(iT);
+        TempSeq=(TempSeq-min(TempSeq))/(max(TempSeq)-min(TempSeq));
+        Time=[Time;TempSeq(:)];
+    end
+    SLMGroupTableTrial.Time=Time;
+    writetable(SLMGroupTableTrial,[SaveFunDate NDataName{iData} 'SLMGroupResTrialDynWin' num2str(iWin) '.csv']);
+    tblResponse(:,iWin)=tbl.Response;
+end
+
+end
+
+
+
+
+
+
+
+
+
+
+
+CellN=size(Output(1).NeuroPos3DMeta,1);
+CellNNonTarget=size(Output(1).NeuroPos3DMeta,1)-size(Output(1).GroupTargetCellAll,1);
+
+
+% SaveFunDate=[DataSavePath 'GroupSLM' num2str(length(IndexFOVNeed)) 'Sessions\'];
 
 PostPreDiffSpeedTh=[1 2 10000];
 % PostPreDiffSpeedTh=[1 2 10000];
@@ -82,7 +149,7 @@ PostPreDiffSpeedTh=[1 2 10000];
 % SLMGroupTableTrial.Time=Time;
 % 
 % 
-% writetable(SLMGroupTableTrial,[SaveFunCon 'SLMGroupResTrial.csv']);
+% writetable(SLMGroupTableTrial,[SaveFunDate 'SLMGroupResTrial.csv']);
 
 % Ind=(SLMGroupTableTrial.Sensory==0&SLMGroupTableTrial.TargetCell==0);
 % plot(SLMGroupTableTrial.SpeedR(Ind).*SLMGroupTableTrial.TargetSpeedR(Ind),SLMGroupTableTrial.Response(Ind),'r.')
@@ -93,7 +160,7 @@ PostPreDiffSpeedTh=[1 2 10000];
 PostPreDiffSpeedTh=[1 2 10000]
 
 for iSpeedTh=1:length(PostPreDiffSpeedTh)
-SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
+SaveP1=[SaveFunDate num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
 mkdir(SaveP1);
 
 ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
@@ -112,9 +179,9 @@ ProcessPar.AwakeStateLabel={'Awake'};
 % % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
 % % 
 
-% OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
-OutResult=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControlZeroPower(Output,ProcessPar,PSTHparam, SaveFunCon)
-NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
+% OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunDate)
+OutResult=OfflineSLM_FOVmeta2NeuroDelta_NoSpeedControlZeroPower(Output(1),ProcessPar,PSTHparam);
+NonTargetCell=setdiff(1:size(Output(1).rSpeed,1),Output(1).GroupTargetCellAll(:,1));
 
 
 % data1=OutResult(1).delta(:,4);
@@ -137,7 +204,7 @@ clear rSpeed rGroup rSpeedScore rSpeedCov rSpeedScoreTargetCell rStim rGroup rSt
 
 
 
-rSpeedScoreTargetCell=zeros(size(Output.NeuroPos3DMeta,1),length(ProcessPar.GroupList));
+rSpeedScoreTargetCell=zeros(size(Output(1).NeuroPos3DMeta,1),length(ProcessPar.GroupList));
 
 
 
@@ -220,7 +287,7 @@ end
 
 %%Plot distributions
 for iSpeedTh=1:length(PostPreDiffSpeedTh)
-SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
+SaveP1=[SaveFunDate num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
 mkdir(SaveP1);
 
 ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
@@ -239,8 +306,10 @@ ProcessPar.AwakeStateLabel={'Awake'};
 % % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
 % % 
 
-OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon)
-NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
+OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output(1),ProcessPar,PSTHparam)
+
+
+NonTargetCell=setdiff(1:size(Output(1).rSpeed,1),Output(1).GroupTargetCellAll(:,1));
 % TargetCell=Output.GroupTargetCellAll(:,1);
 
 
@@ -462,7 +531,7 @@ end
 
 
 for iSpeedTh=1:length(PostPreDiffSpeedTh)
-SaveP1=[SaveFunCon num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
+SaveP1=[SaveFunDate num2str(PostPreDiffSpeedTh(iSpeedTh)) '\'] ;
 mkdir(SaveP1);
 
 ProcessPar.PostPreDiffSpeedTh=PostPreDiffSpeedTh(iSpeedTh);
@@ -481,7 +550,7 @@ ProcessPar.AwakeStateLabel={'Awake'};
 % % GroupMetaColor=[ProcessPar.GroupColor;PowerZeroColor];
 % % 
 
-OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunCon);
+OutResult=OfflineSLM_FOVmeta2NeuroDelta(Output,ProcessPar,PSTHparam, SaveFunDate);
 NonTargetCell=setdiff(1:size(Output.rSpeed,1),Output.GroupTargetCellAll(:,1));
 
 
@@ -659,7 +728,7 @@ close all
 % % % 
 % % 
 % % % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
-% % writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
+% % writetable(tbl,[SaveFunDate 'SLMGroupResponse.csv']);
 % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
 % % for iWisk=1:length(OutResult)
 % %     % temp1=OutResult(iWisk).delta(:,1:length(ProcessPar.GroupList));
@@ -730,7 +799,7 @@ close all
 % % 
 % % 
 % % % csvwrite([SaveP1 'tempMixedLinearM.csv'], 'tbl');
-% % writetable(tbl,[SaveFunCon 'SLMGroupResponse.csv']);
+% % writetable(tbl,[SaveFunDate 'SLMGroupResponse.csv']);
 
 
 
@@ -1066,7 +1135,7 @@ AwakeStateLabel={'Awake'}
 GroupMetaName=[GroupLabel {'FakeSLM'}];
 GroupMetaColor=[GroupColor;PowerZeroColor];
 
-SaveP1=SaveFunCon;
+SaveP1=SaveFunDate;
 
 
 AlignedInfoTable=Output.AlignedInfoTable;
