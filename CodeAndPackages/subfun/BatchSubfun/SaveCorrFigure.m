@@ -11,7 +11,7 @@ end
 figure;
 subplot('position',[0.1 0.1 0.7 0.6])
 imagesc(AmpNormalizeRow(NData(rankStimTemp, InitialInd), [1 99]))
-set(gca, 'xlim', [0 length(InitialInd)], 'ylim', [0 size(NData,1)], 'clim', [0.1 0.9])
+set(gca, 'xlim', [0 length(InitialInd)], 'ylim', [0 size(NData,1)], 'clim', [0.1 0.95])
 xlabel('Time (frames)')
 ylabel('Cells')
 colormap(gray)
@@ -41,7 +41,7 @@ for Topi=1:4
 figure;
 subplot('position',[0.1 0.35 0.7 0.6])
 plot(AmpNormalizeRow(NData(rankStimTemp(Topi), InitialInd), [0 100]),'k')
-set(gca, 'xlim', [0 length(InitialInd)], 'ylim', [0 1], 'clim', [0.1 0.9],'XTickLabel',[])
+set(gca, 'xlim', [0 length(InitialInd)], 'ylim', [0 1], 'clim', [0.1 0.95],'XTickLabel',[])
 ylabel('Delta F')
 axis off
 

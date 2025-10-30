@@ -83,7 +83,7 @@ CellStimColors = valueToColor(rStim, ClimRstim, parula(64));
 
 
 
-ImgClim=[0 800];
+ImgClim=[0 1500];
         PlotParam.RowPlot=1;
         PlotParam.RowColNum=1;
         PlotParam.RowColID=1;

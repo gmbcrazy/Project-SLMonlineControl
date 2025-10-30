@@ -120,7 +120,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=4:5
+for TseriesID=1:4
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);

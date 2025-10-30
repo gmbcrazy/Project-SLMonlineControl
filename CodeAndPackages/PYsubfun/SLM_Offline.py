@@ -409,8 +409,8 @@ def update_iscell(
     ops_combined    = np.load(combined_path / "ops.npy",  allow_pickle=True)
 
     # Update iscell flags
-    print(iscell_combined.shape)
-    print(iscell_update.shape)
+    #print(iscell_combined.shape)
+    #print(iscell_update.shape)
     iscell_combined[:, 0] = 0
     iscell_combined[iscell_update, 0] = 1
     np.save(combined_path / "iscell.npy", iscell_combined)

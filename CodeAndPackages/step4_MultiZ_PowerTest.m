@@ -3,7 +3,7 @@ clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 
-WorkingFolder='E:\LuSLMOnlineTest\L00121\10062025\'
+WorkingFolder='E:\LuSLMOnlineTest\L00327\10302025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);
@@ -105,9 +105,9 @@ RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
 [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 RegImg=RegImg(:,:,4:6);
 
-RefFile=[WorkingFolder 'RegRef2Ch2\'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
-
+% RefFile=[WorkingFolder 'RegRef2Ch2\'];
+% [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+% 
 % MultiMatrix3DHeatmap(RegImg)
 %%
 % FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
@@ -132,7 +132,7 @@ step4_MultiZ_SubStep1_PreTest  %% generate next points being test and update xml
 % XMLparam.PointList=[7 9 7 16 17 7 21 22 17 30];
 % XMLparam.Laser(1:10)=[1.35 1.35 1.35 1.35 1.55 1.35 1.6 1.55 1.55 1.6];
 % XMLparam.RoundID=randperm(XMLparam.TotalRounds,1);
-XMLparam.PointList=[ 25    10    38    26    11     9    25    32    24    26];
+% XMLparam.PointList=[23    8    14    13    39    32    25    32    23 14    ];
 % % % % % % % % % % XMLparam.PointList(10)=[29]
 % XMLparam.Laser(1:10)=repmat(1.4,1,10);
 % % 

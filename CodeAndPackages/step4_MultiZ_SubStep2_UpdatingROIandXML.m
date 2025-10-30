@@ -12,8 +12,13 @@ SLMTrialInfo.Laser=PVpower2xmlPower(SLMTrialInfo.UncagingLaserPower);
 FileIDrange=[];
 [SLMRes,sampleN]=SLMResponse_ROIMultiZ(ROIall,SLMTrialInfo,ROIparam,SLMTestParam.TerminalTrialN,SumDataFolder,FileIDrange);
 % close all
-SLMRes(13,1)=0;
-SLMRes(19,1)=0;
+SLMRes(3,1)=0;
+SLMRes(15,1)=0;
+SLMRes(41,1)=0;
+SLMRes(4,2)=0;
+% SLMRes(13,2)=0;
+SLMRes(41,2)=0;
+% SLMRes(8,2)=0;
 
 % SLMRes([3 7 32 35],2)=0;
 
