@@ -1,0 +1,67 @@
+function tblDist= OfflineSLM_FOVmeta2CellSLMGroupDist(Input)
+% STRATEGY  - TRIAL TABLE
+% Build a per-trial, per-cell table of response deltas and covariates.
+%
+% Required fields are the same as in Strategy A, plus:
+%   ProcessPar.OffTargetPixel
+%   Input.ActCellListFOV{fov}, Input.ActCellFunGroupFOV{fov},
+%   Input.MinTargetDistFOV{fov}, Input.rSpeed, Input.rStim
+%
+% Returns:
+%   tbl           : tall table, one row per (cell x trial)
+%   CovInfoTable  : event metadata replicated per (cell x trial) row
+%
+% NOTE: Window parity with Strategy A when PSTHparam.PostWinN == 1.
+nGroup=length(Input(1).GroupTargetCellMerge)
+
+COVCellGroup=[];
+COVMinDist=[];
+COVAveDist=[];
+COVGeoDist=[];
+
+COVCell=[];
+
+COVMinDist=[];
+for iFOV=1:length(Input(1).ActCellListFOV)   
+    CellID=find(Input(1).NeuroPos3DumMeta(:,4)==iFOV);
+    nCell=length(CellID);
+    COVCell=[COVCell;repmat(CellID(:),1,nGroup)];
+    COVCellGroup=[COVCellGroup;repmat(1:nGroup,nCell,1)];
+    % COVDist=[COVDist;Input(1).TargetDistFOV{iFOV}];
+
+    NeuroPos=Input(1).NeuroPos3DumMeta(Input(1).NeuroPos3DumMeta(:,4)==iFOV,1:3);
+    
+    AveDist=zeros(nCell,nGroup)+NaN;
+    MinDist=zeros(nCell,nGroup)+NaN;
+    GeoDist=zeros(nCell,nGroup)+NaN;
+
+    for iGroup=1:nGroup
+        CellI=Input(1).ActCellListFOV{iFOV}(Input(1).ActCellFunGroupFOV{iFOV}==iGroup);
+        if length(CellI)>1
+            NeuroPosTar{iGroup}=NeuroPos(CellI,:);
+            AveDist(:,iGroup)=mean(pdist2(NeuroPos,NeuroPosTar{iGroup}),2);  %%Average distance between cell and target cells
+            MinDist(:,iGroup)=min(pdist2(NeuroPos,NeuroPosTar{iGroup}),[],2);%%Min distance between cell and target cells
+            GeoDist(:,iGroup)=pdist2(NeuroPos,mean(NeuroPosTar{iGroup},1));  %%distance between cell and geometric center of target cells
+        elseif length(CellI)==1
+            AveDist(:,iGroup)=pdist2(NeuroPos,NeuroPosTar{iGroup});  %%Average distance between cell and target cells
+            MinDist(:,iGroup)=AveDist(:,iGroup);%%Min distance between cell and target cells
+            GeoDist(:,iGroup)=AveDist(:,iGroup);  %%distance between cell and geometric center of target cells
+       
+        else
+
+        end
+    end
+
+    COVMinDist=[COVMinDist;MinDist];
+    COVAveDist=[COVAveDist;AveDist];
+    COVGeoDist=[COVGeoDist;GeoDist];
+   
+    clear AveDist MinDist GeoDist
+
+    
+end
+tblDist=table(COVCell(:),COVCellGroup(:),COVMinDist(:),COVAveDist(:),COVGeoDist(:),'VariableNames',{'Cell','Group','MinDist','AveDist','GeoDist'})
+
+end
+
+

@@ -6,7 +6,9 @@ Suite2pSaveFolderAll='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\Sutie2p-Processed\
 Suite2pSaveFolderAllLocal='C:\GCamP6S-CamKII\';
 
 rootData='E:\LuSLMOnlineTest\';
-AnimalPath=dir([rootData 'SL????']);
+% AnimalPath=dir([rootData 'SL????']);
+AnimalPath = [dir([rootData 'SL????']); dir([rootData 'L?????'])];
+
 ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
 existFOV=dir([BatchSavePath '*FOV.mat'])
@@ -61,8 +63,8 @@ end
 FOV=struct([]);
 UpdateIn=[];
 clear FOV;
-% for i=1:length(FOVsession)
-for i=1:17
+for i=1:length(FOVsession)
+%for i=1:17
 
     WorkFolder=[FOVsession{i} '\'];
     if exist('FOVExistName')
@@ -130,7 +132,10 @@ end
 RemoveFrame=2;
 iTemp=1;
 
-for i=1:length(FOV)
+%%L00121\10062025 there is 10 pixels difference between original gpl files
+%%and excuted ones. Not sure what happend. Might not use. 
+
+for i=20:length(FOV)
     if ~isempty(FOV(i).MatFile)
        FOVUpdate(i)=BatchSub_AllDataMotionCorrect_PostTiffRemove(FOV(i),TSeriesBrukerTBL,UniversalMotionTh,RemoveFrame);
     else
@@ -145,7 +150,7 @@ animalpaths={FOVUpdate.DataFolder};
 
 for i = 1:length(animalpaths)
     % Extract animal ID (e.g., SL0886)
-    animalMatch = regexp(animalpaths{i}, 'SL\d{4}', 'match');
+    animalMatch = regexp(animalpaths{i}, '(SL\d{4}|L\d{5})', 'match');
     if ~isempty(animalMatch)
         animalIDs{i} = animalMatch{1};
     else

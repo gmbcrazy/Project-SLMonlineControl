@@ -2,7 +2,7 @@ clear all
 BatchSavePath='D:\Project1-LocalProcessing\Step1\';
 
 
-load([BatchSavePath '11-Aug-2025FOV.mat'])
+load([BatchSavePath '07-Oct-2025FOV.mat'])
 Suite2pDataKeywords='awakeRefSpon';
 
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step2\';
@@ -14,19 +14,22 @@ mkdir(SaveFunCon)
 
 
 
-PSTHparam.PreSLMCal = 10; 
+PSTHparam.PreSLMCal = 15; 
 PSTHparam.PostSLMCal = 15;
 PSTHparam.pTh = 0.05; 
-PSTHparam.TestMethod = 'ranksum';
+PSTHparam.TestMethod = 'ttest';
 PSTHparam.MPFrameJump = 2;
-PSTHparam.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
+PSTHparam.TestStepFrame = 4;    %%post-slm frames for Test whether SLM works
+% PSTHparam.TestStepFrame = 5;    %%post-slm frames for Test whether SLM works
+PSTHparam.PreTestFrame = 13;    %%post-slm frames for Test whether SLM works
+
 PSTHparam.iData = 1;    %%post-slm frames for Test whether SLM works
 
 %% Initial align behaviors with imaging, identify SLM target cells
 for iFOV=1:length(FOVUpdate)
 % for iFOV=1:3
    
-% iFOV=3;
+    % iFOV=4;
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPathLocal{iFOV};
     suite2pFOVPathLocalTemp=suite2pFOVPath{iFOV};
@@ -62,11 +65,22 @@ end
 %% Group SLM data
 SaveFunCon=[DataSavePath 'GroupSLM\'];
 mkdir(SaveFunCon)
-% for iFOV=1:length(FOVUpdate)
-for iFOV=1:16
+
+PSTHGroupSLM=PSTHparam;
+% PSTHGroupSLM.PreSLMCal = 10; 
+PSTHGroupSLM.TestStepFrame = 3;    %%post-slm frames for Test whether SLM works
+% PSTHGroupSLM.PostSLMCal = 15;
+PSTHGroupSLM.PreTestFrame = 10;    %%post-slm frames for Test whether SLM works
+
+umPerlPixel=700/512;
+offTargetum=15;
+PSTHGroupSLM.OffTargetPixel=ceil(offTargetum/umPerlPixel)
+
+
+for iFOV=1:length(FOVUpdate)
     FOVtemp=FOVUpdate(iFOV);
     suite2pFOVPathLocalTemp=suite2pFOVPath{iFOV};
-    OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,SaveFunCon)
+    OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHGroupSLM,SaveFunCon)
 end
 
 

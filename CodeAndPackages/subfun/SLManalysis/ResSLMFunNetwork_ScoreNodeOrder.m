@@ -18,6 +18,8 @@ xMat=ParamNet.xMat;
 yMat=ParamNet.yMat;
 
 TimeBinFrame=PSTHparam.TimeBinFrame;
+TimeBinFrame= -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
+
 
    P.xLeft=0.03;
    P.xRight=0.02;
@@ -55,7 +57,7 @@ if ~isempty(PSTHparam.Data)
     plot(TimeBinFrame(1),TargetCellSortedP{ParamNet.SLMGroup}(1:end-1),'o','Color',GroupColor(ParamNet.SLMGroup,:),'MarkerFaceColor',GroupColor(ParamNet.SLMGroup,:))
 
  end
- set(gca,'xlim',[-PSTHparam.PreSLMCal PSTHparam.PostSLMCal],'xtick',[-PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal],'ylim',[0 ParamNet.CellN+0.5]);
+ set(gca,'xlim',[TimeBinFrame(1) TimeBinFrame(end)],'xtick',[-PSTHparam.PreSLMCal:5:PSTHparam.PostSLMCal],'ylim',[0 ParamNet.CellN+0.5]);
  set(gca,'clim',ParamNet.ResponseLim);colormap(ParamNet.ResponseMap);
 
 axis ij
@@ -169,7 +171,7 @@ bar2.Ticks=union(ScoreLim,0);
 
 
 t4=subplotPosLu(xMat,yMat,1,4,P);
-[Res,r,p]=LuPairRegressPlot_ExcludeDots(ScoreCell,Trans(1:end-1)',ParamNet.GroupTargetCell,ResParam);
+[Res,r,p]=LuPairRegressPlot_ExcludeDots(ScoreCell,Trans(1:end-1)',ParamNet.OffTargetCellList,ResParam);
 % set(gca,'ytick',ResParam.yLim,'xtick',union(0,ResParam.xLim))
 % 
 % IncludeInd=setdiff(1:ParamNet.CellN,ParamNet.GroupTargetCell);

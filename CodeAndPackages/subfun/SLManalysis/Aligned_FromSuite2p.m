@@ -32,10 +32,10 @@ for iCell=1:length(TargetCellList)
            CellResponse{iCell,iPower}=nanmean(AlignedneuralData(:,:,I1),3);
            TargetResponse{iCell,iPower}=squeeze(AlignedneuralData(TargetCellList(iCell),:,I1))';
         % else
-           preSLMdata=squeeze(AlignedneuralData(:,1:PSTHparam.PreSLMCal,I1));
+           preSLMdata=squeeze(AlignedneuralData(:,(PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1));
            postSLMdata=squeeze(AlignedneuralData(:,PSTHparam.PreSLMCal+[1:PSTHparam.TestStepFrame],I1));
 
-           preSLMdata1=squeeze(nanmean(squeeze(AlignedneuralData(:,1:PSTHparam.PreSLMCal,I1)),2));
+           preSLMdata1=squeeze(nanmean(squeeze(AlignedneuralData(:,(PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),2));
            postSLMdata1=squeeze(nanmean(squeeze(AlignedneuralData(:,PSTHparam.PreSLMCal+[1:PSTHparam.TestStepFrame],I1)),2));
 
            preSLMdata2=permute(repmat(preSLMdata1,1,1,PSTHparam.TestStepFrame),[1 3 2]);
@@ -45,7 +45,7 @@ for iCell=1:length(TargetCellList)
                temp1=preSLMdata(jCell,:,:);
                temp2=postSLMdata(jCell,:,:);
                [~,p(jCell,1),~,t(jCell)]=ttest2(temp2(:),temp1(:));
-               [pRank(jCell,1),~,statRank(jCell)]=ranksum(temp2(:),temp1(:));
+               [pRank(jCell,1),~,statRank(jCell)]=ranksum(temp2(:),temp1(:),'method','approximate');
 
                temp3(jCell)=mean(temp2(:))-mean(temp1(:));
                temp4(jCell)=median(temp2(:))-median(temp1(:));

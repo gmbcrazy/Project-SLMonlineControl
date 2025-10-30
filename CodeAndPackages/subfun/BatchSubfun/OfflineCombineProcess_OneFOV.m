@@ -100,12 +100,37 @@ TempconfSet = confSet; TempconfSet.save_path0 = WorkFolder;
 [~, ~, ~, cellBoundary, ~] = Suite2pCellIDMapFromStat(CaData.statCell, [512 512]);
 
 
+TestGroup = [];
+for iGroup = 1:length(Group)
+    TestGroup = [TestGroup;zeros(length(Group(iGroup).Indices),1)+iGroup];
+end
+
+MeanImg=AmpNormalizeDim(double(CaData.PlaneMeanImg),3,[0.5 99.5]);
+ImgClim=[0 1];
+
+figure;
+GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+
+H=MultiPlanes2DShow(permute(MeanImg,[2 1 3]), [], Pos3DFun, [], SLMPosInfo.confSetFinal.ETL+SLMPosInfo.confSetFinal.scan_Z(1), GroupColor(TestGroup,:), ImgClim);
+bar=colorbar(H(3));
+bar.Location='eastoutside';
+bar.Position=[0.95,0.3,0.01,0.3];
+bar.Label.String='F.';
+bar.Ticks=[0 1];
+papersizePX=[0 0 30 9];
+set(gcf, 'PaperUnits', 'centimeters');
+set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+print(gcf, [ResultFolder 'FinalPowertarget.svg'], '-dsvg', '-painters');
+print(gcf, [ResultFolder 'FinalPowertarget.tif'], '-dtiffn', '-painters');          
+
+
 
 %% --- 1. Correlation & Speed/Stim/Neural plots ---
 CorrResults = ProcessFOVCorrelationAndPlots(CaData, SpeedAll, StimAll, Suite2pTable, SessFileTable, ResultFolder);
 
+
 %% --- 2. SLM/Cell Mapping ---
-DistTh = 8;
+DistTh = 10;
 [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ...
     ProcessFOVSLMTargetMapping(CaData, SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh);
 
@@ -164,7 +189,7 @@ for i=1:size(SLMInfoTable,1)
     end
 end
 
-TrialThNum=3;
+TrialThNum=2;
 
 [AlignedtempNData,TargetInfoTable,CellResponse,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
 
@@ -196,7 +221,7 @@ for iCell=1:length(TargetCellList)
 
     end
 end
-sum(SuccTarget)
+sum(SuccTarget);
 
 pAll=[];
 for iCell=1:length(TargetCellList)
@@ -218,7 +243,7 @@ end
 Param.PlotType=3
 Param.statisP=0;
 Param.LegendShow=0;
-Param.Legend=[]
+Param.Legend=[];
 
 
 
@@ -272,18 +297,41 @@ close all
         tempPower=tempPower(tempPowerI);
         tempGroup=tempGroup(validI);
 
-        NeuronPos3D(tempTargetList,:)
+        % NeuronPos3D(tempTargetList,:);
 
     FinalActCellList=tempTargetList;
     FinalActPowerI=tempPowerI;
     FinalActCellFunGroup=tempGroup;
     FinalActPower=tempPower;
 
+NeuronPos3Dum=NeuronPos3D;
+NeuronPos3Dum(:,1:2)=NeuronPos3Dum(:,1:2)*SLMPosInfo.yaml.umPerlPixelX;
+
+Pos3DFunum=Pos3DFun;
+Pos3DFunum(:,1:2)=Pos3DFunum(:,1:2)*SLMPosInfo.yaml.umPerlPixelX;
+
+
+
+CellDist=squareform(pdist(NeuronPos3Dum));
+CellDistXY=squareform(pdist(NeuronPos3Dum(:,1:2)));
+
+
+MinTargetDist=min(pdist2(NeuronPos3Dum,Pos3DFunum),[],2);
+MinTargetDistXY=min(pdist2(NeuronPos3Dum(:,1:2),Pos3DFunum(:,1:2)),[],2);
+
+for iGroup=1:length(Group)
+    ActGroupPos3Dum{iGroup}=NeuronPos3Dum(FinalActCellList(FinalActCellFunGroup==iGroup),:);
+    CellGroupDist(:,iGroup) = mean(pdist2(NeuronPos3Dum,NeuronPos3Dum(FinalActCellList(FinalActCellFunGroup==iGroup),:)),2);
+    CellGroupDistXY(:,iGroup) = mean(pdist2(NeuronPos3Dum(:,1:2),NeuronPos3Dum(FinalActCellList(FinalActCellFunGroup==iGroup),1:2)),2);
+
+end
+
+   
 
 save([ResultFolder 'Step1Meta.mat'],'Suite2pTable','CaData','CorrResults','SLMPosInfo','SLMTestInfo','SLMInfoTable','SessFileTable',...
-    'NData','Neuronstat','NeuronPos3D','NeuronPos3DRaw','SuccAmp','SuccTarget','PowerTargetI',...
+    'NData','Neuronstat','NeuronPos3D','NeuronPos3Dum','NeuronPos3DRaw','SuccAmp','SuccTarget','PowerTargetI',...
     'SuccAmp','TargetCellList','TargetCellListFunGroup','GroupTargetCell','AlignedSpeed','AlignedStim',...
-    'FinalActCellList','FinalActPowerI','FinalActCellFunGroup','FinalActPower');
+    'FinalActCellList','FinalActPowerI','FinalActCellFunGroup','FinalActPower','MinTargetDist','MinTargetDistXY','CellGroupDistXY','CellGroupDist','ActGroupPos3Dum');
 
 ProcessFOVGroupComparison(CorrResults.rSpeed, CorrResults.rStim, FinalActCellList, FinalActCellFunGroup, SLMPosInfo, Nlabel, [ResultFolder 'Act']);
 
@@ -293,7 +341,6 @@ colorCellIncluded=repmat([1 1 0],length(finalTargetList),1);
 
 GroupLabel={'L','S','N'};
 nGroup=length(GroupLabel);
-GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 % NodeColor=repmat([0.9 0.9 0.9],length(iscell),1);
 for iGroup=1:length(Group)
     I1=find(tempGroup==iGroup);
@@ -302,8 +349,6 @@ for iGroup=1:length(Group)
     I1=find(finalTargetListGroup==iGroup);
     colorCellIncluded(I1,:)=repmat(GroupColor(iGroup,:),length(I1),1);
 end
-MeanImg=AmpNormalizeDim(double(CaData.PlaneMeanImg),3,[0.5 99.5]);
-ImgClim=[0 1];
 
 finalTargetListLabel={};
 for iCell=1:length(finalTargetList)

@@ -1,1 +1,0 @@
- mex extract_coefs2_SBC.c -Dchar16_t=UINT16_T

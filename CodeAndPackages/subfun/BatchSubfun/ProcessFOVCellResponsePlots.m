@@ -1,7 +1,7 @@
 function ProcessFOVCellResponsePlots(TargetCellList, TargetPointList, iscell, PVpower, PSTHparam, SuccTargetPvalue, TargetResponse, CellResponse, CellSampleN, TimBinFrame, ResultFolder, Nlabel)
 % Cell response mapping and aligned plots (per target/per SLM power)
 
-TrialThNum = 3;
+TrialThNum = 2;
 responseColorMap = slanCM('seismic', 64);
 
 P.xLeft = 0.06;
@@ -20,7 +20,7 @@ figure;
 for iCell = 1:length(TargetCellList)
     for iPower = 1:length(PVpower)
         if ~isempty(TargetResponse{iCell, iPower}) && CellSampleN(iCell, iPower) >= TrialThNum
-            subplotLU(length(TargetCellList), length(PVpower), iCell, iPower, P)
+            subplotLU(length(TargetCellList), length(PVpower), iCell, iPower, P);
             RateHist_GroupPlot(TimBinFrame+0.5, TargetResponse(iCell, iPower), [0.1 0.1 0.1],Param);
             hold on;
             text(-10,0.1,['C' num2str(TargetCellList(iCell)) 'P' num2str(TargetPointList(iCell)) 'n = ' num2str(CellSampleN(iCell, iPower))]);      
@@ -41,7 +41,7 @@ figure;
 for iCell = 1:length(TargetCellList)
     for iPower = 1:length(PVpower)
         if ~isempty(CellResponse{iCell, iPower}) && CellSampleN(iCell, iPower) >= TrialThNum
-            subplotLU(length(TargetCellList), length(PVpower), iCell, iPower, P)
+            subplotLU(length(TargetCellList), length(PVpower), iCell, iPower, P);
             imagesc(TimBinFrame+0.5, 1:length(iscell), CellResponse{iCell, iPower});
             colormap(responseColorMap);
             set(gca, 'clim', [-0.1 0.1], 'ylim', [0 length(iscell)+1]);

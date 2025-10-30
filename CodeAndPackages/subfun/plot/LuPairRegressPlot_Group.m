@@ -27,10 +27,13 @@ end
 
 % -------------------- Axis Limits --------------------
 if isempty(Param.xLim)
-    Param.xLim=[min(data1) max(data1)];
+   AddIn=(max(data1)-min(data1))/10;
+    Param.xLim=[min(data1)-AddIn max(data1)+AddIn];
 end
 if isempty(Param.yLim)
-    Param.yLim=[min(data2) max(data2)];
+   AddIn=(max(data2)-min(data2))/10;
+
+    Param.yLim=[min(data2)-AddIn max(data2)+AddIn];
 end
 
 % -------------------- Scatter Plot by Group --------------------

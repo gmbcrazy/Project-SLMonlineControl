@@ -9,9 +9,19 @@ AlignedSpeedMeta=[];
 AlignedStimMeta=[];
 TableSessVec=[];
 NeuroPos3DMeta=[];
+NeuroPos3DumMeta=[];
+
+
 rSpeedMeta=[];
 rStimMeta=[];
 
+MinTargetDistFOV={};
+MinTargetDistXYFOV={};
+
+TargetDistFOV={};
+TargetDistXYFOV={};
+
+ActGrouopPos3DumFOV={};
 
 
 for iFOV=1:length(FOV)
@@ -67,12 +77,19 @@ BehTrace(iFOV).AlignedStim=AlignedStim;
 GroupTargetCellMeta{iFOV}=GroupTargetCell;
 
 
-ActCellListMeta{iFOV}=FinalActCellList;
-ActPowerIMeta{iFOV}=FinalActPowerI;
-ActCellFunGroupMeta{iFOV}=FinalActCellFunGroup;
-ActCellPowerMeta{iFOV}=FinalActPower;
+ActCellListFOV{iFOV}=FinalActCellList;
+ActPowerIFOV{iFOV}=FinalActPowerI;
+ActCellFunGroupFOV{iFOV}=FinalActCellFunGroup;
+ActCellPowerFOV{iFOV}=FinalActPower;
 
 
+MinTargetDistFOV{iFOV}=MinTargetDist;
+MinTargetDistXYFOV{iFOV}=MinTargetDistXY;
+
+TargetDistFOV{iFOV}=CellGroupDist;
+TargetDistXYFOV{iFOV}=CellGroupDistXY;
+
+ActGrouopPos3DumFOV{iFOV}=ActGroupPos3Dum;
 
 % [AlignedtempNData,AlignedInfoTable,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},PowerTestCellList,iscell,Suite2pTable,PVpower,PSTHparam);
 [AlignedNData{iFOV},AlignedInfoTableFOV{iFOV},CellResponseMeta{iFOV},statCellRes{iFOV},TargetResponseMeta{iFOV},TargetCellResPMeta{iFOV},TargetCellResR{iFOV},CellSampleN{iFOV}]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
@@ -82,8 +99,12 @@ AlignedSpeedMeta=[AlignedSpeedMeta AlignedSpeed];
 AlignedStimMeta=[AlignedStimMeta AlignedStim];
 
 
+
+
 GroupTargetCellMeta{iFOV}=GroupTargetCell;
 NeuroPos3DMeta=[NeuroPos3DMeta;[NeuronPos3D zeros(size(NeuronPos3D,1),1)+iFOV]];
+NeuroPos3DumMeta=[NeuroPos3DumMeta;[NeuronPos3Dum zeros(size(NeuronPos3Dum,1),1)+iFOV]];
+
 SuccAmpMeta{iFOV}=SuccAmp(:);
 SuccTargetMeta{iFOV}=SuccTarget(:);
 confSetMeta(iFOV)=confSet;
@@ -104,6 +125,8 @@ Output.AlignedSpeedMeta=AlignedSpeedMeta;
 Output.AlignedStimMeta=AlignedStimMeta;
 Output.GroupTargetCellMeta=GroupTargetCellMeta;
 Output.NeuroPos3DMeta=NeuroPos3DMeta;
+Output.NeuroPos3DumMeta=NeuroPos3DumMeta;
+
 Output.SuccAmpMeta=SuccAmpMeta;
 Output.SuccTargetMeta=SuccTargetMeta;
 Output.confSetMeta=confSetMeta;
@@ -120,6 +143,11 @@ Output.CellSampleN=CellSampleN;
 Output.PowerTargetIFOV=PowerTargetIFOV;
 Output.PowerTestCellListFOV=PowerTestCellListFOV;
 Output.PowerTestCellListFunGroupFOV=PowerTestCellListFunGroupFOV;
+Output.MinTargetDistFOV=MinTargetDistFOV;
+Output.MinTargetDistXYFOV=MinTargetDistXYFOV;
+Output.TargetDistFOV=TargetDistFOV;
+Output.TargetDistXYFOV=TargetDistXYFOV;
+Output.ActGrouopPos3DumFOV=ActGrouopPos3DumFOV;
 
 
 GroupList=1:length(GroupTargetCell);
@@ -134,6 +162,7 @@ for iFun=1:length(GroupList)
     end
     GroupTargetCell{iFun}=GroupTargetCellTemp;
 end
+
 GroupTargetCellAll=[];
 for iFun=1:length(GroupList)
     GroupTargetCellAll=[GroupTargetCellAll;[GroupTargetCell{iFun}(:) zeros(size(GroupTargetCell{iFun}(:)))+iFun]];
@@ -143,9 +172,34 @@ GroupTargetCellMeta=[GroupTargetCell {[]}];
 Output.GroupTargetCellMerge=GroupTargetCell;
 Output.GroupTargetCellAll=GroupTargetCellAll;
 
-Output.ActCellListMeta=ActCellListMeta;
-Output.ActPowerIMeta=ActPowerIMeta;
-Output.ActCellFunGroupMeta=ActCellFunGroupMeta;
-Output.ActCellPowerMeta=ActCellPowerMeta;
+
+
+ActGroupTargetCellAll=[];
+for iFOV = 1:length(ActCellListFOV)
+    ActGroupTargetCellAll=[ActGroupTargetCellAll;[ActCellListFOV{iFOV}(:) ActCellFunGroupFOV{iFOV}(:)]];
+end
+
+for iFun=1:length(GroupList)
+    ActGroupTargetCell{iFun}=[];
+    % ActGroupTargetCellTemp=[];
+    Cnum=0;
+    for iFOV = 1:length(ActCellListFOV)
+         % Ind=ActCellFunGroupFOV{iFOV}==iFun
+         ActGroupTargetCell{iFun}=[ActGroupTargetCell{iFun}(:);ActCellListFOV{iFOV}(ActCellFunGroupFOV{iFOV}==iFun)+Cnum];
+         Cnum = Cnum+sum(abs(Output.NeuroPos3DMeta(:,4)-iFOV)<0.1);
+    end
+    % GroupTargetCell{iFun}=GroupTargetCellTemp;
+end
+
+
+Output.ActGroupTargetCellMerge=ActGroupTargetCell;
+Output.ActGroupTargetCellAll=ActGroupTargetCellAll;
+
+
+
+Output.ActCellListFOV=ActCellListFOV;
+Output.ActPowerIFOV=ActPowerIFOV;
+Output.ActCellFunGroupFOV=ActCellFunGroupFOV;
+Output.ActCellPowerFOV=ActCellPowerFOV;
 
 

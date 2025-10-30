@@ -66,7 +66,7 @@ GroupTargetCellMeta=[GroupTargetCell {[]}];
 % [AlignedtempNData,AlignedInfoTable,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},TargetCellList,iscell,Suite2pTable,PVpower,PSTHparam);
 [AlignedtempNData,AlignedInfoTable,CellResponse,statCellRes,TargetResponse,TargetCellResP,TargetCellResR,CellSampleN]=Aligned_FromSuite2p(NData{iData},TargetCellList,Suite2pTable,PVpower,PSTHparam);
 
-TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1;
+TimBinFrame = -PSTHparam.PreSLMCal:PSTHparam.TestStepFrame-1;
 
 
 RateParam.PlotType=3
@@ -78,7 +78,7 @@ RateParam.GroupRepeatAnova = 0;
 RateParam.Paired = 0;
 RateParam.RepeatAnova= 1;
 RateParam.BinName='Time';
-RateParam.Bin=TimBinFrame+0.5;
+RateParam.Bin=-PSTHparam.PreSLMCal:PSTHparam.PostSLMCal-1+0.5;
 RateParam.Ytick=[0 2 4];
 RateParam.SigPlot='Anova';
 RateParam.Q=0.1;
@@ -123,7 +123,7 @@ for iAwake=1:length(AwakeState)
                         % GroupSampleN(iFun)=length(I1);
                            % preSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[-2:1:0],I1)),1);
 
-                           preSLMSpeed=mean(squeeze(AlignedSpeed(1:PSTHparam.PreSLMCal,I1)),1);
+                           preSLMSpeed=mean(squeeze(AlignedSpeed((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
                            postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
                            xData{end+1}=preSLMSpeed;
                            xData{end+1}=postSLMSpeed;
@@ -137,7 +137,7 @@ for iAwake=1:length(AwakeState)
                         I1=find(AlignedInfoTable.PowerZero==1&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
                         % preSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[-2:1:0],I1)),1);
 
-                        preSLMSpeed=mean(squeeze(AlignedSpeed(1:PSTHparam.PreSLMCal,I1)),1);
+                        preSLMSpeed=mean(squeeze(AlignedSpeed((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
                         postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
 
                        xData{end+1}=preSLMSpeed;
@@ -189,7 +189,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             I1=find(AlignedInfoTable.Group==GroupList(iFun)&AlignedInfoTable.PowerZero==0&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
                             % GroupSampleN(iFun)=length(I1);
     
-                               preSLMSpeed=mean(squeeze(AlignedSpeed(1:PSTHparam.PreSLMCal,I1)),1);
+                               preSLMSpeed=mean(squeeze(AlignedSpeed((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
                                postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
     
                                if iAwake==1
@@ -206,7 +206,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             if length(I1)==1
                                GroupResponse{iFun}=squeeze(AlignedtempNData(:,:,I1));
                                GroupSpeed{iFun}=AlignedSpeed(:,I1)';
-                               preSLMdata=squeeze(AlignedtempNData(:,1:PSTHparam.PreSLMCal,I1));
+                               preSLMdata=squeeze(AlignedtempNData(:,(PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1));
                                postSLMdata=squeeze(AlignedtempNData(:,PSTHparam.PreSLMCal+[1:TestStepFrame],I1));
                                for jCell=1:length(iscell)
                                    temp1=preSLMdata(jCell,:,:);
@@ -217,7 +217,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             elseif length(I1)>1
                                GroupResponse{iFun}=nanmean(AlignedtempNData(:,:,I1),3);           
                                GroupSpeed{iFun}=AlignedSpeed(:,I1)';
-                               preSLMdata=squeeze(AlignedtempNData(:,1:PSTHparam.PreSLMCal,I1));
+                               preSLMdata=squeeze(AlignedtempNData(:,(PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1));
                                postSLMdata=squeeze(AlignedtempNData(:,PSTHparam.PreSLMCal+[1:TestStepFrame],I1));
                                for jCell=1:length(iscell)
                                    temp1=preSLMdata(jCell,:,:);
@@ -246,7 +246,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
     
                     %%Add Zero power as addtional group
                             I1=find(AlignedInfoTable.PowerZero==1&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
-                            preSLMSpeed=mean(squeeze(AlignedSpeed(1:PSTHparam.PreSLMCal,I1)),1);
+                            preSLMSpeed=mean(squeeze(AlignedSpeed((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
                             postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
                             if iAwake==1
                                I1=I1(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
@@ -259,7 +259,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             elseif length(I1)>1
                                GroupResponse{iFun+1}=nanmean(AlignedtempNData(:,:,I1),3);           
                                GroupSpeed{iFun+1}=AlignedSpeed(:,I1)';
-                               preSLMdata=squeeze(AlignedtempNData(:,1:PSTHparam.PreSLMCal,I1));
+                               preSLMdata=squeeze(AlignedtempNData(:,(PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1));
                                postSLMdata=squeeze(AlignedtempNData(:,PSTHparam.PreSLMCal+[1:TestStepFrame],I1));
                                for jCell=1:length(iscell)
                                    temp1=preSLMdata(jCell,:,:);
@@ -284,9 +284,9 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         figure;
                         % TargetCellList(iCell)
                         % subplotLU(length(TargetCellList),length(PVpower),iCell,iPower,P)
-                        RateParam.TimeCol=TimBinFrame+0.5;
+                        RateParam.TimeCol=RateParam.Bin+0.5;
                         RateParam.PathSave=[TempResultFolder 'Speed'];
-                        RateHist_GroupPlot(TimBinFrame+0.5,GroupSpeed,GroupMetaColor,RateParam)
+                        RateHist_GroupPlot(RateParam.TimeCol,GroupSpeed,GroupMetaColor,RateParam)
                         hold on;
                         % text(-10,0.1,['n = ' num2str(CellSampleN(iCell,iPower))])
                         
@@ -358,7 +358,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         GroupParamNet.TargetCellList=GroupTargetCell;
                         % GroupParamNet.TargetCellListFunGroup=TargetCellListFunGroup;
                         GroupParamNet.statCellRes=statGroupRes(iFun);
-                
+                        GroupParamNet.OffTargetCellList=find(MinTargetDist<=PSTHparam.OffTargetPixel);
     
                 
                         PSTHstruct=PSTHparam;
@@ -403,23 +403,23 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         figure;
                         subplotLU(1,4,1,1,P)
                         
-                        if iFun<4
-                        I0=setdiff(1:length(iscell),GroupTargetCellAll(GroupTargetCellAll(:,2)==iFun,1));
-                        else
+                        % if iFun<4
+                        % I0=setdiff(1:length(iscell),GroupTargetCellAll(GroupTargetCellAll(:,2)==iFun,1));
+                        % else
                         I0=1:length(iscell);
-                        end
+                        % end
                 
                         [Res,r,p]=LuPairRegressPlot(squeeze(rSpeed(I0,1,1)),statGroupRes(iFun).delta(I0)',ResParam);
                         set(gca,'ylim',[-0.1 0.2])
                         if iFun<4
-                        title(['Exclude ' GroupLabel{iFun}])
+                        title(['All Cells'])
                         end            
                         subplotLU(1,4,1,2,P)
-                        I0=setdiff(1:length(iscell),GroupTargetCellAll(:,1));
+                        I0=setdiff(1:length(iscell),GroupParamNet.OffTargetCellList);
                         [Res,r,p]=LuPairRegressPlot(squeeze(rSpeed(I0,1,1)),statGroupRes(iFun).delta(I0)',ResParam);
                         set(gca,'YTickLabel',[])
                         set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                         subplotLU(1,4,1,3,P)
                         I1=intersect(find(statGroupRes(iFun).delta>0),I0);
@@ -427,7 +427,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         ylabel('')
                         set(gca,'YTickLabel',[])
                                 set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                          subplotLU(1,4,1,4,P)
                         I1=intersect(find(statGroupRes(iFun).delta<0),I0);
@@ -435,7 +435,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         ylabel('')
                         set(gca,'YTickLabel',[])
                         set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                 
                 
@@ -519,24 +519,23 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         figure;
                         subplotLU(1,4,1,1,P)
                         
-                        if iFun<4
-                        I0=setdiff(1:length(iscell),GroupTargetCellAll(GroupTargetCellAll(:,2)==iFun,1));
-                        else
+                        % if iFun<4
+                        % I0=setdiff(1:length(iscell),GroupTargetCellAll(GroupTargetCellAll(:,2)==iFun,1));
+                        % else
                         I0=1:length(iscell);
-                        end
+                        % end
                 
                         [Res,r,p]=LuPairRegressPlot(squeeze(rStim(I0,1,1)),statGroupRes(iFun).delta(I0)',ResParam);
                         set(gca,'ylim',[-0.1 0.2])
-                        if iFun<4
-                        title(['Exclude ' GroupLabel{iFun}])
-                        end  
+                        title(['All Cells'])
+
                 
                         subplotLU(1,4,1,2,P)
-                        I0=setdiff(1:length(iscell),GroupTargetCellAll(:,1));
+                        I0=setdiff(1:length(iscell),GroupParamNet.OffTargetCellList);
                         [Res,r,p]=LuPairRegressPlot(squeeze(rStim(I0,1,1)),statGroupRes(iFun).delta(I0)',ResParam);
                         set(gca,'YTickLabel',[])
                         set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                         subplotLU(1,4,1,3,P)
                         I1=intersect(find(statGroupRes(iFun).delta>0),I0);
@@ -544,7 +543,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         ylabel('')
                         set(gca,'YTickLabel',[])
                                 set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                          subplotLU(1,4,1,4,P)
                         I1=intersect(find(statGroupRes(iFun).delta<0),I0);
@@ -552,7 +551,7 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                         ylabel('')
                         set(gca,'YTickLabel',[])
                         set(gca,'ylim',[-0.1 0.2])
-                        title(['Exclude 3 groups'])
+                        title(['Non-target cells'])
                 
                 
                 
