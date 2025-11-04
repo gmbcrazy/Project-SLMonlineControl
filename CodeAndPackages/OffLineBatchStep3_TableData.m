@@ -105,10 +105,11 @@ ProcessPar.AwakeStateLabel={'Awake'};
 %%Making table for mixed linear models with cell and trial as sample
 NDataName={'deltaF','spks'};
 
-
+iWin=1;
 
 tblDist= OfflineSLM_FOVmeta2CellSLMGroupDist(Output); 
 writetable(tblDist,[SaveFunDate 'SLMCellGroupTarDistWin' num2str(iWin) '.csv']);
+tblDist= readtable([SaveFunDate 'SLMCellGroupTarDistWin' num2str(iWin) '.csv']); 
 
 
 for iData=1:2
@@ -360,7 +361,7 @@ for iWisk=1:2
     TempData={};
     GroupPair.LimY=[0 0.8];
     GroupPair.SignY=0.75;
-    
+    GroupPair.ANOVA=1;
     for iGroup=1:3
         TempData{iGroup}=tbl_whisktemp.Response(tbl_whisktemp.Group==iGroup&tbl_whisktemp.TargetCell==iGroup);
     % [~,pTFromZero(iWisk,iGroup),~,tFromZero(iWisk,iGroup)]=ttest(TempData{iGroup},0);
@@ -403,6 +404,88 @@ for iWisk=1:2
     % tbl_whisktemp.Properties.VariableNames{'Session_tbl_whisktemp'}='Session';
 
 
+
+
+    TempData={};
+    GroupPair.LimY=[0 0.8];
+    GroupPair.SignY=0.75;
+    MegaColor=[];
+    for iGroup=1:3
+        TempData{end+1}=tbl_whisktemp.Response(tbl_whisktemp.Group==iGroup&tbl_whisktemp.TargetCell==iGroup);
+        % TempData{end+1}=tbl_whisktemp.ShamOpto(tbl_whisktemp.Group==iGroup&tbl_whisktemp.TargetCell==iGroup);  %%Noted that in the table, ShamOpto value is same for different group.
+        TempData{end+1}=tbl_whisktemp.Response(tbl_whisktemp.Group==iGroup&tbl_whisktemp.NonTargetCell==1);
+        % TempData{end+1}=tbl_whisktemp.ShamOpto(tbl_whisktemp.Group==iGroup&tbl_whisktemp.NonTargetCell==1);  %%Noted that in the table, ShamOpto value is same for different group.
+        MegaColor=[MegaColor;repmat(Param.Color(iGroup,:),2,1)];
+
+    end
+    xGroup=[1 2 3 4 5 6 8 9 10 11]
+
+    for iGroup=1:3
+        TempData{end+1}=tbl_whisktemp.ShamOpto(tbl_whisktemp.Group==iGroup&tbl_whisktemp.TargetCell==iGroup);
+    end
+
+    ShamOptoTBL=groupsummary(tbl_whisktemp,"Cell", 'mean');
+    ShamOptoTBL=groupsummaryBack2OldNames(tbl_whisktemp, ShamOptoTBL, 'mean');
+    TempData{end+1}= ShamOptoTBL.ShamOpto(ShamOptoTBL.NonTargetCell==1);
+
+
+
+    MegaColor=[MegaColor;repmat([0.7 0.7 0.7],4,1)];
+    % stats=ErrorViolinHalf([1 2 3],TempData(1:3),Param.Color,1,[SaveP1 ProcessPar.VolOutLabel{iWisk} '.txt'],GroupPair,[1 1 1]);
+    % stats=ErrorViolinHalf([1 2 3],TempData(1:3),[Param.Color],0,[SaveP2 'TargetResponse.txt'],GroupPair,[1 2 3]);
+
+
+    GroupPairMega=GroupPair;
+    GroupPairMega.ViolinLR=[0 1 0 1 0 1 0 0 0 0];
+    GroupPairMega.GroupName={'L-T','L-NonT','S-T','S-NonT','N-T','N-NonT','0-L','0-S','0-N','0-NonT'}
+    GroupPairMega.SamplePlot=0;
+    GroupPairMega.SamplePairedPlot=0;
+    GroupPairMega.ANOVA=0;
+    GroupPairMega.LimY=[0 1.2];
+    GroupPairMega.SignY=1;
+    P3=[1 1 3;3 5 5];
+    P4=[2 2 4;4 6 6];
+    P5=[1 2 3;7 8 9];
+    P6=[2 4 6;10 10 10];
+    P7=[1 3 5;2 4 6];
+    GroupPairMega.Pair=[P3 P4 P5 P6 P7];
+
+    figure;
+    subplot(1,2,1)
+    title('Opto. Power > 0')
+    GroupPairMega.Pair=[P3 P4 P7];
+    GroupPairMega.GroupName={'L','NonT','S','NonT','N','NonT'}
+    GroupPairMega.ViolinLR=[0 1 0 1 0 1];
+    stats=ErrorViolinHalf(xGroup(1:6),TempData(1:6),MegaColor(1:6,:),0,[SaveP2 'TvsNonTResponse.txt'],GroupPairMega,[1 2 3 4 5 6]);
+    hold on;
+    plot([0 7],[0 0],'k:')
+
+    xticks(xGroup(1:6))
+    xticklabels(GroupPairMega.GroupName)
+    ylim([-0.1 0.8])
+    ylabel('Cell response (Post-Pre ΔF)');
+    xlabel('Cell/Stim group')
+
+    subplot(1,2,2)
+    title('Opto. Power = 0')
+    GroupPairMega.Pair=[];
+    GroupPairMega.GroupName={'L','S','N','NonT'}
+    GroupPairMega.ViolinLR=[0 0 0 1];
+    stats=ErrorViolinHalf(xGroup(7:10),TempData(7:10),MegaColor(7:10,:),0,[SaveP2 'TvsNonTShamResponse.txt'],GroupPairMega,[1 2 3 4]);
+    xticks(xGroup(7:10))
+    xticklabels(GroupPairMega.GroupName)
+    ylim([-0.1 0.8])
+    xlabel('Cell group');
+    hold on;
+    plot([6 12],[0 0],'k:')
+    papersizePX=[0 0 20 12];
+    set(gcf, 'PaperUnits', 'centimeters');
+    set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+    print(gcf, [SaveP2 'CellResponseMega.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveP2 'CellResponseMega.tif'], '-dtiffn', '-painters');
+
+
+close all
 
     %%Session Analysis of Non-target cell
     NonTargetTBL=tbl_whisktemp(tbl_whisktemp.NonTargetCell==1,:);
@@ -460,24 +543,42 @@ for iWisk=1:2
     GroupParamNet.SessionMap=slanCM('glasbey_light',32);
     GroupParamNet.GroupColor=ProcessPar.GroupColor;
 
-    for iGroup=1:3
-    [GgraphOut,tHandels]=tblMeta2CircosPlot(tbl_whisktemp, iGroup, GroupParamNet, 'SpeedR');
-     papersizePX=[0 0 22 13];
+    close all
+    [GgraphOut,tHandels]=tblMeta2CircosPlot(tbl_whisktemp, 0, GroupParamNet, 'SpeedR')
+     papersizePX=[0 0 23 13];
      set(gcf, 'PaperUnits', 'centimeters');
      set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
-     print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSpeedR.tif'], '-dtiffn', '-painters');
-     print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSpeedR.svg'], '-dsvg', '-painters');
+     % print(gcf, [SaveP2 'Circos' 'ShamResposeVsSpeedR.tif'], '-dtiffn', '-painters');
+     % print(gcf, [SaveP2 'Circos' 'ShamResposeVsSpeedR.svg'], '-dsvg', '-painters');
+     close all
+
+    [GgraphOut,tHandels]=tblMeta2CircosPlot(tbl_whisktemp, 0, GroupParamNet, 'SensoryR')
+     set(gcf, 'PaperUnits', 'centimeters');
+     set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
+     % print(gcf, [SaveP2 'Circos' 'ShamResposeVsSensoryR.tif'], '-dtiffn', '-painters');
+     % print(gcf, [SaveP2 'Circos' 'ShamResposeVsSensoryR.svg'], '-dsvg', '-painters');
+     close all
+
+
+
+    for iGroup=1:3
+    [GgraphOut,tHandels]=tblMeta2CircosPlot(tbl_whisktemp, iGroup, GroupParamNet, 'SpeedR');
+     set(gcf, 'PaperUnits', 'centimeters');
+     set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
+     % print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSpeedR.tif'], '-dtiffn', '-painters');
+     % print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSpeedR.svg'], '-dsvg', '-painters');
      close all
         % print(gcf, [SaveP2 fileName '.svg'], '-dsvg', '-painters');
     [GgraphOut,tHandels]=tblMeta2CircosPlot(tbl_whisktemp, iGroup, GroupParamNet, 'SensoryR');
-     papersizePX=[0 0 22 13];
      set(gcf, 'PaperUnits', 'centimeters');
      set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
-     print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSensoryR.tif'], '-dtiffn', '-painters');
-     print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSensoryR.svg'], '-dsvg', '-painters');
+     % print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSensoryR.tif'], '-dtiffn', '-painters');
+     % print(gcf, [SaveP2 'Circosgroup' num2str(iGroup) 'ResposeVsSensoryR.svg'], '-dsvg', '-painters');
      close all
 
     end
+
+
 
 end
  

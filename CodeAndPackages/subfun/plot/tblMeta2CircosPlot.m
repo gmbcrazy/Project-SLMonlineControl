@@ -20,8 +20,25 @@ SessionMap = GroupParamNet.SessionMap;
 
 
 % Filter table for target group
-tempCelltbl = tbl_whisktemp(tbl_whisktemp.Group == group, :);
-tempCelltbl(tempCelltbl.TargetCell == 0 & tempCelltbl.NonTargetCell == 0, :) = [];
+if group==0    %%If group == 0, use ShamOpto values as reponses.
+   tempCelltbl=tbl_whisktemp;
+   tempCelltbl(tempCelltbl.TargetCell == 0 & tempCelltbl.NonTargetCell == 0, :) = [];
+   tempCelltbl(:,"Response")=[];
+   idx = find(tempCelltbl.Properties.VariableNames == "ShamOpto");
+   tempCelltbl.Properties.VariableNames{idx} = 'Response';
+
+   tempCelltbl2=groupsummary(tempCelltbl,'Cell', 'mean');
+   tempCelltbl2= groupsummaryBack2OldNames(tempCelltbl,tempCelltbl2,'mean');
+   tempCelltbl=tempCelltbl2;
+
+else
+   tempCelltbl=tbl_whisktemp(tbl_whisktemp.Group==group,:);
+   tempCelltbl(tempCelltbl.TargetCell == 0 & tempCelltbl.NonTargetCell == 0, :) = [];
+end
+
+
+
+
 
 % Index cells
 CellAll = unique(tempCelltbl.Cell);
@@ -41,8 +58,11 @@ Node(tempCelltbl.TargetCell == group) = 1;
 
 radius = 5;
 NodeColor = repmat([0.8 0.8 0.8], max(cellI)+1, 1);
+if group~=0
 NodeColor(tempCelltbl.TargetCell == group, :) = repmat(GroupParamNet.GroupColor(group,:), sum(tempCelltbl.TargetCell == group), 1);
 NodeColor(end,:) = GroupParamNet.GroupColor(group,:);
+end
+
 
 Adj(end, tempCelltbl.TargetCell ~= group) = NaN;
 Adj(end, tempCelltbl.NonTargetCell == 1) = NaN;
