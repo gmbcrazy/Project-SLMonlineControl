@@ -68,7 +68,7 @@ end
 % end
 
 
-
+%%
 [~, ~, ~, cellBoundary] = Suite2pCellIDMapFromStat(CaData.statCell, [confSet.SLM_Pixels_X confSet.SLM_Pixels_Y]);
 [~,cellPlane]=ismember(Pos3D(:,3),PlaneZ);
 
