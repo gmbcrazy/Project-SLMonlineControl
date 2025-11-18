@@ -648,6 +648,7 @@ def Suite2p_process_FOVs(
     FOVref,
     dfs,
     ops0,
+    StartFOVI=0,
     Keyword='awake',
     RefKeyword=None,
     FunColorValue=[0.0, 0.0, 0.0],
@@ -692,7 +693,7 @@ def Suite2p_process_FOVs(
 
     n = _n_fovs(FOV)
 
-    for i in range(12,n):
+    for i in range(StartFOVI,n):
         # reset per-FOV
         ops0['threshold_scaling'] = threshold_init
         cellNum = 0

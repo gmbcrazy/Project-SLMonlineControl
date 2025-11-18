@@ -1,8 +1,9 @@
 clear all
 
+BatchSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step1\';
 
-BatchSavePath='D:\Project1-LocalProcessing\Step1\';
-load([BatchSavePath '07-Oct-2025FOV.mat'])
+load([BatchSavePath '17-Nov-2025FOV.mat'])
+
 Suite2pDataKeywords='awakeRefSpon';
 DataSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\';
 mkdir(DataSavePath);

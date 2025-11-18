@@ -1,7 +1,17 @@
 
 copyMatchingFolders('C:\', 'GCamP6S-CamKII', '\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\Sutie2p-Processed', 'awakeRefSpon');
 resultPaths = findAllFoldersKeyWords('C:\GCamP6S-CamKII', 'awakeRefSpon')
+
+
 DelFolders(resultPaths) 
+
+
+copyMatchingFolders('C:\', 'GCamP6S-CamKII', '\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\Sutie2p-Processed', 'Spon');
+resultPaths = findAllFoldersKeyWords('C:\GCamP6S-CamKII', 'Spon')
+
+
+DelFolders(resultPaths) 
+
 
 
 resultPaths = findAllFoldersKeyWords('C:\GCamP6S-CamKII', 'awake')

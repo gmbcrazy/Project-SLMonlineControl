@@ -1,0 +1,98 @@
+function plotFOVnnmf(FOVres, SponInd, BehTrace, ProcessPar, varargin)
+    % PLOTNEUROCOMSPEED - Plot neural components vs speed and stim traces
+
+    PP = [0.1 0.03 0.05 0.1];
+    pcaIspeed = FOVres.ComI(1);
+    pcaIstim = FOVres.ComI(2);
+    pcaIspeed_NonTarget = FOVres.ComI_NonTarget(1);
+    pcaIstim_NonTarget = FOVres.ComI_NonTarget(2);
+
+
+if nargin==4
+   SaveFunSub=[];
+elseif nargin==5
+   SaveFunSub=varargin{1};
+else
+   SaveFunSub=[];
+end
+
+    %% Plot speed-related components
+    figure;
+    PosMatX = [0.85; 0.85; 0.85];
+    PosMatY = [0.25; 0.25; 0.25];
+
+    % All neurons component
+    subplotPosLu(PosMatX, PosMatY, 1, 1, PP);
+    plot(FOVres.H(pcaIspeed, SponInd), 'Color', [0.7 0.7 0.7]); hold on;
+    % plot(FOVres.HNontarget(pcaIspeed, SponInd), 'Color', [0.7 0.7 0.7]);
+    text(7000, max(FOVres.H(pcaIspeed, SponInd)), showNum(FOVres.SpeedScore(1),4), 'Color', ProcessPar.GroupColor(1, :),'HorizontalAlignment','right');
+    text(8200, max(FOVres.H(pcaIspeed, SponInd)), showNum(FOVres.SensoryScore(1),4), 'Color', ProcessPar.GroupColor(2, :),'HorizontalAlignment','right');
+    text(0, max(FOVres.H(pcaIspeed, SponInd)),'NNMF with all cells', 'Color', [0.7 0.7 0.7],'HorizontalAlignment','left');
+    xlim([0 max(SponInd)]);
+    xticklabels([])
+    ylabel(['Com.' num2str(pcaIspeed)]);
+
+    % Non-target neurons
+    subplotPosLu(PosMatX, PosMatY, 2, 1, PP);
+    plot(FOVres.H_NonTarget(pcaIspeed_NonTarget, SponInd), 'Color', [0.1 0.1 0.1]);
+    text(7000, max(FOVres.H_NonTarget(pcaIspeed_NonTarget, SponInd)), showNum(FOVres.SpeedScore_NonTarget(1),4), 'Color', ProcessPar.GroupColor(1, :),'HorizontalAlignment','right');
+    text(8200, max(FOVres.H_NonTarget(pcaIspeed_NonTarget, SponInd)), showNum(FOVres.SensoryScore_NonTarget(1),4), 'Color', ProcessPar.GroupColor(2, :),'HorizontalAlignment','right');
+    text(0, max(FOVres.H_NonTarget(pcaIspeed_NonTarget, SponInd)),'NNMF with non-target cells', 'Color', [0.1 0.1 0.1],'HorizontalAlignment','left');
+
+    ylabel(['Com.' num2str(pcaIspeed_NonTarget)]);
+    xlim([0 max(SponInd)]);
+    xticklabels([])
+
+    % Speed trace
+    subplotPosLu(PosMatX, PosMatY, 3, 1, PP);
+    plot(nanmean(BehTrace.Speed(SponInd, :), 2), 'color', ProcessPar.GroupColor(1, :));
+    ylabel('Speed'); xlabel('Frames');
+    xlim([0 max(SponInd)]);
+
+    if ~isempty(SaveFunSub)
+    papersizePX = [0 0 15 10];
+    set(gcf, 'PaperUnits', 'centimeters');
+    set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
+    print(gcf, [SaveFunSub 'NeuroComSpeed.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunSub 'NeuroComSpeed.tif'], '-dtiffn', '-painters');
+    end
+    %% Plot stimulus-related components
+    figure;
+
+    subplotPosLu(PosMatX, PosMatY, 1, 1, PP);
+    plot(FOVres.H(pcaIstim, SponInd), 'Color', [0.7 0.7 0.7]); hold on;
+    % plot(FOVres.HNontarget(pcaIstim, SponInd), 'Color', [0.7 0.7 0.7]);
+    ylabel(['Com.' num2str(pcaIstim)]);
+    text(7000, max(FOVres.H(pcaIstim, SponInd)), showNum(FOVres.SpeedScore(2),4), 'Color', ProcessPar.GroupColor(1, :),'HorizontalAlignment','right');
+    text(8200, max(FOVres.H(pcaIstim, SponInd)), showNum(FOVres.SensoryScore(2),4), 'Color', ProcessPar.GroupColor(2, :),'HorizontalAlignment','right');
+    text(0, max(FOVres.H(pcaIstim, SponInd)),'NNMF with all cells', 'Color', [0.7 0.7 0.7],'HorizontalAlignment','left');
+    xticklabels([])
+
+    xlim([0 max(SponInd)]);
+
+    subplotPosLu(PosMatX, PosMatY, 2, 1, PP);
+    plot(FOVres.H_NonTarget(pcaIstim_NonTarget, SponInd), 'Color', [0.1 0.1 0.1]);
+    ylabel(['Com.' num2str(pcaIstim_NonTarget)]);
+    text(7000, max(FOVres.H_NonTarget(pcaIstim_NonTarget, SponInd)), showNum(FOVres.SpeedScore_NonTarget(2),4), 'Color', ProcessPar.GroupColor(1, :),'HorizontalAlignment','right');
+    text(8200, max(FOVres.H_NonTarget(pcaIstim_NonTarget, SponInd)), showNum(FOVres.SensoryScore_NonTarget(2),4), 'Color', ProcessPar.GroupColor(2, :),'HorizontalAlignment','right');
+    text(0, max(FOVres.H_NonTarget(pcaIstim_NonTarget, SponInd)),'NNMF with non-target cells', 'Color', [0.1 0.1 0.1],'HorizontalAlignment','left');
+    xticklabels([])
+
+    xlim([0 max(SponInd)]);
+
+    subplotPosLu(PosMatX, PosMatY, 3, 1, PP);
+    plot(nanmean(BehTrace.Stim(SponInd, :), 2) > 1, 'color', ProcessPar.GroupColor(2, :));
+    ylabel('Whisker'); xlabel('Frames');
+    xlim([0 max(SponInd)]);
+    ylim([0 1])
+    yticks([0 1]);
+
+    if ~isempty(SaveFunSub)
+
+    papersizePX = [0 0 15 10];
+    set(gcf, 'PaperUnits', 'centimeters');
+    set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
+    print(gcf, [SaveFunSub 'NeuroComWhisker.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunSub 'NeuroComWhisker.tif'], '-dtiffn', '-painters');
+    end
+end

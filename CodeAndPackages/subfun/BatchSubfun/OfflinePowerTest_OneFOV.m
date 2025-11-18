@@ -193,7 +193,7 @@ GgraphOut.p.LineWidth=0.5;
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
 LuFontStandard
-% saveas(gcf,[SaveP1 'SingleSLMVsDist'],'tif');
+saveas(gcf,[SaveP1 'SingleSLMVsDist'],'tif');
 % print(gcf, [SaveP1 'SingleSLMVsDist.svg'], '-dsvg', '-painters');
 
 

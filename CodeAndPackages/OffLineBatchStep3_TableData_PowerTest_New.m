@@ -61,8 +61,14 @@ for iData=1:2
 end
 
 
-
+%% Using same session and groups as those in SLM group analysis
 load([SaveFunDate 'ValidSessionGroup.mat']);
+ValidSG.Properties.VariableNames{"Group"}='PointTargetCellGroup';
+SaveFunCon=[SaveFunDate 'FunCon\'];
+mkdir(SaveFunCon)
+SaveFunCon=[SaveFunCon 'FOVGroupClean\'];
+
+
 % ValidInd=find(NumCellSucc>=NPerSessTh&SLMSucc>=SessTh&MaxGroupNum>=NPerGrouTh);
 % ValidInd=setdiff(ValidInd,[5 6 20]);  %%Session 5, 6 are from SL0886, WhiskerTrigger Runnning; Session 20, PV crash and FOV shift between Power test and SLM Group experiment
 % ValidSG=[];
@@ -73,6 +79,8 @@ load([SaveFunDate 'ValidSessionGroup.mat']);
 %         end
 %     end
 % end
+
+%% Using same session as those in SLM group analysis, but use all 3 groups within that session.
 
 clear SLMSucc;
 for iFOV=1:length(Output(1).GroupTargetCellMeta)
@@ -95,24 +103,19 @@ for jFOV=1:length(ValidInd)
     end
 end
 ValidSG=array2table(ValidSG,'VariableNames',{'Session','PointTargetCellGroup'});
-
-
-ValidSG.Properties.VariableNames{"Group"}='PointTargetCellGroup';
-
-iData=1;
-SLMPointTableTrial=readtable([SaveFunFOV NDataName{iData} 'SLMPointResTrialDynWin1.csv']);
-
-SLMPointTableTrial=readtable([SaveFunCon NDataName{iData} 'SLMPointResTrialDynWin1.csv']);
-
-
-
-SaveFunCon=[SaveFunDate 'FunCon\'];
-mkdir(SaveFunCon)
-SaveFunCon=[SaveFunCon 'FOVGroupClean\'];
-
 SaveFunCon=[SaveFunDate 'FunCon\'];
 mkdir(SaveFunCon)
 SaveFunCon=[SaveFunCon 'FOVClean\'];
+
+
+
+
+%%
+
+
+
+iData=1;
+SLMPointTableTrial=readtable([SaveFunFOV NDataName{iData} 'SLMPointResTrialDynWin1.csv']);
 
 
 
@@ -137,8 +140,8 @@ SaveFunConDim
 ScoreLabel={'SpeedScore','WhiskScore'}
 % activate_Pth=[0.2;0.1;0.05;0.02;0.01;0.005;0.001];
 % PthLabel={'20','10','05','02','01','005','001'};
-activate_Pth=[0.2;0.1;0.05;0.01;0.005;0.001];
-PthLabel={'20','10','05','01','005','001'};
+activate_Pth=[0.2;0.1;0.05;0.01;0.005;];
+PthLabel={'20','10','05','01','005'};
 
 MultiF_Pth=0.05;
 
@@ -280,21 +283,30 @@ end
 
 CoTargetsLabel={'CoTargets','CoTargetsPos','CoTargetsNeg','CoConTargets'};
 CoTargetsVar={CoPairActIParir CoPairActIParirP CoPairActIParirN CoConPairActIParir};
+CoTargetsClimMax=[0.8 0.4 0.4 1];
 
 close all
 
 for iCoType=1:length(CoTargetsVar)
 figure;
 for iFOV=1:length(tempVec)
-    subplot(4,5,iFOV)
+    subplot(4,4,iFOV)
     AdjComImagesc(CoTargetsVar{iCoType}{iFOV},VecGroupFOV{iFOV},ProcessPar.GroupColor);
     colormap(ResponseMap);
-    if iFOV==4
-        set(gca,'clim',[-1 1]);
-    else
-        set(gca,'clim',[-1 1]);
-    end
+
+
+    set(gca,'clim',[-1 1]*CoTargetsClimMax(iCoType));
+
+    % if iFOV==4
+    %     set(gca,'clim',[-1 1]);
+    % else
+    %     set(gca,'clim',[-1 1]);
+    % end
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1]*CoTargetsClimMax(iCoType),'visible','off');
+    colorbar;
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -309,6 +321,10 @@ for iFOV=1:length(tempVec)
     colormap(ResponseMap);
     set(gca,'clim',[-1 1]);
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1],'visible','off');
+    colorbar;
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -324,6 +340,11 @@ for iFOV=1:length(tempVec)
     colormap(ResponseMap);
     set(gca,'clim',[-1 1]);
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1],'visible','off');
+    colorbar;
+
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -337,6 +358,10 @@ for iFOV=1:length(tempVec)
     colormap(ResponseMap);
     set(gca,'clim',[-1 1]);
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1],'visible','off');
+    colorbar;
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -349,8 +374,12 @@ for iFOV=1:length(tempVec)
     subplot(4,4,iFOV)
     AdjComImagesc(rVecActP{iFOV},VecGroupFOV{iFOV},ProcessPar.GroupColor);
     colormap(ResponseMap);
-    set(gca,'clim',[-0.8 0.8]);
+    set(gca,'clim',[-1 1]);
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1],'visible','off');
+    colorbar;
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -361,8 +390,12 @@ for iFOV=1:length(tempVec)
     subplot(4,4,iFOV)
     AdjComImagesc(rVecActN{iFOV},VecGroupFOV{iFOV},ProcessPar.GroupColor);
     colormap(ResponseMap);
-    set(gca,'clim',[-0.8 0.8]);
+    set(gca,'clim',[-1 1]);
 end
+    subplot(4,4,iFOV+1)
+    set(gca,'clim',[-1 1],'visible','off');
+    colorbar;
+
 papersizePX=[0 0 16 16];
 set(gcf, 'PaperUnits', 'centimeters');
 set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
@@ -378,6 +411,8 @@ rTypeLabel={'Vec','ActVec','PairActVec','ActVecP','ActVecN'};
 for irType=1:length(rMerge)
     for igroup=1:3
         intraRgroup{igroup,irType}=[];
+        intraRgroupMean{igroup,irType}=[];
+
     end
 end
 
@@ -389,7 +424,7 @@ for iFOV=1:length(tempVec)
             I1=find(cgroup==igroup);
             if length(I1)>2
                r1=rMerge{irType}{iFOV}(I1,I1);
-               % intraRgroup{igroup,irType}(end+1)=nanmean(r1(triu(true(size(r1)),1)));
+               intraRgroupMean{igroup,irType}(end+1)=nanmean(r1(triu(true(size(r1)),1)));
                intraRgroup{igroup,irType}=[intraRgroup{igroup,irType};r1(triu(true(size(r1)),1))]
             end
         end
@@ -400,22 +435,34 @@ clear stats
    GroupPair.CorrName='fdr';
    GroupPair.Q=0.1;
    GroupPair.Pair=[];
-   GroupPair.SignY=0.3;
+   GroupPair.SignY=0.25;
    GroupPair.Plot=1;
    GroupPair.Std=1;      %%%%%%%%%using standard deviation as errorbar
    GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
    GroupPair.SamplePairedPlot=0; %%%%%%%%%Dash line for paired comparison sample
    GroupPair.LimY=[0 GroupPair.SignY*1.2];
+   GroupPair.ANOVA=1;
 
 figure;
 for irType=1:length(rMerge)
-    subplot(1,length(rMerge),irType)
-    stats(irType)=ErrorBoxPlotLU(1:3,intraRgroup(:,irType),ProcessPar.GroupColor,[],GroupPair);
+    subplotLU(2,length(rMerge),1,irType)
+    stats(1,irType)=ErrorBoxPlotLU(1:3,intraRgroup(:,irType),ProcessPar.GroupColor,[SaveFunConPth rTypeLabel{irType} 'IntraGroup.txt'],GroupPair);
     set(gca,'ylim',[-0.4 0.4])
     yticks([-0.4:0.2:0.4])
-    yticklabels([-0.4:0.2:0.4])
     if irType==1
        ylabel('Intra Group Vector Similarity')
+       yticklabels([-0.4:0.2:0.4])
+
+    end
+
+    subplotLU(2,length(rMerge),2,irType)
+    stats(2,irType)=ErrorBoxPlotLU(1:3,intraRgroupMean(:,irType),ProcessPar.GroupColor,[SaveFunConPth 'IntraGroupMean.txt'],GroupPair);
+    set(gca,'ylim',[-0.4 0.4])
+    yticks([-0.4:0.2:0.4])
+    if irType==1
+       ylabel('Intra Group Vector Similarity')
+       yticklabels([-0.4:0.2:0.4])
+
     end
     xlabel(rTypeLabel{irType});
 end
@@ -428,12 +475,15 @@ print(gcf, [SaveFunConPth  NDataName{iData} 'IntraGroupVectorSimilarity.tif'], '
 
 grouptempcount=1;
 interRgroup={};
+interRgroupMean={};
+
 for irType=1:length(rMerge)
     grouptempcount=1;
 
     for igroup=1:3
         for jgroup=igroup+1:3
             interRgroup{grouptempcount,irType}=[];
+            interRgroupMean{grouptempcount,irType}=[];
             grouptempcount=grouptempcount+1;
         end
     end
@@ -454,7 +504,8 @@ for irType=1:length(rMerge)
                        % interRgroup{igroup,irType}=[interRgroup{igroup,irType};r1(triu(true(size(r1)),1))]
                        interRgroup{grouptempcount,irType}=[interRgroup{grouptempcount,irType};r1(:)]
                        % interRgroup{grouptempcount,irType}=[interRgroup{grouptempcount,irType};mean(r1(:))]
-    
+                       interRgroupMean{grouptempcount,irType}=[interRgroupMean{grouptempcount,irType};mean(r1(:))]
+ 
                     end
                     grouptempcount=grouptempcount+1;
 
@@ -469,30 +520,61 @@ GroupPairInterG=GroupPair;
    % GroupPair.CorrName='fdr';
    % GroupPair.Q=0.1;
    % GroupPair.Pair=[];
-GroupPairInterG.SignY=0.8;
+GroupPairInterG.SignY=0.5;
    % GroupPair.Plot=1;
    % GroupPair.Std=1;      %%%%%%%%%using standard deviation as errorbar
    % GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
    % GroupPair.SamplePairedPlot=0; %%%%%%%%%Dash line for paired comparison sample
-GroupPair.LimY=[0 GroupPair.SignY*1.2];
+GroupPairG.LimY=[0 GroupPair.SignY*1.2];
 GroupPairInterG.GroupName={'L-S','L-N','S-N'};
 GroupPairInterG.ViolinLR=[0 0 0]
 GroupPairInterG.Test='ttest'
 figure;
+clear stats
 for irType=1:length(rMerge)
-    subplotLU(1,length(rMerge),1,irType)
-    % stats(irType)=ErrorBoxPlotLU(1:3,interRgroup(:,irType),[0.3 0.3 0.3],[],GroupPair);
-    stats(irType)=ErrorViolinHalf(1:3,interRgroup(:,irType),[0.1 0.1 0.1],1,[],GroupPairInterG)
-    set(gca,'ylim',[-1.5 1.5])
+    subplotLU(2,length(rMerge),1,irType)
+    GroupPairInterG.SignY=0.5;
+   % GroupPair.Plot=1;
+   % GroupPair.Std=1;      %%%%%%%%%using standard deviation as errorbar
+   % GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+   % GroupPair.SamplePairedPlot=0; %%%%%%%%%Dash line for paired comparison sample
+    GroupPairG.LimY=[0 GroupPair.SignY*1.2];
+    stats(1,irType)=ErrorBoxPlotLU(1:3,interRgroup(:,irType),[0.3 0.3 0.3],[SaveFunConPth rTypeLabel{irType} 'InterGroup.txt'],GroupPairInterG);
+    % stats(irType)=ErrorViolinHalf(1:3,interRgroup(:,irType),[0.1 0.1 0.1],1,[],GroupPairInterG)
+    set(gca,'ylim',[-0.5 0.5])
     yticks([-1:0.5:1])
-    yticklabels([-1:0.5:1])
     % xtickslabel=GroupPairInterG.GroupName;
     set(gca,'xticklabel',GroupPairInterG.GroupName)
     % set(gca,'xcolor',[0 0 0])
     if irType==1
        ylabel('Inter Group Vector Similarity')
+           yticklabels([-1:0.5:1])
+
+    end
+    % xlabel(rTypeLabel{irType});
+
+    subplotLU(2,length(rMerge),2,irType)
+    GroupPairInterG.SignY=0.15;
+   % GroupPair.Plot=1;
+   % GroupPair.Std=1;      %%%%%%%%%using standard deviation as errorbar
+   % GroupPair.SamplePlot=1; %%%%%%%%%Plot Individual Sample Point
+   % GroupPair.SamplePairedPlot=0; %%%%%%%%%Dash line for paired comparison sample
+    GroupPairG.LimY=[0 GroupPair.SignY*1.2];
+
+    stats(2,irType)=ErrorBoxPlotLU(1:3,interRgroupMean(:,irType),[0.3 0.3 0.3],[SaveFunConPth rTypeLabel{irType} 'InterGroupMean.txt'],GroupPairInterG);
+    % stats(irType)=ErrorViolinHalf(1:3,interRgroupMean(:,irType),[0.1 0.1 0.1],1,[],GroupPairInterG)
+    set(gca,'ylim',[-0.2 0.2])
+    yticks([-0.2 0 0.2])
+    % xtickslabel=GroupPairInterG.GroupName;
+    set(gca,'xticklabel',GroupPairInterG.GroupName)
+    % set(gca,'xcolor',[0 0 0])
+    if irType==1
+       ylabel('Inter Group Vector Similarity')
+           yticklabels([-0.2 0 0.2])
+
     end
     xlabel(rTypeLabel{irType});
+
 end
 papersizePX=[0 0 length(rMerge)*6 8];
 set(gcf, 'PaperUnits', 'centimeters');
@@ -535,6 +617,7 @@ GroupPairViolin.ViolinLR=[0 0];
 GroupPairViolin.SignY=0.8;
 GroupPairViolin.LimY=[0 1];
 GroupPairViolin.Test='Ranktest';
+GroupPairViolin.ANOVA=1;
 
 stats=ErrorViolinHalf(1:2,{sumT1.VecR sumT1.ActVecR},[0.5 0.5 0.5;0 0 1],1,[SaveFunConPth  NDataName{iData} 'TrialStabilityWholeVsAll'])
 xticks(1:2)
@@ -804,8 +887,8 @@ for iFF=1:length(Factor)
     papersizePX=[0 0 length(Predictor)*4.5 5*6];
     set(gcf, 'PaperUnits', 'centimeters');
     set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
-    % print(gcf, [SaveFunConPth  NDataName{iData} Factor{iFF} 'SepGroup.svg'], '-dsvg', '-painters');
-    % print(gcf, [SaveFunConPth  NDataName{iData} Factor{iFF} 'SepdGroup.tif'], '-dtiffn', '-painters');
+    print(gcf, [SaveFunConPth  NDataName{iData} Factor{iFF} 'SepGroup.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunConPth  NDataName{iData} Factor{iFF} 'SepdGroup.tif'], '-dtiffn', '-painters');
 
 
 end
@@ -907,8 +990,8 @@ for iPP=1:length(Predictor)
 
     end
 
-    % print(gcf, [SaveFunConPth  NDataName{iData} 'MultiF' Predictor{iPP} 'MixedGroup.svg'], '-dsvg', '-painters');
-    % print(gcf, [SaveFunConPth  NDataName{iData} 'MultiF' Predictor{iPP} 'MixedGroup.tif'], '-dtiffn', '-painters');
+    print(gcf, [SaveFunConPth  NDataName{iData} 'MultiF' Predictor{iPP} 'MixedGroup.svg'], '-dsvg', '-painters');
+    print(gcf, [SaveFunConPth  NDataName{iData} 'MultiF' Predictor{iPP} 'MixedGroup.tif'], '-dtiffn', '-painters');
 
 
 

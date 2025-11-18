@@ -1,6 +1,6 @@
 clear all
 
-BatchSavePath='D:\Project1-LocalProcessing\Step1\';
+BatchSavePath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step1\';
 
 Suite2pSaveFolderAll='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\Sutie2p-Processed\GCamP6S-CamKII\';
 Suite2pSaveFolderAllLocal='C:\GCamP6S-CamKII\';
@@ -17,7 +17,7 @@ if ~isempty(existFOV)
     load([BatchSavePath existFOV(idx).name]);
 end
 
-
+clear existFOV
 
 
 FOVsession={};
@@ -42,16 +42,28 @@ for i = 1:length(FOVsession)
     [animalIDs{i}, sessionDates{i}] = extractAnimalIDandDate(FOVsession{i})
 end
 
+
+
+
 load([ConfigFolder 'PreGenerateTseriesMultiZ\SpontBeh5T_Z11Frame550.mat'],'TSeriesBrukerTBL');
 TSeriesBrukerTBL1=TSeriesBrukerTBL;
 load([ConfigFolder 'PreGenerateTseriesMultiZ\Anesthesia5T_Z11Frame550.mat'],'TSeriesBrukerTBL');
 TSeriesBrukerTBL2=TSeriesBrukerTBL;
 clear TSeriesBrukerTBL
 TSeriesBrukerTBL=[TSeriesBrukerTBL1 TSeriesBrukerTBL2];
+
+
 if exist('FOVUpdate')
-   FOVExist=FOVUpdate;
+
+    FOVExist=FOVUpdate;
+    
+    for i = 1:length(FOVExist)
+        [animalIDsExist{i}, sessionDatesExist{i}] = extractAnimalIDandDate(FOVExist(i).DataFolder)
+    end
+
+
    for i=1:length(FOVExist)
-       FOVExistName{i}=[rootData animalIDs{i} '\' sessionDates{i}];
+       FOVExistName{i}=[rootData animalIDsExist{i} '\' sessionDatesExist{i}];
    end
 else 
    clear FOV;
@@ -68,30 +80,28 @@ for i=1:length(FOVsession)
 
     WorkFolder=[FOVsession{i} '\'];
     if exist('FOVExistName')
-       [~,~,I1]=intersect(FOVsession{i},FOVExistName)
+       [a,~,I1]=intersect(FOVsession{i},FOVExistName);
+       FOVExistName{I1}
        if ~isempty(I1)
           % FOV(i)=FOVUpdate(I1);
           UpdateIn=[UpdateIn;i];
+          disp([FOVExistName{I1} 'be processed before, ignored'])
        else
           FOV(i).WorkFolder=WorkFolder;
          [FOV(i).MatFile,FOV(i).FileGenerateInfo,FOV(i).fileList, FOV(i).fileIDs,FOV(i).tiffNum,FOV(i).confSet]=BatchSub_AllDataMotionPrepare(WorkFolder,TSeriesBrukerTBL);
-  
           % disp(['Check existing processed tiff folder data of ' FOVsession{i} ' and ' FOVExistName]);
        end
        continue;
        % [FOV(i).MatFile,FOV(i).FileGenerateInfo,FOV(i).fileList, FOV(i).fileIDs,FOV(i).tiffNum,FOV(i).confSet]=BatchSub_AllDataMotionPrepare(WorkFolder,TSeriesBrukerTBL);
     else
         [FOV(i).MatFile,FOV(i).FileGenerateInfo,FOV(i).fileList, FOV(i).fileIDs,FOV(i).tiffNum,FOV(i).confSet]=BatchSub_AllDataMotionPrepare(WorkFolder,TSeriesBrukerTBL);
-
+        
     end
 end
 
 
-
 PowerTestTiffNum=FOV(i).confSet.Ziteration*FOV(i).confSet.ZRepetition*length(FOV(i).confSet.ETL)
 GroupFunTiffNum=sum(TSeriesBrukerTBL{1}.Reps)*length(FOV(i).confSet.ETL)
-
-
 
 
 UniversalMotionTh=6;
@@ -135,15 +145,18 @@ iTemp=1;
 %%L00121\10062025 there is 10 pixels difference between original gpl files
 %%and excuted ones. Not sure what happend. Might not use. 
 
-for i=20:length(FOV)
+for i=1:length(FOV)
     if ~isempty(FOV(i).MatFile)
        FOVUpdate(i)=BatchSub_AllDataMotionCorrect_PostTiffRemove(FOV(i),TSeriesBrukerTBL,UniversalMotionTh,RemoveFrame);
     else
        disp([FOVsession(i) ' previously processed']);
        FOVUpdate(i)=FOVExist(UpdateIn(iTemp));
+       FOVUpdate(UpdateIn(iTemp))=FOVExist(i);
        iTemp=iTemp+1;
     end
 end
+
+
 
 
 animalpaths={FOVUpdate.DataFolder};

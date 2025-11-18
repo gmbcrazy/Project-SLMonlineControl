@@ -112,57 +112,52 @@ GroupMethod='mean';
 
 
 
-
+% Define positive and negative activation based on Response direction
+% ActivateIPos: activated with positive response (>0)
+% ActivateINeg: activated with negative response (<0)
 tblFOVclean.ActivateIPos=tblFOVclean.ActivateI.*tblFOVclean.Response>0;
 tblFOVclean.ActivateINeg=tblFOVclean.ActivateI.*tblFOVclean.Response<0;
 
+% Multiply activation mask with SpeedR to get weighted activation values
+% (e.g., Speed response only for active cells)
 tblFOVclean.ActSpeedR=tblFOVclean.ActivateI.*tblFOVclean.SpeedR;
 tblFOVclean.ActPosSpeedR=tblFOVclean.ActivateIPos.*tblFOVclean.SpeedR;
 tblFOVclean.ActNegSpeedR=tblFOVclean.ActivateINeg.*tblFOVclean.SpeedR;
 
-
+% Multiply activation mask with SensoryR to get weighted activation values
+% (e.g., Sensory response only for active cells)
 tblFOVclean.ActSensoryR=tblFOVclean.ActivateI.*tblFOVclean.SensoryR;
 tblFOVclean.ActPosSensoryR=tblFOVclean.ActivateIPos.*tblFOVclean.SensoryR;
 tblFOVclean.ActNegSensoryR=tblFOVclean.ActivateINeg.*tblFOVclean.SensoryR;
 
 GroupMethod='mean';
-% newtbl1 = groupsummary(tblFOVclean, {'Session', 'Cell'}, GroupMethod);
-% newtbl1=groupsummaryBack2OldNames(tblFOVclean,newtbl1,GroupMethod);
-% 
-% [a,p]=corr(newtbl1.SpeedR, newtbl1.SensoryR,'type','Spearman');
-
+% Keep only non-target cells for further analysis
 tblFOVclean=tblFOVclean(tblFOVclean.NonTargetCell==1,:);
 
 
 
-% tblFOVcleanavg = groupsummary(tblFOVclean(tblFOVclean.Response>0,:), {'Session', 'PointTargetCell','Cell'}, GroupMethod);
+% Aggregate table by Session, PointTargetCell, and Cell
+% Compute mean values for each group
 tblFOVcleanavg = groupsummary(tblFOVclean, {'Session', 'PointTargetCell','Cell'}, GroupMethod);
 newtbl2=groupsummaryBack2OldNames(tblFOVclean,tblFOVcleanavg,GroupMethod);
 
+% Recalculate positive and negative activation flags after averaging
 newtbl2.ActivateIPos=newtbl2.ActivateI.*newtbl2.Response>0;
 newtbl2.ActivateINeg=newtbl2.ActivateI.*newtbl2.Response<0;
 
-% newtbl2.ActSpeedR=newtbl2.ActivateI.*newtbl2.SpeedR;
-% newtbl2.ActPosSpeedR=newtbl2.ActivateIPos.*newtbl2.SpeedR;
-% newtbl2.ActNegSpeedR=newtbl2.ActivateINeg.*newtbl2.SpeedR;
-% 
-% 
-% newtbl2.ActSensoryR=newtbl2.ActivateI.*newtbl2.SensoryR;
-% newtbl2.ActPosSensoryR=newtbl2.ActivateIPos.*newtbl2.SensoryR;
-% newtbl2.ActNegSensoryR=newtbl2.ActivateINeg.*newtbl2.SensoryR;
-% 
 
 
-
-
+% Further average by Session and PointTargetCell (cell-level aggregation)
 newtbl3 = groupsummary(newtbl2, {'Session', 'PointTargetCell'}, GroupMethod);
 newtbl3=groupsummaryBack2OldNames(newtbl2,newtbl3,GroupMethod);
 
-% Define grouping
+% Define grouping indices for custom splitapply functions
 [G, sessionVals, TargetcellVals] = findgroups(newtbl2.Session, newtbl2.PointTargetCell);
 % [G, sessionVals, TargetcellVals] = findgroups(newtbl2.Session, newtbl2.PointTargetCell);
 
-% Define custom function
+% Define custom functions:
+% myfun: computes weighted mean of y, weighted by x (sum(x.*y)/sum(x))
+% myfun2: computes contrast between positive and negative activation
 myfun = @(x,y) sum(x.*y) / sum(x);
 myfun2 = @(x,y,z) sum((x.*z)-sum(y.*z)) / sum(x+y);
 
