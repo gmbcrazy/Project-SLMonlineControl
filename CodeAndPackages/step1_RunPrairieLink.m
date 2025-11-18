@@ -9,8 +9,8 @@ LoadTSeriestoBruker(TSeriesENVFile)
 
 
 %% Get motion correction refImg
-TSeriesENVFile=dir([ConfigFolder 'RefZforMotionCorrection.env'])
-LoadTSeriestoBruker(TSeriesENVFile)
+TSeriesENVFileRef=dir([ConfigFolder 'RefZforMotionCorrection.env'])
+LoadTSeriestoBruker(TSeriesENVFileRef)
 
 
 

@@ -3,7 +3,7 @@
 %% Load Data
 clear all
 % ProcessFolder='F:\LuSLMOnlineTest\04222024\SingleP\30PixelFromEdgeExc\';
-load('C:\Users\User\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
+load('C:\Users\User\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat');
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 % ConfigFolder='C:\Users\zhangl33\Projects\Project-SLMonlineControl\config\';
 
@@ -90,13 +90,13 @@ FileType=2;   %Choose a specific bin file as reference for motion correction
 FileType=0;   %Choose a pre-recorded multi-tif files for motion correction
 RefFile=[];
 
-RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
-[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
-RegImg=RegImg(:,:,4:6);% 
-
-
-% RefFile=[WorkingFolder 'RegRef3Ch2\'];
+% RefFile=[WorkingFolder 'RegRef1Ch1Ch2\'];
 % [RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
+% RegImg=RegImg(:,:,4:6);% 
+
+
+RefFile=[WorkingFolder 'RegRef3Ch2\'];
+[RegOps, RegImg] = LoadRegRefFile(RefFile, FileType,numGPUs);
 % 
 % FileType=1;   %Choose suite2p folder, using ops.meanImg for motion correction
 % RefFile=[WorkingFolder 'suite2p\'];
@@ -120,7 +120,7 @@ XMLparam.LoadGPL=1;
 
 pause(10)
 
-for TseriesID=4:5
+for TseriesID=3:5
 % TseriesID=5;
 PVparam=BrukerTBLtoPVparm(TSeriesBrukerTBL{TseriesID},nPlane);   %%Update Tseries
 PVparam.TSeriesENVFile=TSeriesENVFile(TseriesID);
