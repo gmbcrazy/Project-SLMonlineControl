@@ -1,0 +1,328 @@
+clear all
+DataPath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM20-Nov-2025\';
+load([DataPath 'FOVoutputs.mat'],'SaveFunDate')
+csvPath = [SaveFunDate '\LME_FixedEffectsSummary_Win1_SessionSplit_SCALED.csv'];
+
+ProcessPar.GroupColor=[255 51 153;91 20 212;121 247 111]/255;
+pThresh = 0.05;
+NDataName={'deltaF','spks'};
+
+spec.DataType  = 'deltaF';
+spec.Window    = 'Win1';  % Fixed to Win1
+spec.Condition = 'Sensory';
+spec.Subset    = 'Sensory_All_FirstHalf';
+spec.Model     = 'Extended_scaled';
+spec.Colormap  = slanCM('seismic',64);
+spec.ResponseVar = 'Response';
+
+% Only include these factors and their pairwise interactions
+spec.Term = {'Speed_z','SpeedR_z', 'TargetSpeedR_z','TargetCellN','SensoryR_z', 'TargetSensoryR_z'};
+spec.TargetColor = ProcessPar.GroupColor(1,:);
+spec.NodeColor =[0 0 0];
+% Optional fixed color limits
+spec.Clim = [-0.002 0.002];
+
+PlotColSubSet={'NonSensory','Sensory'};
+PlotColSubSetLabel={'SLM','SLM + Sensory'};
+
+PlotColSubCondition={'All','G1','G2','G3'};
+PlotColSubConditionLabel={'All','L','S','N'};
+
+% Session halves for comparison
+SessionHalves = {'FirstHalf', 'SecondHalf'};
+SessionHalvesLabel = {'1st Half Sessions', '2nd Half Sessions'};
+
+SaveLME=[SaveFunDate 'LMESummary_Win1_Split\'];
+mkdir(SaveLME);
+
+plotValue={'Estimate'};
+pValuesVec=[0.1 0.05 0.01 0.001];
+pValuesLabel={'P10','P05','P01','P001'};
+
+ModelVec = {'Base_scaled','Extended_scaled'};
+
+modelStrVec={'Response ~ (SpeedR_z + SensoryR_z + TargetCellN_z) * (TargetSpeedR_z + TargetSensoryR_z) + (SpeedR_z +TargetSpeedR_z)* Speed_z + (1 | Session)',...
+     'Response ~ (SpeedR_z + SensoryR_z + TargetCellN_z) * (TargetSpeedR_z + TargetSensoryR_z) + (SpeedR_z +TargetSpeedR_z)* Speed_z + AveDist_z + MinDist_z + (1 | Session)'};
+
+%% ========================================================================
+%% HEAD-TO-HEAD COMPARISON: First Half vs Second Half (All Groups)
+%% ========================================================================
+
+for iPth=1:length(pValuesVec)
+    pThresh = pValuesVec(iPth);
+    SaveLME_Sub=[SaveLME pValuesLabel{iPth} '\'];
+    mkdir(SaveLME_Sub);
+
+    for iModel=1:length(ModelVec)
+        spec.Model = ModelVec{iModel};
+
+        for iPlotCol=1:length(plotValue)
+            plotCol=plotValue{iPlotCol};
+            if strmatch(plotCol,'Estimate')
+               plotLabel='Coeff';
+               spec.Clim=[-0.003 0.003];
+            else
+               plotLabel=plotCol;
+               spec.Clim=[-10 10];
+            end
+        
+            for iData=1:length(NDataName)
+                spec.DataType = NDataName{iData};
+                spec.Window = 'Win1';  % Fixed to Win1
+                
+                figure;
+                
+                % Loop over session halves (columns) and conditions (rows)
+                for iHalf=1:length(SessionHalves)
+                    for iRow=1:length(PlotColSubSet)
+                        
+                        spec.TargetColor = spec.NodeColor;
+                        spec.Condition = PlotColSubSet{iRow};
+                        spec.Subset = [PlotColSubSet{iRow} '_All_' SessionHalves{iHalf}];
+                        
+                        % 2 rows (NonSensory, Sensory) x 2 cols (FirstHalf, SecondHalf)
+                        t3{iRow,iHalf} = subplotLU(length(PlotColSubSet), length(SessionHalves), ...
+                                                    iRow, iHalf, [0.05 0.01 0.1 0.1 0.05 0.05]);
+
+                        if strcmp(spec.Model,'Base_scaled')
+                           modelStr = modelStrVec{1};
+                        elseif strcmp(spec.Model,'Extended_scaled')
+                           modelStr = modelStrVec{2};
+                        else
+                           modelStr ='';
+                        end
+
+                        [Gout, theta] = LME_CircosFromCSV(csvPath, spec, plotCol, pThresh);
+                        colormap(spec.Colormap);
+                        set(gca,'clim',spec.Clim);
+            
+                        % Row labels
+                        if iHalf==1
+                           ylabel(PlotColSubSetLabel{iRow},'Color',[0 0 0]);
+                        end
+                        
+                        % Column labels
+                        if iRow==1
+                           title(SessionHalvesLabel{iHalf},'Color',[0 0 0],'FontWeight','bold');
+                        end
+                    end
+                end
+            
+                % Colorbar
+                bar2=colorbar(t3{1,1});
+                bar2.Location='northoutside';
+                bar2.Position=[t3{1,1}.Position(1)+0.01, t3{1,1}.Position(2)+t3{1,1}.Position(4)+0.4, 0.02, 0.02];
+                bar2.Label.String=plotLabel;
+                bar2.Ticks=union(spec.Clim,0);
+            
+                % Model description and legend
+                subplot('Position',[0.15 0.92 0.5 0.08]);
+                text(1,1,['LME: ' modelStr],'HorizontalAlignment','left','VerticalAlignment','top','FontSize',6);
+                hold on;
+                % plot(8,0,'ko','MarkerSize',10,'MarkerFaceColor','k');
+                % text(8.5,0,'Significant covariate','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',8)
+                % plot([14 16],[0 0],'k-',LineWidth=4);
+                % text(16.5,0,'Significant interaction','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',8)
+                
+                set(gca,'xlim',[0 20],'ylim',[0 1.5]);
+                axis off
+
+                % Save figure
+                papersizePX=[0 0 length(SessionHalves)*6+2 length(PlotColSubSet)*6+2];
+                set(gcf, 'PaperUnits', 'centimeters');
+                set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+                print(gcf, [SaveLME_Sub 'HeadToHead_AllGroups_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.svg'], '-dsvg', '-painters');
+                print(gcf, [SaveLME_Sub 'HeadToHead_AllGroups_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.tif'], '-dtiffn', '-painters');
+                close all
+            end
+        end
+    end
+end
+
+%% ========================================================================
+%% HEAD-TO-HEAD COMPARISON: First Half vs Second Half (By Group)
+%% ========================================================================
+
+for iPth=1:length(pValuesVec)
+    pThresh = pValuesVec(iPth);
+    SaveLME_Sub=[SaveLME pValuesLabel{iPth} '\'];
+    mkdir(SaveLME_Sub);
+
+    for iModel=1:length(ModelVec)
+        spec.Model = ModelVec{iModel};
+
+        for iPlotCol=1:length(plotValue)
+            plotCol=plotValue{iPlotCol};
+            if strmatch(plotCol,'Estimate')
+               plotLabel='Coeff';
+               spec.Clim=[-0.003 0.003];
+            else
+               plotLabel=plotCol;
+               spec.Clim=[-10 10];
+            end
+        
+            for iData=1:length(NDataName)
+                spec.DataType = NDataName{iData};
+                spec.Window = 'Win1';
+                
+                figure;
+                
+                % Loop: rows = NonSensory/Sensory x Groups, cols = FirstHalf/SecondHalf
+                plotIdx = 0;
+                for iRow=1:length(PlotColSubSet)
+                    for jRow=1:length(PlotColSubCondition)
+                        plotIdx = plotIdx + 1;
+                        
+                        if jRow>1
+                            spec.TargetColor = ProcessPar.GroupColor(jRow-1,:);
+                        else
+                            spec.TargetColor = spec.NodeColor;
+                        end
+                        
+                        spec.Condition = PlotColSubSet{iRow};
+                        
+                        for iHalf=1:length(SessionHalves)
+                            spec.Subset = [PlotColSubSet{iRow} '_' PlotColSubCondition{jRow} '_' SessionHalves{iHalf}];
+                            
+                            % Grid: (PlotColSubSet x PlotColSubCondition) rows, SessionHalves cols
+                            nRows = length(PlotColSubSet) * length(PlotColSubCondition);
+                            nCols = length(SessionHalves);
+                            
+                            t3{plotIdx, iHalf} = subplotLU(nRows, nCols, plotIdx, iHalf, ...
+                                                          [0.03 0.01 0.08 0.08 0.03 0.03]);
+
+                            if strcmp(spec.Model,'Base_scaled')
+                               modelStr = modelStrVec{1};
+                            elseif strcmp(spec.Model,'Extended_scaled')
+                               modelStr = modelStrVec{2};
+                            else
+                               modelStr ='';
+                            end
+
+                            [Gout, theta] = LME_CircosFromCSV(csvPath, spec, plotCol, pThresh);
+                            colormap(spec.Colormap);
+                            set(gca,'clim',spec.Clim);
+            
+                            % Row labels (only first column)
+                            if iHalf==1
+                               ylabel([PlotColSubSetLabel{iRow} ' - ' PlotColSubConditionLabel{jRow}], ...
+                                      'Color',spec.TargetColor,'FontSize',7);
+                            end
+                            
+                            % Column labels (only first row)
+                            if plotIdx==1
+                               title(SessionHalvesLabel{iHalf},'Color',[0 0 0],'FontWeight','bold');
+                            end
+                        end
+                    end
+                end
+            
+                % Colorbar
+                bar2=colorbar(t3{1,1});
+                bar2.Location='northoutside';
+                bar2.Position=[t3{1,1}.Position(1)+0.02, t3{1,1}.Position(2)+t3{1,1}.Position(4)+0.01, 0.08, 0.015];
+                bar2.Label.String=plotLabel;
+                bar2.Ticks=union(spec.Clim,0);
+            
+                % Model description
+                subplot('Position',[0.15 0.95 0.5 0.05]);
+                text(1,1,['LME: ' modelStr],'HorizontalAlignment','left','VerticalAlignment','top','FontSize',5);
+                hold on;
+                plot(8,0,'ko','MarkerSize',8,'MarkerFaceColor','k');
+                text(8.5,0,'Sig. covariate','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',6)
+                plot([13 15],[0 0],'k-',LineWidth=3);
+                text(15.5,0,'Sig. interaction','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',6)
+                
+                set(gca,'xlim',[0 20],'ylim',[0 1.5]);
+                axis off
+
+                % Save figure
+                papersizePX=[0 0 length(SessionHalves)*5+2 nRows*4+2];
+                set(gcf, 'PaperUnits', 'centimeters');
+                set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+                print(gcf, [SaveLME_Sub 'HeadToHead_ByGroup_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.svg'], '-dsvg', '-painters');
+                print(gcf, [SaveLME_Sub 'HeadToHead_ByGroup_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.tif'], '-dtiffn', '-painters');
+                close all
+            end
+        end
+    end
+end
+
+%% ========================================================================
+%% SINGLE HALVES: Individual plots for each half (optional reference)
+%% ========================================================================
+
+for iPth=1:length(pValuesVec)
+    pThresh = pValuesVec(iPth);
+    SaveLME_Sub=[SaveLME pValuesLabel{iPth} '\Individual\'];
+    mkdir(SaveLME_Sub);
+
+    for iHalf=1:length(SessionHalves)
+        for iModel=1:length(ModelVec)
+            spec.Model = ModelVec{iModel};
+
+            for iPlotCol=1:length(plotValue)
+                plotCol=plotValue{iPlotCol};
+                if strmatch(plotCol,'Estimate')
+                   plotLabel='Coeff';
+                   spec.Clim=[-0.003 0.003];
+                else
+                   plotLabel=plotCol;
+                   spec.Clim=[-10 10];
+                end
+            
+                for iData=1:length(NDataName)
+                    spec.DataType = NDataName{iData};
+                    spec.Window = 'Win1';
+                    
+                    figure;
+                    for iRow=1:length(PlotColSubSet)
+                        spec.TargetColor = spec.NodeColor;
+                        spec.Condition = PlotColSubSet{iRow};
+                        spec.Subset = [PlotColSubSet{iRow} '_All_' SessionHalves{iHalf}];
+                        
+                        t3{iRow} = subplotLU(1, length(PlotColSubSet), 1, iRow, [0.05 0.01 0.15 0.1 0.05 0.05]);
+
+                        if strcmp(spec.Model,'Base_scaled')
+                           modelStr = modelStrVec{1};
+                        elseif strcmp(spec.Model,'Extended_scaled')
+                           modelStr = modelStrVec{2};
+                        else
+                           modelStr ='';
+                        end
+
+                        [Gout, theta] = LME_CircosFromCSV(csvPath, spec, plotCol, pThresh);
+                        colormap(spec.Colormap);
+                        set(gca,'clim',spec.Clim);
+        
+                        xlabel(PlotColSubSetLabel{iRow},'Color',[0 0 0]);
+                    end
+            
+                    bar2=colorbar(t3{1});
+                    bar2.Location='northoutside';
+                    bar2.Position=[t3{1}.Position(1)+0.05, t3{1}.Position(2)+t3{1}.Position(4)+0.01, 0.12, 0.02];
+                    bar2.Label.String=plotLabel;
+                    bar2.Ticks=union(spec.Clim,0);
+            
+                    subplot('Position',[0.2 0.88 0.4 0.08]);
+                    text(2,1,[SessionHalvesLabel{iHalf} ' - LME: ' modelStr],'HorizontalAlignment','left','VerticalAlignment','top','FontSize',6);
+                    hold on;
+                    plot(8,0,'ko','MarkerSize',10,'MarkerFaceColor','k');
+                    text(8.5,0,'Significant covariate','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',8)
+                    plot([16 18],[0 0],'k-',LineWidth=4);
+                    text(18.5,0,'Significant interaction','HorizontalAlignment','left','VerticalAlignment','middle','FontSize',8)
+                    
+                    set(gca,'xlim',[0 20],'ylim',[0 1.5]);
+                    axis off
+
+                    papersizePX=[0 0 length(PlotColSubSet)*8+4 8+4];
+                    set(gcf, 'PaperUnits', 'centimeters');
+                    set(gcf,'PaperPosition',papersizePX,'PaperSize',papersizePX(3:4));
+                    print(gcf, [SaveLME_Sub SessionHalves{iHalf} '_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.svg'], '-dsvg', '-painters');
+                    print(gcf, [SaveLME_Sub SessionHalves{iHalf} '_' spec.DataType '_' spec.Model '_' plotLabel '_Win1.tif'], '-dtiffn', '-painters');
+                    close all
+                end
+            end
+        end
+    end
+end

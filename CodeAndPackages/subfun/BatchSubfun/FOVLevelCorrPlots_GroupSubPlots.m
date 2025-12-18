@@ -34,7 +34,7 @@ function FOVLevelCorrPlots_GroupSubPlots(AveResTBL, Param, SaveP2)
 
             [~, ~, ~] = LuPairRegressPlot(AveResTBLsub.(targetField), AveResTBLsub.(responseField), ParamSub);
             h(2,igroup)=subplotLU(2,3,2,igroup,PSubplot);     
-            [~, ~, ~] = LuPairPartialRegressPlot(AveResTBLsub.(targetField), AveResTBLsub.(responseField),AveResTBLsub.Speed, ParamSub);
+            [~, ~, ~] = LuPairPartialRegressPlot(AveResTBLsub.(targetField), AveResTBLsub.(responseField),[AveResTBLsub.Speed], ParamSub);
 
              % ylabel(h(1,igroup), yLabelTxt);
              % xlabel(h(1), xLabelTxt);
@@ -60,9 +60,9 @@ function FOVLevelCorrPlots_GroupSubPlots(AveResTBL, Param, SaveP2)
         set(gcf, 'PaperUnits', 'centimeters');
         set(gcf, 'PaperPosition', papersizePX, 'PaperSize', papersizePX(3:4));
 
-        % print(gcf, [SaveP2 fileName '.svg'], '-dsvg', '-painters');
+        print(gcf, [SaveP2 fileName '.svg'], '-dsvg', '-painters');
         print(gcf, [SaveP2 fileName 'SubGroup.tif'], '-dtiffn', '-painters');
-        % saveas(gcf, [SaveP2 fileName '.fig'], 'fig');
+        saveas(gcf, [SaveP2 fileName '.fig'], 'fig');
     end
 
     close all;

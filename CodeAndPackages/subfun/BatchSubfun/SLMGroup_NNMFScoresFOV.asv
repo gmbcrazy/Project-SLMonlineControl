@@ -56,7 +56,7 @@ function [FOVres, ScoreGroup, SpeedGroup, maxScore, TBL_rows] = SLMGroup_NNMFSco
     end
 
     % Attach target component labels to the info table
-    DataVecTBL = [DataVecTBL array2table(tempScore, "VariableNames", {'TargetSpeedScore','TargetSensoryScore'})];
+    DataVecTBL = [DataVecTBL array2table(tempScore, "VariableNames", {'TargetSpeedScore','TargetWhiskerScore'})];
 
     % Transpose scores (trials x components)
     % Score          = Score';
@@ -73,18 +73,17 @@ function [FOVres, ScoreGroup, SpeedGroup, maxScore, TBL_rows] = SLMGroup_NNMFSco
     Score = (pinvW * FOVres.DataVec)';
     Score_speedreg=Score;
     % Score_speedreg(:,1) = Score(:,1) - [ones(size(Score,1),1) DataVecTBL.Speed] * FOVres.SpeedReg.B;
-    % Score_speedreg(:,1) = Score(:,1) - DataVecTBL.Speed * FOVres.SpeedReg.B(2);
-    [~,~,Score_speedreg(:,1),RINT,STATS]=regress(Score(:,1),DataVecTBL.Speed);
+    Score_speedreg(:,1) = Score(:,1) - DataVecTBL.Speed * FOVres.SpeedReg.B(2);
+    [B,BINT,Score_speedreg(:,1),RINT,STATS]=regress(data2,[ones(length(Cov),1) Cov]);
 
 
 
-    % subNonTargetData = FOVres.DataVec;
-    % subNonTargetData(FOVres.Target, :) = 0; %#ok<NASGU>
-    % ScoreNontarget = (pinvW*subNonTargetData)';
-    % ScoreNontarget_speedreg=ScoreNontarget;
-    % % ScoreNontarget_speedreg(:,1) = ScoreNontarget(:,1) - [ones(size(ScoreNontarget,1),1) DataVecTBL.Speed] * FOVres.SpeedRegNontarget.B;
-    % ScoreNontarget_speedreg(:,1) = ScoreNontarget(:,1) - DataVecTBL.Speed * FOVres.SpeedRegNontarget.B(2);
-    % [~,~,Score_speedreg(:,1),RINT,STATS]=regress(Score(:,1),DataVecTBL.Speed);
+    subNonTargetData = FOVres.DataVec;
+    subNonTargetData(FOVres.Target, :) = 0; %#ok<NASGU>
+    ScoreNontarget = (pinvW*subNonTargetData)';
+    ScoreNontarget_speedreg=ScoreNontarget;
+    % ScoreNontarget_speedreg(:,1) = ScoreNontarget(:,1) - [ones(size(ScoreNontarget,1),1) DataVecTBL.Speed] * FOVres.SpeedRegNontarget.B;
+    ScoreNontarget_speedreg(:,1) = ScoreNontarget(:,1) - DataVecTBL.Speed * FOVres.SpeedRegNontarget.B(2);
 
      % [B,BINT,ScoreNontarget_speedreg(:,1),RINT,STATS]=regress(data2,[ones(length(Cov),1) Cov]);
 
@@ -96,8 +95,7 @@ function [FOVres, ScoreGroup, SpeedGroup, maxScore, TBL_rows] = SLMGroup_NNMFSco
     Score_sub = (pinvW_sub * FOVres.DataVec(NonTarget,:))';
     Score_sub_speedreg=Score_sub;
     % Score_sub_speedreg(:,1) = Score_sub(:,1) - [ones(size(Score_sub,1),1) DataVecTBL.Speed] * FOVres.SpeedReg_NonTarget.B;
-    % Score_sub_speedreg(:,1) = Score_sub(:,1) - DataVecTBL.Speed * FOVres.SpeedReg_NonTarget.B(2);
-    [~,~,Score_sub_speedreg(:,1),RINT,STATS]=regress(Score_sub(:,1),DataVecTBL.Speed);
+    Score_sub_speedreg(:,1) = Score_sub(:,1) - DataVecTBL.Speed * FOVres.SpeedReg_NonTarget.B(2);
 
 
 
@@ -111,12 +109,13 @@ function [FOVres, ScoreGroup, SpeedGroup, maxScore, TBL_rows] = SLMGroup_NNMFSco
             I1 = find(DataVecTBL.Group == iGroup & DataVecTBL.Sensory == ProcessPar.VolOut(iWhisk) & DataVecTBL.PowerZero == 0);
 
             ScoreGroup(iGroup, iWhisk).Score          = Score(I1, :); %#ok<AGROW>
-            % ScoreGroup(iGroup, iWhisk).ScoreNonTarget = ScoreNontarget(I1, :); %#ok<AGROW>
+            ScoreGroup(iGroup, iWhisk).ScoreNonTarget = ScoreNontarget(I1, :); %#ok<AGROW>
             ScoreGroup(iGroup, iWhisk).Score_subNonTarget  = Score_sub(I1, :); %#ok<AGROW>
 
             ScoreGroup(iGroup, iWhisk).Score_speedreg          = Score_speedreg(I1, :); %#ok<AGROW>
-            % ScoreGroup(iGroup, iWhisk).ScoreNonTarget_speedreg = ScoreNontarget_speedreg(I1, :); %#ok<AGROW>
+            ScoreGroup(iGroup, iWhisk).ScoreNonTarget_speedreg = ScoreNontarget_speedreg(I1, :); %#ok<AGROW>
             ScoreGroup(iGroup, iWhisk).Score_subNonTarget_speedreg  = Score_sub_speedreg(I1, :); %#ok<AGROW>
+
 
             ScoreGroup(iGroup, iWhisk).Time           = DataVecTBL.Time(I1); %#ok<AGROW>
             SpeedGroup{iGroup, iWhisk}                = DataVecTBL.Speed(I1); %#ok<AGROW>
@@ -124,12 +123,12 @@ function [FOVres, ScoreGroup, SpeedGroup, maxScore, TBL_rows] = SLMGroup_NNMFSco
     end
 
     % Prepare rows for summary tables
-    Score_tbl          = array2table([Score Score_speedreg],          'VariableNames', {'SpeedScore','SensoryScore','SpeedScore_SpeedReg','SensoryScore_SpeedReg'});
-    % ScoreNontarget_tbl = array2table([ScoreNontarget ScoreNontarget_speedreg], 'VariableNames', {'SpeedScore','SensoryScore','SpeedScore_SpeedReg','SensoryScore_SpeedReg'});
-    Score_sub_tbl      = array2table([Score_sub Score_sub_speedreg],      'VariableNames', {'SpeedScore','SensoryScore','SpeedScore_SpeedReg','SensoryScore_SpeedReg'});
+    Score_tbl          = array2table([Score Score_speedreg],          'VariableNames', {'SpeedScore','WhiskerScore','SpeedScore_SpeedReg','WhiskerScore_SpeedReg'});
+    ScoreNontarget_tbl = array2table([ScoreNontarget ScoreNontarget_speedreg], 'VariableNames', {'SpeedScore','WhiskerScore','SpeedScore_SpeedReg','WhiskerScore_SpeedReg'});
+    Score_sub_tbl      = array2table([Score_sub Score_sub_speedreg],      'VariableNames', {'SpeedScore','WhiskerScore','SpeedScore_SpeedReg','WhiskerScore_SpeedReg'});
 
     TBL_rows.all       = [Score_tbl          FOVres.InfoTBL(:, 2:end)];
-    % TBL_rows.nontarget = [ScoreNontarget_tbl FOVres.InfoTBL(:, 2:end)];
+    TBL_rows.nontarget = [ScoreNontarget_tbl FOVres.InfoTBL(:, 2:end)];
     TBL_rows.sub_NonTarget = [Score_sub_tbl      FOVres.InfoTBL(:, 2:end)];
 end
 

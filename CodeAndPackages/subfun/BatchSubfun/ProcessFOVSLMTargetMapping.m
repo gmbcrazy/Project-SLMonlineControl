@@ -1,11 +1,11 @@
-function [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ProcessFOVSLMTargetMapping(CaData, SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh)
+function [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ProcessFOVSLMTargetMapping(SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh)
 % Handles SLM target mapping, group assignment, and related table fields
 
 % SLM Pos from SLMTestInfo
 SLMPos3D = SLMTestInfo.Pos3Dneed;
 SLMGroup = SLMTestInfo.FunScore(:,1);
 
-[SLMtarget, SLMtargetCellDist] = SLMtargetMatchCell(SLMPos3D, NeuronPos3D, DistTh);
+[SLMtarget, ~] = SLMtargetMatchCell(SLMPos3D, NeuronPos3D, DistTh);
 PointList1 = find(SLMtarget > 0);
 
 SLMtargetTable = zeros(size(Suite2pTable,1),1);

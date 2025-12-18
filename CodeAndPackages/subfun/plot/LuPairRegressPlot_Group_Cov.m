@@ -41,6 +41,9 @@ end
 
 if Param.RawcorrPlot==1
 
+   Param.xLim=[];
+   Param.yLim=[];
+
 h(1)=subplot(1,2,1);
 [OutPut,r,p]=LuPairRegressPlot_Group(data1,data2,dataGroup,Param)
 h(2)=subplot(1,2,2);

@@ -194,4 +194,17 @@ for i=1:length(FOVUpdate)
     FOVUpdate(i).CSVName=[BatchSavePath 'FOV' num2str(i) animalIDs{i} sessionDates{i} '.csv'];
 end
 
+
+rawDataPath='\\nimhlabstore1.nimh.nih.gov\UFNC\FNC3Z\RawRecording\GCamP6S-CamKII\';
+for i = 1:length(animalpaths)
+    FOVRawPath{i}=[rawDataPath animalIDs{i} '\' sessionDates{i} '\'];
+end
+
+
+
 save([BatchSavePath date 'FOV.mat'],'FOVUpdate','suite2pFOVPath','suite2pFOVPathLocal');
+
+
+
+
+

@@ -11,6 +11,9 @@ clear all
 
 load(['\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM20-Nov-2025\FOVoutputs.mat'])
 
+load('\\nimhlabstore1.nimh.nih.gov\UFNC\FNC2\Zhang\Projects\Project-LocalProcessing\Step3\awakeRefSpon\GroupSLM20-Nov-2025\ValidSessionGroup.mat')
+
+
 SaveFunFOV=[SaveFunDate 'FunCon\'];
 mkdir(SaveFunFOV)
 
@@ -45,7 +48,7 @@ for iWin=1:PSTHparam.TestWinNum
     NeedInfo={'Group','VolOut','PowerZero','AwakeState'};
     SLMGroupTableTrial = [tbl InfoTable(:,NeedInfo)];
     SLMGroupTableTrial(isnan(SLMGroupTableTrial.Group),:)=[];
-    SLMGroupTableTrial=removevars(SLMGroupTableTrial,{'PointSpeedR','PointStimR'});
+    SLMGroupTableTrial=removevars(SLMGroupTableTrial,{'PointSpeedR','PointSensoryR'});
     
     SLMGroupTableTrial.Properties.VariableNames{'VolOut'} = 'Whisk';
     
@@ -78,7 +81,7 @@ for iData=1:2
     
         SLMPointTableTrial = [tbl InfoTable(:,NeedInfo)];
         SLMPointTableTrial(isnan(SLMPointTableTrial.Point),:)=[];
-        % SLMPointTableTrial=removevars(SLMPointTableTrial,{'PointSpeedR','PointStimR'});
+        % SLMPointTableTrial=removevars(SLMPointTableTrial,{'PointSpeedR','PointSensoryR'});
         
         % SLMPointTableTrial.Properties.VariableNames{'VolOut'} = 'Whisk';
         
@@ -150,20 +153,28 @@ tblFOVclean=[];   %%refers to remove trials with power test when the power is no
 
 
 
-    tempTargetList=Output(iData).TargetCellListFOV{iFOV};
-    tempPowerI=Output(iData).PowerTargetIFOV{iFOV};
+    tempTargetList=Output(iData).PowerTestCellListFOV{iFOV};    %%Cell List being tested in PowerTest
+    % tempPowerI=Output(iData).PowerTargetIFOV{iFOV};
     tempPower=unique(tblFOV.UncagingLaserPower);
-    tempGroup=Output(iData).TargetCellListFunGroupFOV{iFOV};
-
+    % tempGroup=Output(iData).PowerTestCellListFunGroupFOV{iFOV};
+    % 
 
     %Cells pass the tested might be more than the final included cell, this
     %part only inlucde the cell later used in SLM group stimuli
-        finalTargetList=[];
-        for igroup=1:length(Output(iData).GroupTargetCellMeta{iFOV})
-            finalTargetList=[finalTargetList;Output(iData).GroupTargetCellMeta{iFOV}{igroup}(:)];
-        end
-        finalTargetList=sort(finalTargetList);
-        i1=ismember(tempTargetList,finalTargetList);
+        % finalTargetList=[];
+        % for igroup=1:length(Output(iData).GroupTargetCellMeta{iFOV})
+        %     finalTargetList=[finalTargetList;Output(iData).GroupTargetCellMeta{iFOV}{igroup}(:)];
+        % end
+        finalActTargetList=Output(iData).ActCellListFOV{iFOV};  %%Act responsive cell List being tested in PowerTest
+        [~,validI]=ismember(finalActTargetList,tempTargetList);
+
+
+
+        tempTargetList=finalActTargetList;
+        tempPowerI=Output(iData).ActPowerIFOV{iFOV};        
+        tempPower=tempPower(tempPowerI);
+        tempGroup=Output(iData).ActCellFunGroupFOV{iFOV};
+
     % tempTargetList=tempTargetList(i1);
     % tempPowerI=tempPowerI(i1);
     % tempGroup=tempGroup(i1);
@@ -171,11 +182,13 @@ tblFOVclean=[];   %%refers to remove trials with power test when the power is no
     %part only inlucde the cell later used in SLM group stimuli
 
     %Only significant activated cell were considered
-    validI=find(tempPowerI>0&i1>0);
-    tempTargetList=tempTargetList(validI);
-    tempPowerI=tempPowerI(validI);
-    tempPower=tempPower(tempPowerI);
-    tempGroup=tempGroup(validI);
+    % validI=find(tempPowerI>0&i1>0);
+    % tempTargetList=tempTargetList(validI);
+    % tempPowerI=tempPowerI(validI);
+    % tempPower=tempPower(tempPowerI);
+    % tempGroup=tempGroup(validI);
+    % 
+
     %Only significant activated cell were considered
 
 
@@ -228,14 +241,20 @@ tblFOVclean=[];   %%refers to remove trials with power test when the power is no
     
     end
 
+ 
+
+ %%Using same data after quality control   
+ValidSGtemp=ValidSG(:,1:2); 
+
+tblFOVclean = renamevars(tblFOVclean, 'PointTargetCellGroup', 'Group');
+tblFOVclean=innerjoin(tblFOVclean , unique(ValidSGtemp(:,{'Session','Group'})), ...
+                         'Keys', {'Session','Group'});
+tblFOVclean = renamevars(tblFOVclean, 'Group','PointTargetCellGroup');
+ %%Using same data after quality control   
 
 
 
 GroupMethod='mean';
-
-illegalSession=[5 6];
-tblFOVclean(ismember(tblFOVclean.Session,illegalSession),:)=[];
-
 
 
 
@@ -247,15 +266,15 @@ tblFOVclean.ActPosSpeedR=tblFOVclean.ActivateIPos.*tblFOVclean.SpeedR;
 tblFOVclean.ActNegSpeedR=tblFOVclean.ActivateINeg.*tblFOVclean.SpeedR;
 
 
-tblFOVclean.ActStimR=tblFOVclean.ActivateI.*tblFOVclean.StimR;
-tblFOVclean.ActPosStimR=tblFOVclean.ActivateIPos.*tblFOVclean.StimR;
-tblFOVclean.ActNegStimR=tblFOVclean.ActivateINeg.*tblFOVclean.StimR;
+tblFOVclean.ActSensoryR=tblFOVclean.ActivateI.*tblFOVclean.SensoryR;
+tblFOVclean.ActPosSensoryR=tblFOVclean.ActivateIPos.*tblFOVclean.SensoryR;
+tblFOVclean.ActNegSensoryR=tblFOVclean.ActivateINeg.*tblFOVclean.SensoryR;
 
 GroupMethod='mean';
 newtbl1 = groupsummary(tblFOVclean, {'Session', 'Cell'}, GroupMethod);
 newtbl1=groupsummaryBack2OldNames(tblFOVclean,newtbl1,GroupMethod);
 
-[a,p]=corr(newtbl1.SpeedR, newtbl1.StimR,'type','Spearman');
+[a,p]=corr(newtbl1.SpeedR, newtbl1.SensoryR,'type','Spearman');
 
 % tblFOVcleanavg = groupsummary(tblFOVclean(tblFOVclean.Response>0,:), {'Session', 'PointTargetCell','Cell'}, GroupMethod);
 tblFOVcleanavg = groupsummary(tblFOVclean, {'Session', 'PointTargetCell','Cell'}, GroupMethod);
@@ -269,9 +288,9 @@ newtbl2.ActivateINeg=newtbl2.ActivateI.*newtbl2.Response<0;
 % newtbl2.ActNegSpeedR=newtbl2.ActivateINeg.*newtbl2.SpeedR;
 % 
 % 
-% newtbl2.ActStimR=newtbl2.ActivateI.*newtbl2.StimR;
-% newtbl2.ActPosStimR=newtbl2.ActivateIPos.*newtbl2.StimR;
-% newtbl2.ActNegStimR=newtbl2.ActivateINeg.*newtbl2.StimR;
+% newtbl2.ActSensoryR=newtbl2.ActivateI.*newtbl2.SensoryR;
+% newtbl2.ActPosSensoryR=newtbl2.ActivateIPos.*newtbl2.SensoryR;
+% newtbl2.ActNegSensoryR=newtbl2.ActivateINeg.*newtbl2.SensoryR;
 % 
 
 
@@ -295,21 +314,21 @@ AIN_SpeedR = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.SpeedR, G);
 AI_SpeedR =  splitapply(myfun2, newtbl2.ActivateIPos,newtbl2.ActivateINeg, newtbl2.SpeedR, G);
 
 
-AIabs_StimR   = splitapply(myfun, newtbl2.ActivateI,    newtbl2.StimR,  G);
-AIP_StimR  = splitapply(myfun, newtbl2.ActivateIPos, newtbl2.StimR,  G);
-AIN_StimR  = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.StimR,  G);
-AI_StimR =  splitapply(myfun2, newtbl2.ActivateIPos,newtbl2.ActivateINeg, newtbl2.StimR, G);
+AIabs_SensoryR   = splitapply(myfun, newtbl2.ActivateI,    newtbl2.SensoryR,  G);
+AIP_SensoryR  = splitapply(myfun, newtbl2.ActivateIPos, newtbl2.SensoryR,  G);
+AIN_SensoryR  = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.SensoryR,  G);
+AI_SensoryR =  splitapply(myfun2, newtbl2.ActivateIPos,newtbl2.ActivateINeg, newtbl2.SensoryR, G);
 % Build result table using the grouping labels that match
 newtbl4 = table( ...
     sessionVals, TargetcellVals, ...
     AIabs_SpeedR,AI_SpeedR, AIP_SpeedR, AIN_SpeedR, ...
-    AIabs_StimR,AI_StimR, AIP_StimR, AIN_StimR, ...
+    AIabs_SensoryR,AI_SensoryR, AIP_SensoryR, AIN_SensoryR, ...
     'VariableNames', {'Session','PointTargetCell', ...
                       'AabsSpeedR','ASpeedR','APSpeedR','ANSpeedR', ...
-                      'AabsStimR','AStimR','APStimR','ANStimR'});
+                      'AabsSensoryR','ASensoryR','APSensoryR','ANSensoryR'});
 
 sumT1 = join(newtbl3, newtbl4, 'Keys', {'Session','PointTargetCell'});
-sumT1(:,{'TargetSpeedR','TargetStimR'})=[];
+sumT1(:,{'TargetSpeedR','TargetSensoryR'})=[];
 
 UniqueG=unique(G);
 UniqueS=unique(sessionVals);
@@ -543,18 +562,18 @@ print(gcf, [SaveFunConPth  NDataName{iData} 'IntraGroupVectorSimilarity.tif'], '
 
 
 
-% G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointStimR","PointStimR","PointStimR"],...
+% G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointSensoryR","PointSensoryR","PointSensoryR"],...
 %                                                                 ["ActivateI","ActivateIPos","ActivateINeg","ActivateI","ActivateIPos","ActivateINeg"]})
 
-Predictor={'ActivateI','ActivateIPos','ActivateINeg','AabsSpeedR','ASpeedR','APSpeedR','ANSpeedR','AabsStimR','AStimR','APStimR','ANStimR'};
+Predictor={'ActivateI','ActivateIPos','ActivateINeg','AabsSpeedR','ASpeedR','APSpeedR','ANSpeedR','AabsSensoryR','ASensoryR','APSensoryR','ANSensoryR'};
 
 
 
-Factor={'PointSpeedR','SpeedR','PointStimR','StimR','VecR','ActVecR'};
-% FactorCov{1}=[newtbl3.StimR newtbl3.SpeedR newtbl3.PointStimR];
-% FactorCov{2}=[newtbl3.StimR newtbl3.PointSpeedR newtbl3.PointStimR];
-% FactorCov{3}=[newtbl3.StimR newtbl3.SpeedR newtbl3.PointSpeedR];
-% FactorCov{4}=[newtbl3.PointStimR newtbl3.PointSpeedR newtbl3.SpeedR];
+Factor={'PointSpeedR','SpeedR','PointSensoryR','SensoryR','VecR','ActVecR'};
+% FactorCov{1}=[newtbl3.SensoryR newtbl3.SpeedR newtbl3.PointSensoryR];
+% FactorCov{2}=[newtbl3.SensoryR newtbl3.PointSpeedR newtbl3.PointSensoryR];
+% FactorCov{3}=[newtbl3.SensoryR newtbl3.SpeedR newtbl3.PointSpeedR];
+% FactorCov{4}=[newtbl3.PointSensoryR newtbl3.PointSpeedR newtbl3.SpeedR];
 
 DisX=[-0.6:0.025:0.6];
 % % figure;
@@ -646,7 +665,7 @@ print(gcf, [SaveFunConPth  NDataName{iData} 'TrialStabilityGroup.tif'], '-dtiffn
 % G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y,'rows','complete'),{["VecR","VecR","VecR","ActVecR","ActVecR","ActVecR"],...
 %                                                                 ["ActivateI","ActivateIPos","ActivateINeg","ActivateI","ActivateIPos","ActivateINeg"]})
 % SpaFactor={'Dist','DistXY'}
-% SpaPredictor={'Response','ActSpeedR','ActPosSpeedR','ActNegSpeedR','ActStimR','ActPosStimR','ActNegStimR'}
+% SpaPredictor={'Response','ActSpeedR','ActPosSpeedR','ActNegSpeedR','ActSensoryR','ActPosSensoryR','ActNegSensoryR'}
 
 % for iFF=1:length(SpaFactor)
 %     figure;
@@ -945,9 +964,9 @@ ParRegress.MarkerSize=10;
 ParRegress.Rtype='Spearman';
 ParRegress.xLim=[0 0.1];
 ParRegress.yLim=[0 0.2];
-% ParRegress.xLabel='StimR';
+% ParRegress.xLabel='SensoryR';
 % ParRegress.yLabel=Predictor{iPP};
-% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.StimR,newtbl3.ActivateI,newtbl3.PointTargetCellGroup,ParRegress)    
+% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.SensoryR,newtbl3.ActivateI,newtbl3.PointTargetCellGroup,ParRegress)    
 ParRegress.xLim=[];
 ParRegress.yLim=[];
 
@@ -1300,7 +1319,7 @@ save([SaveFunConPth NDataName{iData} 'VecTable.mat'],'tblFOVclean','tblFOVcleana
 
 end
 
-G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointStimR","PointStimR","PointStimR"],...
+G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointSensoryR","PointSensoryR","PointSensoryR"],...
                                                                 ["ActivateI","ActivateIPos","ActivateINeg","ActivateI","ActivateIPos","ActivateINeg"]})
 
 % GroupMethod='corr';
@@ -1312,7 +1331,7 @@ G = groupsummary(sumT1,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","
 % [G, sessionVals, cellVals] = findgroups(newtbl2.Session, newtbl2.PointTargetCellGroup);
 
 
-% G = groupsummary(newtbl2,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointStimR","PointStimR","PointStimR"],...
+% G = groupsummary(newtbl2,"PointTargetCellGroup",@(x,y) corr(x,y),{["PointSpeedR","PointSpeedR","PointSpeedR","PointSensoryR","PointSensoryR","PointSensoryR"],...
 %                                                                  ["ActivateI","ActivateIPos","ActivateINeg","ActivateI","ActivateIPos","ActivateINeg"]})
 
 
@@ -1330,21 +1349,21 @@ myfun = @(x,y) sum(x.*y) / sum(x);
 AIN_SpeedR = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.SpeedR, G);
 AI_SpeedR = AIP_SpeedR - AIN_SpeedR;
 
-% AI_StimR   = splitapply(myfun, newtbl2.ActivateI,    newtbl2.StimR,  G);
-AIP_StimR  = splitapply(myfun, newtbl2.ActivateIPos, newtbl2.StimR,  G);
-AIN_StimR  = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.StimR,  G);
-AI_StimR = AIP_StimR - AIN_StimR;
+% AI_SensoryR   = splitapply(myfun, newtbl2.ActivateI,    newtbl2.SensoryR,  G);
+AIP_SensoryR  = splitapply(myfun, newtbl2.ActivateIPos, newtbl2.SensoryR,  G);
+AIN_SensoryR  = splitapply(myfun, newtbl2.ActivateINeg, newtbl2.SensoryR,  G);
+AI_SensoryR = AIP_SensoryR - AIN_SensoryR;
 % Build result table using the grouping labels that match
 newtbl4 = table( ...
     sessionVals, cellVals, ...
     AI_SpeedR, AIP_SpeedR, AIN_SpeedR, ...
-    AI_StimR, AIP_StimR, AIN_StimR, ...
+    AI_SensoryR, AIP_SensoryR, AIN_SensoryR, ...
     'VariableNames', {'Session','PointTargetCell', ...
                       'ASpeedR','APSpeedR','ANSpeedR', ...
-                      'AStimR','APStimR','ANStimR'});
+                      'ASensoryR','APSensoryR','ANSensoryR'});
 
 sumT1 = join(newtbl3, newtbl4, 'Keys', {'Session','PointTargetCell'});
-sumT1(:,{'TargetSpeedR','TargetStimR'})=[];
+sumT1(:,{'TargetSpeedR','TargetSensoryR'})=[];
 
 
 [G, sessionVals, TargetcellVals] = findgroups(newtbl2.Session, newtbl2.PointTargetCell);
@@ -1409,7 +1428,7 @@ end
 figure;
 for iFOV=1:length(tempVec)
     subplot(4,4,iFOV)
-    [~,sortI]=sort(newtbl3.PointStimR(newtbl3.Session==UniqueS(iFOV)),'descend');
+    [~,sortI]=sort(newtbl3.PointSensoryR(newtbl3.Session==UniqueS(iFOV)),'descend');
     imagesc(rVecAct{iFOV}(sortI,sortI));
     colormap(ResponseMap);
     set(gca,'clim',[-0.8 0.8]);
@@ -1563,28 +1582,28 @@ ParRegress.MarkerSize=10;
 ParRegress.Rtype='pearson';
 ParRegress.xLim=[0 0.1];
 ParRegress.yLim=[0 0.2];
-% ParRegress.xLabel='StimR';
+% ParRegress.xLabel='SensoryR';
 ParRegress.yLabel=Factor{iPP};
-% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.StimR,newtbl3.ActivateI,newtbl3.PointTargetCellGroup,ParRegress)    
+% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.SensoryR,newtbl3.ActivateI,newtbl3.PointTargetCellGroup,ParRegress)    
 
 ParRegress.xLim=[-0.1 0.3];
 ParRegress.yLim=[0 0.2];
-% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.PointStimR,newtbl3[:,Factor{iPP}],newtbl3.PointTargetCellGroup,ParRegress)    
+% [OutPut,r,p]=LuPairRegressPlot_Group(newtbl3.PointSensoryR,newtbl3[:,Factor{iPP}],newtbl3.PointTargetCellGroup,ParRegress)    
 
 figure;
 ParRegress.xLim=[-0.1 0.3];
 ParRegress.yLim=[0 0.2];
-ParRegress.xLabel='TargetStimR';
+ParRegress.xLabel='TargetSensoryR';
 ParRegress.yLabel=Factor{iPP};
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointStimR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.StimR newtbl3.SpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);   
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSensoryR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.SensoryR newtbl3.SpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);   
 figure;
-ParRegress.yLabel='ActivateStimR';
+ParRegress.yLabel='ActivateSensoryR';
 ParRegress.yLim=[0 0.01];
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointStimR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.StimR,[newtbl3.SpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSensoryR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SensoryR,[newtbl3.SpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);    
 figure;
 ParRegress.yLabel='ActivateSpeedR';
 ParRegress.yLim=[0 0.01];
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointStimR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SpeedR,[newtbl3.StimR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);   
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSensoryR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SpeedR,[newtbl3.SensoryR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress);   
 
 
 
@@ -1596,18 +1615,18 @@ ParRegress.xLim=[-0.1 0.5];
 ParRegress.xLabel='TargetSpeedR';
 ParRegress.yLim=[0 0.2];
 ParRegress.yLabel=Factor{iPP};
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.StimR newtbl3.SpeedR newtbl3.PointStimR],newtbl3.PointTargetCellGroup,ParRegress)    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.SensoryR newtbl3.SpeedR newtbl3.PointSensoryR],newtbl3.PointTargetCellGroup,ParRegress)    
 
 figure;
 ParRegress.xLim=[-0.3 0.5];
 ParRegress.yLabel='ActivateSpeedR';
 ParRegress.yLim=[0 0.01];
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SpeedR,[newtbl3.StimR newtbl3.PointStimR],newtbl3.PointTargetCellGroup,ParRegress)    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SpeedR,[newtbl3.SensoryR newtbl3.PointSensoryR],newtbl3.PointTargetCellGroup,ParRegress)    
 
 figure;
-ParRegress.yLabel='ActivateStimR';
+ParRegress.yLabel='ActivateSensoryR';
 ParRegress.yLim=[0 0.01];
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.StimR,[newtbl3.SpeedR newtbl3.PointStimR],newtbl3.PointTargetCellGroup,ParRegress)    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.PointSpeedR,table2array(newtbl3(:,Factor{iPP})).*newtbl3.SensoryR,[newtbl3.SpeedR newtbl3.PointSensoryR],newtbl3.PointTargetCellGroup,ParRegress)    
 
 
 
@@ -1615,13 +1634,13 @@ ParRegress.yLim=[0 0.01];
 figure;
 ParRegress.xLim=[0 0.1];
 ParRegress.xLabel='NeuronSpeedR';
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.SpeedR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.StimR newtbl3.PointSpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress)    
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.SpeedR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.SensoryR newtbl3.PointSpeedR newtbl3.PointSpeedR],newtbl3.PointTargetCellGroup,ParRegress)    
 
 
 figure;
 ParRegress.xLim=[0 0.1];
-ParRegress.xLabel='NeuronStimR';
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.StimR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.PointStimR newtbl3.PointSpeedR newtbl3.SpeedR],newtbl3.PointTargetCellGroup,ParRegress)    
+ParRegress.xLabel='NeuronSensoryR';
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(newtbl3.SensoryR,table2array(newtbl3(:,Factor{iPP})),[newtbl3.PointSensoryR newtbl3.PointSpeedR newtbl3.SpeedR],newtbl3.PointTargetCellGroup,ParRegress)    
 
 end
 % figure;
@@ -1826,9 +1845,9 @@ for iTrial=1:length(TrialID)
     % DataVec(tblFOV.TargetCell(I1)==1,iTrial)=0;
     DataVecTBL(iTrial,:)=tblFOV(I1(1),:);
     DataVecTBL.SpeedR(iTrial)=mean(tblFOV.SpeedR(I1(NonTarget),:));
-    DataVecTBL.StimR(iTrial)=mean(tblFOV.StimR(I1(NonTarget),:));
+    DataVecTBL.SensoryR(iTrial)=mean(tblFOV.SensoryR(I1(NonTarget),:));
     % DataVecTBL(iTrial,:).TargetSpeedR=mean(tblFOV.SpeedR(I1(Target),:));
-    % DataVecTBL(iTrial,:).TargetStimR=mean(tblFOV.StimR(I1(Target),:));
+    % DataVecTBL(iTrial,:).TargetSensoryR=mean(tblFOV.SensoryR(I1(Target),:));
     if temp.Group(1)~=3
         tempScore(iTrial,:)=[FOVres(iFOV).SpeedScore(temp.Group(1)) FOVres(iFOV).StimScore(temp.Group(1))];
         % DataVecTBL.TargetStimScore(iTrial)=FOVres.StimScore(temp.Group(1));     
@@ -2044,9 +2063,9 @@ for iFOV=1:length(IndexFOVNeed)
         % DataVec(tblFOV.TargetCell(I1)==1,iTrial)=0;
         DataVecTBL(iTrial,:)=tblFOV(I1(1),:);
         DataVecTBL.SpeedR(iTrial)=mean(tblFOV.SpeedR(I1(NonTarget),:));
-        DataVecTBL.StimR(iTrial)=mean(tblFOV.StimR(I1(NonTarget),:));
+        DataVecTBL.SensoryR(iTrial)=mean(tblFOV.SensoryR(I1(NonTarget),:));
         % DataVecTBL(iTrial,:).TargetSpeedR=mean(tblFOV.SpeedR(I1(Target),:));
-        % DataVecTBL(iTrial,:).TargetStimR=mean(tblFOV.StimR(I1(Target),:));
+        % DataVecTBL(iTrial,:).TargetSensoryR=mean(tblFOV.SensoryR(I1(Target),:));
         if temp.Group(1)~=3
             tempScore(iTrial,:)=[FOVres(iFOV).SpeedScore(temp.Group(1)) FOVres(iFOV).StimScore(temp.Group(1))];
             % DataVecTBL.TargetStimScore(iTrial)=FOVres.StimScore(temp.Group(1));     
@@ -2147,9 +2166,9 @@ for iFOV=1:length(IndexFOVNeed)
         % DataVec(tblFOV.TargetCell(I1)==1,iTrial)=0;
         DataVecTBL(iTrial,:)=tblFOV(I1(1),:);
         DataVecTBL(iTrial,:).SpeedR=mean(tblFOV.SpeedR(I1(NonTarget),:));
-        DataVecTBL(iTrial,:).StimR=mean(tblFOV.StimR(I1(NonTarget),:));
+        DataVecTBL(iTrial,:).SensoryR=mean(tblFOV.SensoryR(I1(NonTarget),:));
         % DataVecTBL(iTrial,:).TargetSpeedR=mean(tblFOV.SpeedR(I1(Target),:));
-        % DataVecTBL(iTrial,:).TargetStimR=mean(tblFOV.StimR(I1(Target),:));
+        % DataVecTBL(iTrial,:).TargetSensoryR=mean(tblFOV.SensoryR(I1(Target),:));
     
         % 
         % %Keep Score positive
@@ -2309,9 +2328,9 @@ TBLallTemp=TBLall(TBLall.Whisk==1&TBLall.PowerZero==0&TBLall.Speed<SpeedTh,:);
 TBLsubTemp=TBLall_sub(TBLall_sub.Whisk==1&TBLall_sub.PowerZero==0&TBLall_sub.Speed<SpeedTh,:);
 
 figure;
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLallTemp.TargetStimR,TBLallTemp.WhiskerScore,TBLallTemp.Speed,TBLallTemp.Group,Param)
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLallTemp.TargetSensoryR,TBLallTemp.WhiskerScore,TBLallTemp.Speed,TBLallTemp.Group,Param)
 figure;
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLsubTemp.TargetStimR,TBLsubTemp.WhiskerScore,TBLsubTemp.Speed,TBLsubTemp.Group,Param)
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLsubTemp.TargetSensoryR,TBLsubTemp.WhiskerScore,TBLsubTemp.Speed,TBLsubTemp.Group,Param)
 
 figure;
 [OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBL_subavg.TargetSpeedScore,TBL_subavg.SpeedScore,TBL_subavg.Speed,TBL_subavg.Group,Param)
@@ -2336,12 +2355,12 @@ Param.Color=ProcessPar.GroupColor;
 Param.Marker='o';
 Param.MarkerSize=10;
 Param.Rtype='pearson';
-Param.xLim=[min(TBLallavg.TargetStimR) max(TBLallavg.TargetStimR)];
+Param.xLim=[min(TBLallavg.TargetSensoryR) max(TBLallavg.TargetSensoryR)];
 Param.yLim=[min(TBLallavg.WhiskerScore) max(TBLallavg.WhiskerScore)];
 figure;
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLallavg.TargetStimR,TBLallavg.WhiskerScore,TBLallavg.Speed,TBLallavg.Group,Param)
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBLallavg.TargetSensoryR,TBLallavg.WhiskerScore,TBLallavg.Speed,TBLallavg.Group,Param)
 figure;
-[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBL_subavg.TargetStimR,TBL_subavg.WhiskerScore,TBL_subavg.Speed,TBL_subavg.Group,Param)
+[OutPut,r,p,h]=LuPairRegressPlot_Group_Cov(TBL_subavg.TargetSensoryR,TBL_subavg.WhiskerScore,TBL_subavg.Speed,TBL_subavg.Group,Param)
 
 
 

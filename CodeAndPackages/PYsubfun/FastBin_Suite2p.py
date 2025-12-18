@@ -203,8 +203,8 @@ def CombinePlanes(SaveFolder, ops0):
         np.save(os.path.join(fpath, "ops.npy"), ops)
         np.save(os.path.join(fpath, "stat.npy"), stat)
         np.save(os.path.join(fpath, "iscell.npy"), iscell)
-        ops_matlab=ops;
-        ops_matlab['save_path']=fpath;
+        ops_matlab=ops
+        ops_matlab['save_path']=fpath
         suite2p.io.save_mat(ops, stat, F, Fneu, spks, iscell,redcell=-1)
     
 

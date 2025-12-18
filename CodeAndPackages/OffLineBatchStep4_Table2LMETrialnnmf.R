@@ -1,20 +1,58 @@
 #library(R.matlab)
 library(lmerTest)
+library(emmeans)
 dataTable=read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step4/awakeRefSpon/NonNegMatFac/NonTargetSLMScoreTrialDynWin1.csv");
 
 dataTable$Group=factor(dataTable$Group)
 dataTable$Cell=factor(dataTable$Cell)
-dataTable$Sensory=factor(dataTable$Sensory)
+#dataTable$Sensory=factor(dataTable$Sensory)
 dataTable$Session=factor(dataTable$Session)
-dataTable$PowerZero=factor(dataTable$PowerZero)
+#dataTable$PowerZero=factor(dataTable$PowerZero)
 
 #dataTable$Session=factor(dataTable$Session)
 
 l11 <- lmer(SpeedScore ~ Group*Speed + (1|Session),data = subset(dataTable, Sensory == 0 & PowerZero == 0),REML = FALSE)
 summary(l11)
 
-l11 <- lm(SpeedScore ~ Group*Speed + (1|Session),data = subset(dataTable, Sensory == 0 & PowerZero == 0),REML = FALSE)
+emtr <-emtrends(l11, ~ Group, var = "Speed")
+summary(emtr, infer = TRUE)
+
+dataT1<-dataTable
+dataT2<-dataTable
+l11 <- lmer(SpeedScore ~ Group * Speed + (1 | Session),
+            data = subset(dataTable, Sensory == 0 & PowerZero == 0),
+            REML = FALSE)
 summary(l11)
+
+dataT2$Group <- relevel(dataT2$Group, ref = "2")
+
+l11 <- lmer(SpeedScore_SpeedReg ~ Group  + (1 | Session),
+            data = subset(dataT1, Sensory == 0 & PowerZero == 0 & abs(Speed) <0.5),
+            REML = TRUE)
+summary(l11)
+
+
+
+l11 <- lm(WhiskerScore ~ Group+Speed + (1|Session),data = subset(dataT1, Sensory == 1 & PowerZero == 0),REML = FALSE)
+summary(l11)
+
+
+
+
+
+
+l11 <- lm(WhiskerScore ~ Group+Speed + (1|Session),data = subset(dataTable, Sensory == 1 & PowerZero == 0),REML = FALSE)
+summary(l11)
+
+
+aov_model <- aov(WhiskerScore ~ Group,
+                 data = subset(dataTable, Sensory == 1 & PowerZero == 0))
+summary(aov_model)
+
+
+
+
+
 
 l11 <- lmer(SpeedScore_SpeedReg ~ TargetSpeedR+Speed + (1|Session),data = subset(dataTable, Sensory == 0 & PowerZero == 0),REML = FALSE)
 summary(l11)

@@ -1,4 +1,4 @@
-function OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,ResultFolderSpeed)
+function OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocalTemp,PSTHparam,ResultFolderSpeed,varargin)
 
 
 % GroupLabel={'L','S','N'};
@@ -6,6 +6,14 @@ function OfflineSLMAbsSpeedControl_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pF
 % GroupColor=[255 51 153;91 20 212;121 247 111]/255;
 % NodeColor=repmat([0.9 0.9 0.9],length(iscell),1);
 % 
+if nargin>=7
+   speedABS=varargin{1} %%Either 'ABS' or 'NonABS'
+else
+   speedABS='ABS';    
+end
+
+
+
 papersizePX=[0 0 33 9];
 papersizePXX=[0 0 22 16];
 TestStepFrame=PSTHparam.TestStepFrame;
@@ -193,7 +201,11 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                                postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
     
                                if iAwake==1
-                               I1=I1(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
+                                   if strcmp(speedABS,'NonABS')
+                                      I1=I1(find((postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
+                                   else
+                                      I1=I1(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
+                                   end
                                end
                                % temp=find((postSLMSpeed-preSLMSpeed)>=0))
                                % if length(temp)<=1
@@ -248,10 +260,13 @@ for iSpeedTh=1:length(PostPreDiffSpeedTh)
                             I1=find(AlignedInfoTable.PowerZero==1&AlignedInfoTable.VolOut==VolOut(iVol)&AlignedInfoTable.AwakeState==AwakeState(iAwake));
                             preSLMSpeed=mean(squeeze(AlignedSpeed((PSTHparam.PreSLMCal-PSTHparam.PreTestFrame+1):PSTHparam.PreSLMCal,I1)),1);
                             postSLMSpeed=mean(squeeze(AlignedSpeed(PSTHparam.PreSLMCal+[1:TestStepFrame],I1)),1);
-                            if iAwake==1
-                               I1=I1(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
-                            end
-    
+                           if iAwake==1
+                               if strcmp(speedABS,'NonABS')
+                                  I1=I1(find((postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
+                               else
+                                  I1=I1(find(abs(postSLMSpeed-preSLMSpeed)<=PostPreDiffSpeedTh(iSpeedTh)));
+                               end
+                           end
                             GroupSampleN(iFun+1)=length(I1);
                             if length(I1)==1
                                GroupResponse{iFun+1}=squeeze(AlignedtempNData(:,:,I1));

@@ -107,7 +107,7 @@ regParam.xLim=[-0.3 0.6];
 regParam.yLim=[-0.3 0.6];
 regParam.xLabel='SpeedCorr Pre';
 regParam.yLabel='SpeedCorr Post';
-subplotLU(1,2,1,1,P)
+subplotLU(1,2,1,1,P);
 [OutPut,r,p]=LuPairRegressPlot(rSpeed(:,1,iData),rSpeed(:,2,iData),regParam);
 plot([-0.3 0.6],[-0.3 0.6],'k:');hold on;
 % set(gca,'xlim',[-0.3 0.6],'ylim',[-0.3 0.6])
@@ -116,8 +116,8 @@ regParam.xLabel='StimCorr Pre';
 regParam.yLabel='StimCorr Awake';
 regParam.xLim=[-0.05 0.2];
 regParam.yLim=[-0.05 0.2];
-subplotLU(1,2,1,2,P)
-[OutPut,r,p]=LuPairRegressPlot(rStim(:,1,iData),rStim(:,2,iData),regParam)    
+subplotLU(1,2,1,2,P);
+[OutPut,r,p]=LuPairRegressPlot(rStim(:,1,iData),rStim(:,2,iData),regParam);  
 plot([-0.3 0.6],[-0.3 0.6],'k:');hold on;
 
 % % subplotLU(1,3,1,3,P)

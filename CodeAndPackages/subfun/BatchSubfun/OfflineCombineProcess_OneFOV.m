@@ -1,4 +1,4 @@
-function OfflineCombineProcess_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocal,PSTHparam)
+function OfflineCombineProcess_OneFOV(FOVtemp, Suite2pDataKeywords, suite2pFOVPathLocal,PSTHparam,FOVrawSuite2p)
 % Full modularized pipeline for all analysis/plotting on one FOV.
 % Input:
 %   FOVtemp: one element of FOVUpdate struct array
@@ -130,9 +130,31 @@ CorrResults = ProcessFOVCorrelationAndPlots(CaData, SpeedAll, StimAll, Suite2pTa
 
 
 %% --- 2. SLM/Cell Mapping ---
-DistTh = 10;
-[Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ...
-    ProcessFOVSLMTargetMapping(CaData, SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh);
+% DistTh = 10;
+% [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ...
+%     ProcessFOVSLMTargetMapping(SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh);
+
+TempMapData(1)=load([FOVrawSuite2p 'suite2p\combined\Fall.mat']);
+TempMapData(2)=load([suite2pDataFolder 'suite2p\combined\Fall.mat']);
+
+
+ParamMatch.OverlapTh=0.4;
+ParamMatch.PalphaTh=0.05;
+ParamMatch.PixFromMedCenter=40;
+ParamMatch.NormPerc=[0 100];
+ParamMatch.MatchingCellRadius=20;
+
+[Mapping,ROIInfo]=roiMatchDays(TempMapData,ParamMatch);  %match neurons recorded neurons between two different recording with same FOV. 
+
+
+
+[Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ProcessFOVSLMTarget_Online_Mapping(SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D,Mapping{1});
+
+
+% DistTh = 10;
+% [Suite2pTable, SLMtarget, SLMtargetTable, GroupTargetCell, TargetCellList, TargetCellListFunGroup] = ...
+%     ProcessFOVSLMTargetMapping(SLMPosInfo, SLMTestInfo, Suite2pTable, NeuronPos3D, DistTh);
+
 
 %% --- 3. Group Comparison/Boxplots ---
 Nlabel = {'DeltaF','Spks'};
@@ -200,9 +222,9 @@ if iData==1
 
 FDR=0.1;
 [h, crit_p, adj_p]=fdr_bh(TargetCellResP((~isnan(TargetCellResP))&CellSampleN>=TrialThNum),FDR,'pdep');
-crit_p=0.05;
+% crit_p=0.05;
 % crit_p=min([crit_p 0.05]);
-% crit_p=0.1;
+crit_p=0.1;
 
 PowerTargetI=zeros(length(TargetCellList),1);
 SuccTarget=PowerTargetI;
@@ -223,17 +245,17 @@ for iCell=1:length(TargetCellList)
 end
 sum(SuccTarget);
 
-pAll=[];
-for iCell=1:length(TargetCellList)
-    if SuccTarget(iCell)
-       temp=statCellRes(iCell,PowerTargetI(iCell)).p(:);
-       % temp(TargetCellList(iCell))=[];
-       pAll=[pAll;temp];
-    end
-end
-FDR=0.1;
-[h, crit_pAll, adj_p]=fdr_bh(pAll,FDR,'pdep');
-crit_pAll=min([crit_pAll 0.05]);
+% pAll=[];
+% for iCell=1:length(TargetCellList)
+%     if SuccTarget(iCell)
+%        temp=statCellRes(iCell,PowerTargetI(iCell)).p(:);
+%        % temp(TargetCellList(iCell))=[];
+%        pAll=[pAll;temp];
+%     end
+% end
+% FDR=0.1;
+% [h, crit_pAll, adj_p]=fdr_bh(pAll,FDR,'pdep');
+% crit_pAll=min([crit_pAll 0.05]);
 
 end
 

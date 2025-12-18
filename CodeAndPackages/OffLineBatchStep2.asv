@@ -49,39 +49,10 @@ for iFOV=1:length(FOVUpdate)
         % GroupNumFOV(iFOV,igroup)=sum(Output(1).ActCellFunGroupFOV{iFOV}==igroup);
         GroupNumFOV(iFOV,igroup)=sum(FinalActCellFunGroup==igroup);
     end
-    SLMSucc(iFOV)=length(FinalActCellFunGroup)/n1;
+    SuccRate(iFOV)=length(FinalActCellFunGroup)/n1;
 end
 
-plot(sum(GroupNumFOV,2))
-plot(sum(GroupNumFOV,2),SLMSucc,'ro')
-
-NumCellSucc=sum(GroupNumFOV,2);
-MaxGroupNum=max(GroupNumFOV,[],2)
-
-NPerGrouTh=5;
-NPerSessTh=12;
-SessTh=0.7;
-
-ValidInd=find(NumCellSucc>=NPerSessTh&SLMSucc(:)>=SessTh&MaxGroupNum>=NPerGrouTh);
-ValidInd=setdiff(ValidInd,[5 6 20]);  %%Session 5, 6 are from SL0886, WhiskerTrigger Runnning; Session 20, PV crash and FOV shift between Power test and SLM Group experiment
-ValidSG=[];
-for jFOV=1:length(ValidInd)
-    for iGroup=1:size(GroupNumFOV,2)
-        if GroupNumFOV((ValidInd(jFOV)),iGroup)>=NPerGrouTh
-           ValidSG=[ValidSG;ValidInd(jFOV) iGroup];
-        end
-    end
-end
-
-figure;
-subplot(2,1,1)
-scatter(1:length(FOVUpdate),NumCellSucc);
-hold on
-plot([0 24],repmat(NPerSessTh,1,2),':')
-subplot(2,1,2)
-scatter(1:length(FOVUpdate),SLMSucc)
-hold on
-plot([0 24],repmat(SessTh,1,2),':')
+plot(sum())
 
 GroupLabel={'L','S','N'};
 nGroup=length(GroupLabel);

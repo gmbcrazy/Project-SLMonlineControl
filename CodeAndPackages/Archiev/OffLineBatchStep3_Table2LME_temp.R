@@ -1,6 +1,19 @@
 #library(R.matlab)
 library(lmerTest)
-dataTable=read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step4/awakeRefSpon/NonNegMatFac/NonTargetSLMScoreTrialDynWin1.csv");
+library(dplyr)
+dataTable=read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step4/awakeRefSpon/NonNegMatFac/deltaFSLMGroupResTrialDynWin1.csv");
+
+dataTable<-read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step3/awakeRefSpon/GroupSLM20-Nov-2025/deltaFSLMGroupResTrialDynWin1.csv");
+
+base_dir <- "//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step3/awakeRefSpon/GroupSLM20-Nov-2025"
+
+ValidSG <- read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step3/awakeRefSpon/ValidFOVGroup.csv")
+
+
+ValidSG<-read.csv("//nimhlabstore1.nimh.nih.gov/UFNC/FNC2/Zhang/Projects/Project-LocalProcessing/Step3/awakeRefSpon/GroupSLM20-Nov-2025/ValidFOVGroup.csv");
+
+valid_keys <- unique(ValidSG[c("Session", "Group")])
+dataTable <- merge(dataTable,valid_keys, by = c("Session", "Group"),all = FALSE)          # inner join
 
 dataTable$Group=factor(dataTable$Group)
 dataTable$Cell=factor(dataTable$Cell)

@@ -86,7 +86,8 @@ for FixI=1:length(Data)-1
     % 1st column: Number of pixels in the corresponding Fixed cell
     % 2nd column: Number of pixels in the corresponding Moving cell
     MappingPixN=zeros(length(MovingCellID),2);
- 
+    OverlapPixN=zeros(length(MovingCellID),1);
+
     % Initialize MovingFromFix matrix to store the mapping relationship between Fixed and Moving cells
     % 1st column: Corresponding Fixed CellID
     % 2nd column: Moving CellID
@@ -116,9 +117,11 @@ for FixI=1:length(Data)-1
 
 %%Delete non-matching Cells
 Invalid=find(MovingFromFix(:,1)==0);
+if ~isempty(Invalid)
 MovingFromFix(Invalid,:)=[];
 OverlapPixN(Invalid)=[];
 MappingPixN(Invalid,:)=[];
+end
 %
 
 %% sort Mapping pair with Fixed CellID
@@ -148,12 +151,48 @@ CheckCell=tempCell(CheckList);
 RepeatCellI=[];
 if ~isempty(CheckCell)
    for ic=1:length(CheckCell)
-       RepeatI=find(MappingTemp(:,1)==CheckCell);
-       [~,I]=max(OverlapRmin(RepeatI))
+       RepeatI=find(MappingTemp(:,1)==CheckCell(ic));
+
+       %%Old script before Nov 19 , 2025
+       % [~,I]=max(OverlapRmin(RepeatI))
+       % temp=setdiff(RepeatI,RepeatI(I));
+       % RepeatCellI=[RepeatCellI;temp(:)];
+       % clear temp
+       %%Old script before Nov 19 , 2025
+
+       %%New after Nov 19 , 2025
+
+
+       [CheckCellROI,CheckCellBoundary]=ROI2neighbour(Fixed,FixedCell,CheckCell(ic),PixFromMedCenter);
+       [RepeatCellROI,RepeatCellBoundary]=ROI2neighbour(Moving,MovingCell,MappingTemp(RepeatI,2),PixFromMedCenter); % Extract the neighborhood of the registered Moving cells.
+       CheckCellcorrMatch=[];
+       for iRepeat=1:size(RepeatCellROI,3)
+           temp1=CheckCellROI(:);
+           temp2=RepeatCellROI(:,:,iRepeat);temp2=temp2(:);
+           ValidI=~(isnan(temp1)|isnan(temp2));
+           CheckCellcorrMatch(iRepeat)=corr(temp1(ValidI),temp2(ValidI));
+       end
+
+
+       [~,I]=max(CheckCellcorrMatch);
        temp=setdiff(RepeatI,RepeatI(I));
        RepeatCellI=[RepeatCellI;temp(:)];
        clear temp
+
+
+       % figure;
+       % subplot(1,size(RepeatCellROI,3)+1,1);
+       % ROIPlot(CheckCellROI,CheckCellBoundary{1});
+       % 
+       % for iRepeat=1:size(RepeatCellROI,3)
+       % subplot(1,size(RepeatCellROI,3)+1,iRepeat+1);
+       % ROIPlot(RepeatCellROI(:,:,iRepeat),RepeatCellBoundary{iRepeat});
+       % text(1,size(RepeatCellROI,1),num2str(CheckCellcorrMatch(iRepeat)),'Color','r');
+       % end
+        %%New after Nov 19 , 2025
+
    end
+
 
    MappingTemp(RepeatCellI,:)=[];
    OverlapRmin(RepeatCellI)=[];
@@ -175,10 +214,12 @@ OverMovingCellInfo=MovingCellInfo(MappingTemp(:,2),:);
 % Loop through each Moving cell and calculate the correlation with the corresponding Fixed cell.
 clear corrMatch;
 for i=1:size(MovingRoiN,3)
-   [~,corrMatch(i)]=imregcorr(AmpNormalize(MovingRoiN(:,:,i)),AmpNormalize(FixRoiN(:,:,i)));
+   % [~,corrMatch(i)]=imregcorr(AmpNormalize(MovingRoiN(:,:,i)),AmpNormalize(FixRoiN(:,:,i)));
    temp1=MovingRoiN(:,:,i);
    temp2=FixRoiN(:,:,i);
-   corrMatch(i)=corr(temp1(:),temp2(:));
+   temp1=temp1(:);temp2=temp2(:);
+   ValidI=~(isnan(temp1)|isnan(temp2));
+   corrMatch(i)=corr(temp1(ValidI),temp2(ValidI));
 end
 
 

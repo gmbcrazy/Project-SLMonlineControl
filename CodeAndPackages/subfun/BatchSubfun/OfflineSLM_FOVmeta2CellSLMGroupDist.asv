@@ -63,13 +63,12 @@ for iFOV=1:length(Input(1).ActCellListFOV)
     COVMinDist=[COVMinDist;MinDist];
     COVAveDist=[COVAveDist;AveDist];
     COVGeoDist=[COVGeoDist;GeoDist];
-    COVTargetCellN=[COVTargetCellN;TarN];
-
-    clear AveDist MinDist GeoDist TarN
+   
+    clear AveDist MinDist GeoDist
 
     
 end
-tblDist=table(COVCell(:),COVCellGroup(:),COVMinDist(:),COVAveDist(:),COVGeoDist(:),COVTargetCellN(:),'VariableNames',{'Cell','Group','MinDist','AveDist','GeoDist','TargetCellN'});
+tblDist=table(COVCell(:),COVCellGroup(:),COVMinDist(:),COVAveDist(:),COVGeoDist(:),'VariableNames',{'Cell','Group','MinDist','AveDist','GeoDist'});
 
 end
 

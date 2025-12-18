@@ -25,7 +25,7 @@ function FOVLevelCorrPlots(AveResTBL, Param, SaveP2)
         xLabelTxt = cfg{5};
 
         figure;
-        [~, r, p, h] = LuPairRegressPlot_Group_Cov(AveResTBL.(targetField), AveResTBL.(responseField), AveResTBL.Speed, AveResTBL.Group, Param);
+        [~, r, p, h] = LuPairRegressPlot_Group_Cov(AveResTBL.(targetField), AveResTBL.(responseField), [AveResTBL.Speed], AveResTBL.Group, Param);
 
         ylabel(h(1), yLabelTxt);
         xlabel(h(1), xLabelTxt);

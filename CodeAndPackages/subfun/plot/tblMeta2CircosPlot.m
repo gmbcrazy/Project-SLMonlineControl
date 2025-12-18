@@ -133,7 +133,7 @@ ParamTemp.yLim=[];
 
 ParamTemp.Color = Value2Color(unique(tempCelltbl.Session), SessionMap, [min(tempCelltbl.Session);max(tempCelltbl.Session)]);
 tblCovPlot=tempCelltbl;
-tblCovPlot=tblCovPlot(tblCovPlot.NonTargetCell==1,:)
+tblCovPlot=tblCovPlot(tblCovPlot.NonTargetCell==1,:);
 LuPairRegressPlot_Group_Cov(tblCovPlot.(scoreName), tblCovPlot.Response, tblCovPlot.Speed, tblCovPlot.Session, ParamTemp);
 colormap(t2, ResponseMap);
 set(gca, 'clim', ResponseLim);

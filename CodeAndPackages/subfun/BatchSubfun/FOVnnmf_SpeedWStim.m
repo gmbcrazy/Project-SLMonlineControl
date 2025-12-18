@@ -57,7 +57,11 @@ function FOVres = FOVnnmf_SpeedWStim(iFOV, SLMGroupTableTrial, NeuroTrace, BehTr
     end
 
     [~, pcaIspeed] = max(rSpeed);
-    [~, pcaIstim] = max(rStim);
+
+    [~,pcaIstim] = sort(rStim,'descend');
+    pcaIstim(pcaIstim==pcaIspeed)=[];
+    pcaIstim=pcaIstim(1);
+    % [~, pcaIstim] = max(rStim);
 
     FOVres.SpeedScore = rSpeed([pcaIspeed pcaIstim]);
     FOVres.SensoryScore = rStim([pcaIspeed pcaIstim]);
@@ -76,7 +80,10 @@ function FOVres = FOVnnmf_SpeedWStim(iFOV, SLMGroupTableTrial, NeuroTrace, BehTr
     end
 
     [~, pcaIspeed_NonTarget] = max(rSpeed_NonTarget);
-    [~, pcaIstim_NonTarget] = max(rStim_NonTarget);
+    % [~, pcaIstim_NonTarget] = max(rStim_NonTarget);
+    [~,pcaIstim_NonTarget] = sort(rStim_NonTarget,'descend');
+    pcaIstim_NonTarget(pcaIstim_NonTarget==pcaIspeed_NonTarget)=[];
+    pcaIstim_NonTarget=pcaIstim_NonTarget(1);
 
     FOVres.SpeedScore_NonTarget = rSpeed_NonTarget([pcaIspeed_NonTarget pcaIstim_NonTarget]);
     FOVres.SensoryScore_NonTarget = rStim_NonTarget([pcaIspeed_NonTarget pcaIstim_NonTarget]);
