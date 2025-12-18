@@ -3,7 +3,7 @@ clear all
 ConfigFolder='C:\Users\User\Project-SLMonlineControl\config\';
 
 
-WorkingFolder='E:\LuSLMOnlineTest\L00311\11112025\'
+WorkingFolder='E:\LuSLMOnlineTest\L00430\12182025\'
 % load('C:\Users\zhangl33\Projects\Project-SLMonlineControl\subfun\Color\colorMapPN3.mat');
 load('C:\Users\User\Project-SLMonlineControl\CodeAndPackages\subfun\Color\colorMapPN3.mat');
 confSet = ReadYaml([WorkingFolder 'CurrentSLMsetting.yml']);

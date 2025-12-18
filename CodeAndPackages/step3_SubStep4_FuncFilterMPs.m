@@ -19,7 +19,9 @@ fStim=fStim>0.5;
 
 for iPlane=1:numPlanes
     I1=find(CaData.CellPlaneID==iPlane);
+    if ~isempty(I1)
     [rSpeed(I1),pSpeed(I1)]=corr(NeuroData(ExcludeStimInd,iscell(I1)),fSpeed(ExcludeStimInd,iPlane),'type','Spearman','rows','pairwise');
+    end
 end
 
 clear rStim c

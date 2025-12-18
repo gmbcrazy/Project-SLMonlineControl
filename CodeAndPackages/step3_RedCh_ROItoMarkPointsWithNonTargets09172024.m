@@ -54,7 +54,7 @@ hist(RedSignal,60);
 subplot(1,2,2)
 hist(RegRed(:),400)
 
-RedTh=0.22*0.001;
+RedTh=0.12*0.001;
 
 
 %%

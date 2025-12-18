@@ -14,8 +14,14 @@ if isfield(s.PVMarkPointSeriesElements.PVMarkPointElement.Attributes,'CustomLase
    PowerWeight=s.PVMarkPointSeriesElements.PVMarkPointElement.Attributes.CustomLaserPercent;
 end
 
-for i=1:length(PVPoint)
-    PV(i)=PVPoint{i}.Attributes;
+if iscell(PVPoint)
+    for i=1:length(PVPoint)
+        PV(i)=PVPoint{i}.Attributes;
+    end
+else
+    for i=1:length(PVPoint)
+         PV(i)=PVPoint(i).Attributes;
+    end
 end
 
 temp=struct2table(PV);

@@ -13,13 +13,13 @@ FileIDrange=[];
 [SLMRes,sampleN]=SLMResponse_ROIMultiZ(ROIall,SLMTrialInfo,ROIparam,SLMTestParam.TerminalTrialN,SumDataFolder,FileIDrange);
 % close all
 % SLMRes([20 27],1)=0;
-SLMRes(16,2)=0;
+% SLMRes(16,2)=0;
 % sampleN(16,2)=4;
 % SLMRes([23 31 35],1)=0;
 
 % SLMRes([14 36],2)=0;
 
-% SLMRes(28,2)=0;
+SLMRes(8,2)=0;
 % % SLMRes(13,2)=0;
 % SLMRes(41,2)=0;
 % SLMRes(8,2)=0;
